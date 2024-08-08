@@ -18,13 +18,8 @@ typedef double fp64;
 
 #include "Float80.hpp"
 
-#ifdef __float128
-	#include "../Float128x2/Float128.hpp"
-	typedef __float128 fp80x2_Math;
-#else
-	typedef fp80 fp80x2_Math;
-#endif
-
+// Can be changed to other types for better accuracy
+typedef fp80 fp80x2_Math;
 
 /**
  * @brief Double-Float80 Dekker Float implementation.
@@ -671,6 +666,4 @@ typedef Float80x2 fp80x2;
 			return ret_val;
 		}
 
-#endif
-
-#endif /* DOUBLE_FLOAT64_HPP */
+#endif /* DOUBLE_FLOAT80_HPP */

@@ -16,11 +16,8 @@
 typedef float fp32;
 typedef double fp64;
 
-#ifdef __float128
-	typedef __float128 fp64x2_Math;
-#else
-	typedef long double fp64x2_Math;
-#endif
+// Can be changed to other types for better accuracy
+typedef fp64 fp64x2_Math;
 
 /**
  * @brief Double-Float64 Dekker Float implementation.
