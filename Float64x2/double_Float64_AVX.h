@@ -993,15 +993,14 @@ inline __m256dx2 _mm256x2_min_pdx2(__m256dx2 x, __m256dx2 y) {
 //------------------------------------------------------------------------------
 
 inline __m256dx2 _mm256x2_trunc_pdx2(__m256dx2 x) {
-	__m256dx2 int_hi, int_lo;
-	int_hi.hi = _mm256_trunc_pd(x.hi);
-	int_lo.hi = _mm256_trunc_pd(x.lo);
-	__m256d frac_hi = _mm256_sub_pd(x.hi, int_hi.hi);
-	__m256d frac_lo = _mm256_sub_pd(x.lo, int_lo.hi);
+	__m256d int_hi = _mm256_trunc_pd(x.hi);
+	__m256d int_lo = _mm256_trunc_pd(x.lo);
+	__m256d frac_hi = _mm256_sub_pd(x.hi, int_hi);
+	__m256d frac_lo = _mm256_sub_pd(x.lo, int_lo);
 	
 	__m256d frac_ge_1 = _mm256_cmp_pd(_mm256_add_pd(frac_hi, frac_lo), _mm256_set1_pd(1.0), _CMP_GE_OQ);
 
-	__m256dx2 trunc_all = _mm256x2_add_pdx2(_mm256x2_add_pd_pdx2(
+	__m256dx2 trunc_all = _mm256x2_add_pdx2_pd(_mm256x2_add_pd_pd(
 		_mm256_blendv_pd(_mm256_setzero_pd(), _mm256_set1_pd(1.0), frac_ge_1),
 		int_lo
 	), int_hi);
@@ -1010,31 +1009,29 @@ inline __m256dx2 _mm256x2_trunc_pdx2(__m256dx2 x) {
 
 inline __m256dx2 _mm256x2_floor_pdx2(__m256dx2 x) {
 	__m256dx2 int_part = _mm256x2_trunc_pdx2(x);
-	__m256dx2 floor_part;
+	
 	__m256d cmp_floor;
 	cmp_floor = _mm256_and_pd(
 		_mm256_cmplt_pdx2(x, _mm256x2_setzero_pdx2()),
 		_mm256_cmpneq_pdx2(x, int_part)
 	);
-	floor_part.hi = _mm256_blendv_pd(
+	__m256d floor_part = _mm256_blendv_pd(
 		_mm256_setzero_pd(), _mm256_set1_pd(1.0), cmp_floor
 	);
-	floor_part.lo = _mm256_setzero_pd();
-	return _mm256x2_sub_pdx2(x, floor_part);
+	return _mm256x2_sub_pdx2_pd(int_part, floor_part);
 }
 
 inline __m256dx2 _mm256x2_ceil_pdx2(__m256dx2 x) {
 	__m256dx2 int_part = _mm256x2_trunc_pdx2(x);
-	__m256dx2 ceil_part;
+	
 	__m256d cmp_ceil = _mm256_and_pd(
 		_mm256_cmpgt_pdx2(x, _mm256x2_setzero_pdx2()),
 		_mm256_cmpneq_pdx2(x, int_part)
 	);
-	ceil_part.hi = _mm256_blendv_pd(
+	__m256d ceil_part = _mm256_blendv_pd(
 		_mm256_setzero_pd(), _mm256_set1_pd(1.0), cmp_ceil
 	);
-	ceil_part.lo = _mm256_setzero_pd();
-	return _mm256x2_add_pdx2(x, ceil_part);
+	return _mm256x2_add_pdx2_pd(int_part, ceil_part);
 }
 
 //------------------------------------------------------------------------------
