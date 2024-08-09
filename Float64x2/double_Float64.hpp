@@ -25,20 +25,17 @@ typedef fp64 fp64x2_Math;
  *
  * @warning -Ofast may break this library. -O3 compiles okay on gcc and clang.
  */
-class Float64x2 {
-public:
+struct Float64x2 {
 	fp64 hi;
 	fp64 lo;
-	
-private:
 
 	/* Arithmetic */
 
-	inline Float64x2 Dekker_Add(
+	static inline Float64x2 Dekker_Add(
 		const Float64x2& x, const Float64x2& y
-	) const {
+	) {
 		fp64 r_hi = x.hi + y.hi;
-		fp64 r_lo = 0.0;
+		fp64 r_lo = static_cast<fp64>(0.0);
 		if (fabs(x.hi) > fabs(y.hi)) {
 			r_lo = x.hi - r_hi + y.hi + y.lo + x.lo;
 		} else {
@@ -51,11 +48,11 @@ private:
 		return c;
 	}
 
-	inline Float64x2 Dekker_Sub(
+	static inline Float64x2 Dekker_Sub(
 		const Float64x2& x, const Float64x2& y
-	) const {
+	) {
 		fp64 r_hi = x.hi - y.hi;
-		fp64 r_lo = 0.0;
+		fp64 r_lo = static_cast<fp64>(0.0);
 		if (fabs(x.hi) > fabs(y.hi)) {
 			r_lo = x.hi - r_hi - y.hi - y.lo + x.lo;
 		} else {
@@ -70,7 +67,7 @@ private:
 
 	static constexpr fp64 Dekker_Scale = 134217729.0; // (2^ceil(53 / 2) + 1)
 	
-	inline Float64x2 Dekker_Split(const fp64& x) const {
+	static inline Float64x2 Dekker_Split(const fp64& x) {
 		fp64 p = x * Dekker_Scale;
 		Float64x2 r;
 		r.hi = (x - p) + p;
@@ -80,7 +77,7 @@ private:
 	
 	// static constexpr uint64_t Dekker_Split_Mask = ~((uint64_t)0x3FFFFFF);
 
-	// inline Float64x2 Dekker_Split(const fp64& x) const {
+	// static inline Float64x2 Dekker_Split(const fp64& x) {
 	// 	Float64x2 r;
 	// 	uint64_t temp = (*(uint64_t*)((void*)&x)) & Dekker_Split_Mask;
 	// 	r.hi = (*(fp64*)((void*)&temp));
@@ -88,9 +85,9 @@ private:
 	// 	return r;
 	// }
 
-	inline Float64x2 Dekker_Mul12(
+	static inline Float64x2 Dekker_Mul12(
 		const fp64& x, const fp64& y
-	) const {
+	) {
 		Float64x2 a = Dekker_Split(x);
 		Float64x2 b = Dekker_Split(y);
 		fp64 p = a.hi * b.hi;
@@ -102,9 +99,9 @@ private:
 		return r;
 	}
 
-	inline Float64x2 Dekker_Mul(
+	static inline Float64x2 Dekker_Mul(
 		const Float64x2& x, const Float64x2& y
-	) const {
+	) {
 		Float64x2 t = Dekker_Mul12(x.hi, y.hi);
 		fp64 c = x.hi * y.lo + x.lo * y.hi + t.lo;
 
@@ -114,9 +111,9 @@ private:
 		return r;
 	}
 
-	inline Float64x2 Dekker_Div(
+	static inline Float64x2 Dekker_Div(
 		const Float64x2& x, const Float64x2& y
-	) const {
+	) {
 		Float64x2 u;
 		u.hi = x.hi / y.hi;
 		Float64x2 t = Dekker_Mul12(u.hi, y.hi);
@@ -128,13 +125,38 @@ private:
 		return r;
 	}
 
+	static inline Float64x2 Dekker_Sqr12(
+		const fp64& x
+	) {
+		Float64x2 a = Dekker_Split(x);
+		fp64 p = a.hi * a.hi;
+		fp64 q = static_cast<fp64>(2.0) * a.hi * a.lo;
+
+		Float64x2 r;
+		r.hi = p + q;
+		r.lo = p - r.hi + q + a.lo * a.lo;
+		return r;
+	}
+
+	static inline Float64x2 Dekker_Sqr(
+		const Float64x2& x
+	) {
+		Float64x2 t = Dekker_Sqr12(x.hi);
+		fp64 c = static_cast<fp64>(2.0) * x.hi * x.lo + t.lo;
+
+		Float64x2 r;
+		r.hi = t.hi + c;
+		r.lo = t.hi - r.hi + c;
+		return r;
+	}
+
 	/* Double-Single Arithmetic */
 
-	inline Float64x2 Dekker_Add_Float64(
+	static inline Float64x2 Dekker_Add_Float64(
 		const Float64x2& x, const fp64& y
-	) const {
+	) {
 		fp64 r_hi = x.hi + y;
-		fp64 r_lo = 0.0;
+		fp64 r_lo = static_cast<fp64>(0.0);
 		if (fabs(x.hi) > fabs(y)) {
 			r_lo = x.hi - r_hi + y + x.lo;
 		} else {
@@ -147,11 +169,11 @@ private:
 		return c;
 	}
 
-	inline Float64x2 Dekker_Sub_Float64(
+	static inline Float64x2 Dekker_Sub_Float64(
 		const Float64x2& x, const fp64& y
-	) const {
+	) {
 		fp64 r_hi = x.hi - y;
-		fp64 r_lo = 0.0;
+		fp64 r_lo = static_cast<fp64>(0.0);
 		if (fabs(x.hi) > fabs(y)) {
 			r_lo = x.hi - r_hi - y + x.lo;
 		} else {
@@ -164,9 +186,9 @@ private:
 		return c;
 	}
 
-	inline Float64x2 Dekker_Mul_Float64(
+	static inline Float64x2 Dekker_Mul_Float64(
 		const Float64x2& x, const fp64& y
-	) const {
+	) {
 		Float64x2 t = Dekker_Mul12(x.hi, y);
 		fp64 c = x.lo * y + t.lo;
 
@@ -176,9 +198,9 @@ private:
 		return r;
 	}
 
-	inline Float64x2 Dekker_Div_Float64(
+	static inline Float64x2 Dekker_Div_Float64(
 		const Float64x2& x, const fp64& y
-	) const {
+	) {
 		Float64x2 u;
 		u.hi = x.hi / y;
 		Float64x2 t = Dekker_Mul12(u.hi, y);
@@ -190,9 +212,9 @@ private:
 		return r;
 	}
 
-	inline Float64x2 Float64_Div_Dekker(
+	static inline Float64x2 Float64_Div_Dekker(
 		const fp64& x, const Float64x2& y
-	) const {
+	) {
 		Float64x2 u;
 		u.hi = x / y.hi;
 		Float64x2 t = Dekker_Mul12(u.hi, y.hi);
@@ -203,8 +225,6 @@ private:
 		r.lo = u.hi - r.hi + l;
 		return r;
 	}
-
-public:
 
 /* Arithmetic */
 
@@ -360,30 +380,22 @@ public:
 
 /* Constructors */
 
-	inline Float64x2() {
-		// this->hi = 0.0;
-		// this->lo = 0.0;
-	}
+	constexpr inline Float64x2() : hi(), lo() {}
 
-	inline Float64x2(const fp32& value) {
-		this->hi = (fp64)value;
-		this->lo = 0.0;
-	}
-	inline Float64x2(const fp64& value) {
-		this->hi = value;
-		this->lo = 0.0;
-	}
+	constexpr inline Float64x2(const fp32& value) :
+		hi((fp64)value), lo(0.0) {}
+
+	constexpr inline Float64x2(const fp64& value) :
+		hi(value), lo(0.0) {}
 
 	template<typename fpX>
-	inline Float64x2(const fpX& value) {
-		this->hi = (fp64)value;
-		this->lo = (fp64)(value - (fpX)this->hi);
-	}
+	constexpr inline Float64x2(const fpX& value) :
+		hi((fp64)value), lo((fp64)(value - (fpX)this->hi)) {}
 
 /* Casts */
 
 	constexpr inline operator fp32() const {
-		return (fp32)this->hi;
+		return (fp64)this->hi;
 	}
 	constexpr inline operator fp64() const {
 		return this->hi;
@@ -401,12 +413,23 @@ typedef Float64x2 fp64x2;
 /* Math functions (Natively implemented) */
 
 	/* Arithmetic */
+
 	inline fp64x2 fmax(fp64x2 x, fp64x2 y) {
 		return (x > y) ? x : y;
 	}
+	// inline fp64x2 fmax(fp64x2 x, fp64x2 y, fp64x2 z) {
+	// 	return (x > y) ?
+	// 	((x > z) ? x : z) :
+	// 	((y > z) ? y : z);
+	// }
 	inline fp64x2 fmin(fp64x2 x, fp64x2 y) {
 		return (x < y) ? x : y;
 	}
+	// inline fp64x2 fmin(fp64x2 x, fp64x2 y, fp64x2 z) {
+	// 	return (x < y) ?
+	// 	((x < z) ? x : z) :
+	// 	((y < z) ? y : z);
+	// }
 	inline fp64x2 fabs(fp64x2 x) {
 		return (x < static_cast<fp64x2>(0.0)) ? -x : x;
 	}
@@ -418,13 +441,38 @@ typedef Float64x2 fp64x2;
 	}
 	inline fp64x2 copysign(fp64x2 x, fp64x2 y) {
 		return (
-			(x < static_cast<fp64x2>(0.0)) != (y < (static_cast<fp64x2>(0.0)))
+			(x.hi < static_cast<fp64>(0.0)) != (y.hi < (static_cast<fp64>(0.0)))
 		) ? -x : x;
 	}
+	/** @note This function name may change to square() or etc */
+	inline fp64x2 sqr(fp64x2 x) {
+		return Float64x2::Dekker_Sqr(x);
+	}
+	inline fp64x2 sqrt(fp64x2 x) {
+		fp64x2 guess = (fp64x2)sqrt(x.hi);
+		return (guess + x / guess) * static_cast<fp64>(0.5);
+	}
+	inline fp64x2 cbrt(fp64x2 x) {
+		fp64x2 guess = (fp64x2)cbrt(x.hi);
+		return (
+			guess * static_cast<fp64>(2.0) + (x) / Float64x2::Dekker_Sqr(guess)
+		) / static_cast<fp64>(3.0);
+	}
+	inline fp64x2 hypot(fp64x2 x, fp64x2 y) {
+		return sqrt(
+			Float64x2::Dekker_Sqr(x) + Float64x2::Dekker_Sqr(y)
+		);
+	}
+	// inline fp64x2 hypot(fp64x2 x, fp64x2 y, fp64x2 z) {
+	// 	return sqrt(
+	// 		Float64x2::Dekker_Sqr(x) + Float64x2::Dekker_Sqr(y) + Float64x2::Dekker_Sqr(z)
+	// 	);
+	// }
 
 	/* Tests */
+
 	inline bool signbit(fp64x2 x) {
-		return (x < static_cast<fp64x2>(0.0)) ? true : false;
+		return (x.hi < 0.0) ? true : false;
 	}
 	/** Returns true if both x.hi and x.lo are finite */
 	inline bool isfinite(fp64x2 x) {
@@ -455,6 +503,7 @@ typedef Float64x2 fp64x2;
 	}
 
 	/* Comparison */
+
 	inline bool isgreater(fp64x2 x, fp64x2 y) {
 		return (x > y);
 	}
@@ -472,25 +521,26 @@ typedef Float64x2 fp64x2;
 	}
 	
 	/* Rounding */
-    inline fp64x2 trunc(fp64x2 x) {
-        fp64 frac_hi = x.hi - trunc(x.hi);
-        fp64 frac_lo = x.lo - trunc(x.lo);
-        fp64x2 int_hi = trunc(x.hi);
-        fp64x2 int_lo = trunc(x.lo);
-        // Sum in increasing order
-        fp64x2 trunc_all = static_cast<fp64x2>(0.0);
-        trunc_all += (
+
+	inline fp64x2 trunc(fp64x2 x) {
+		fp64x2 int_hi = trunc(x.hi);
+		fp64x2 int_lo = trunc(x.lo);
+		fp64 frac_hi = x.hi - int_hi.hi;
+		fp64 frac_lo = x.lo - int_lo.hi;
+		// Sum in increasing order
+		fp64x2 trunc_all = static_cast<fp64x2>(0.0);
+		trunc_all += (
 			(fp64x2)frac_hi + (fp64x2)frac_lo >= static_cast<fp64x2>(1.0)
 		) ? static_cast<fp64x2>(1.0) : static_cast<fp64x2>(0.0);
-        trunc_all += int_lo;
-        trunc_all += int_hi;
-        return trunc_all;
-    }
+		trunc_all += int_lo;
+		trunc_all += int_hi;
+		return trunc_all;
+	}
 	inline fp64x2 floor(fp64x2 x) {
 		fp64x2 int_part = trunc(x);
 		return (
 			x < static_cast<fp64x2>(0.0) && int_part != x
-		) ? int_part : int_part - static_cast<fp64x2>(1.0);
+		) ? int_part - static_cast<fp64x2>(1.0) : int_part;
 	}
 	inline fp64x2 ceil(fp64x2 x) {
 		fp64x2 int_part = trunc(x);
@@ -539,6 +589,14 @@ typedef Float64x2 fp64x2;
 	}
 
 	/* Integer and Remainder */
+
+	inline fp64x2 modf(fp64x2 x, fp64x2* int_part) {
+		fp64x2 trunc_part = trunc(x);
+		if (int_part != nullptr) {
+			*int_part = trunc_part;
+		}
+		return x - trunc_part;
+	}
 	inline fp64x2 nearbyint(fp64x2 x) {
 		return rint(x);
 	}
@@ -552,9 +610,9 @@ typedef Float64x2 fp64x2;
 		// inline fp64x2 fdim(fp64x2 x, fp64x2 y) { return (fp64x2)fdim((fp64x2_Math)x, (fp64x2_Math)y); }
 		// inline fp64x2 fma(fp64x2 x, fp64x2 y, fp64x2 z) { return (fp64x2)fma((fp64x2_Math)x, (fp64x2_Math)y, (fp64x2_Math)z); }
 		// inline fp64x2 copysign(fp64x2 x, fp64x2 y) { return (fp64x2)copysign((fp64x2_Math)x, (fp64x2_Math)y); }
-		inline fp64x2 sqrt(fp64x2 x) { return (fp64x2)sqrt((fp64x2_Math)x); }
-		inline fp64x2 cbrt(fp64x2 x) { return (fp64x2)cbrt((fp64x2_Math)x); }
-		inline fp64x2 hypot(fp64x2 x, fp64x2 y) { return (fp64x2)hypot((fp64x2_Math)x, (fp64x2_Math)y); }
+		// inline fp64x2 sqrt(fp64x2 x) { return (fp64x2)sqrt((fp64x2_Math)x); }
+		// inline fp64x2 cbrt(fp64x2 x) { return (fp64x2)cbrt((fp64x2_Math)x); }
+		// inline fp64x2 hypot(fp64x2 x, fp64x2 y) { return (fp64x2)hypot((fp64x2_Math)x, (fp64x2_Math)y); }
 		/* Trigonometry */
 		inline fp64x2  sin (fp64x2 x) { return (fp64x2) sin ((fp64x2_Math)x); }
 		inline fp64x2  cos (fp64x2 x) { return (fp64x2) cos ((fp64x2_Math)x); }
@@ -595,12 +653,12 @@ typedef Float64x2 fp64x2;
 		// inline long long llround(fp64x2 x) { return llround((fp64x2_Math)x); }
 		/* Integer and Remainder */
 		inline fp64x2 fmod(fp64x2 x, fp64x2 y) { return (fp64x2)fmod((fp64x2_Math)x, (fp64x2_Math)y); }
-		inline fp64x2 modf(fp64x2 x, fp64x2* y) {
-			fp64x2_Math y_temp;
-			fp64x2 result = modf((fp64x2_Math)x, &y_temp);
-			*y = (fp64x2)y_temp;
-			return result;
-		}
+		// inline fp64x2 modf(fp64x2 x, fp64x2* y) {
+		// 	fp64x2_Math y_temp;
+		// 	fp64x2 result = modf((fp64x2_Math)x, &y_temp);
+		// 	*y = (fp64x2)y_temp;
+		// 	return result;
+		// }
 		// inline fp64x2 nearbyint(fp64x2 x) { return (fp64x2)nearbyint((fp64x2_Math)x); }
 		// Incorrect Function // inline fp64x2 nextafter(fp64x2 x, fp64x2 y) { return (fp64x2)nextafter((fp64x2_Math)x, (fp64x2_Math)y); }
 		inline fp64x2 remainder(fp64x2 x, fp64x2 y) { return (fp64x2)remainder((fp64x2_Math)x, (fp64x2_Math)y); }
