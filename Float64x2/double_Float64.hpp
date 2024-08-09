@@ -449,10 +449,16 @@ typedef Float64x2 fp64x2;
 		return Float64x2::Dekker_Sqr(x);
 	}
 	inline fp64x2 sqrt(fp64x2 x) {
+		if (x == static_cast<fp64x2>(0.0)) {
+			return x;
+		}
 		fp64x2 guess = (fp64x2)sqrt(x.hi);
 		return (guess + x / guess) * static_cast<fp64>(0.5);
 	}
 	inline fp64x2 cbrt(fp64x2 x) {
+		if (x == static_cast<fp64x2>(0.0)) {
+			return x;
+		}
 		fp64x2 guess = (fp64x2)cbrt(x.hi);
 		return (
 			guess * static_cast<fp64>(2.0) + (x) / Float64x2::Dekker_Sqr(guess)
@@ -600,6 +606,24 @@ typedef Float64x2 fp64x2;
 	inline fp64x2 nearbyint(fp64x2 x) {
 		return rint(x);
 	}
+	
+	/* Float Exponents */
+
+	inline fp64x2 ldexp(fp64x2 x, int exp) {
+		x.hi = ldexp(x.hi, exp);
+		x.lo = isfinite(x.hi) ? ldexp(x.lo, exp) : x.hi;
+		return x;
+	}
+	inline fp64x2 scalbn(fp64x2 x, int exp) {
+		x.hi = scalbn(x.hi, exp);
+		x.lo = isfinite(x.hi) ? scalbn(x.lo, exp) : x.hi;
+		return x;
+	}
+	inline fp64x2 scalbln(fp64x2 x, long exp) {
+		x.hi = scalbln(x.hi, exp);
+		x.lo = isfinite(x.hi) ? scalbln(x.lo, exp) : x.hi;
+		return x;
+	}
 
 /* Math overloads (Casts to other types) */
 
@@ -666,9 +690,9 @@ typedef Float64x2 fp64x2;
 		/* Float Exponents */
 		inline int ilogb(fp64x2 x) { return ilogb((fp64x2_Math)x); }
 		inline fp64x2 frexp  (fp64x2 x, int* exp) { return (fp64x2)frexp  ((fp64x2_Math)x, exp); }
-		inline fp64x2 ldexp  (fp64x2 x, int  exp) { return (fp64x2)ldexp  ((fp64x2_Math)x, exp); }
-		inline fp64x2 scalbn (fp64x2 x, int  exp) { return (fp64x2)scalbn ((fp64x2_Math)x, exp); }
-		inline fp64x2 scalbln(fp64x2 x, long exp) { return (fp64x2)scalbln((fp64x2_Math)x, exp); }
+		// inline fp64x2 ldexp  (fp64x2 x, int  exp) { return (fp64x2)ldexp  ((fp64x2_Math)x, exp); }
+		// inline fp64x2 scalbn (fp64x2 x, int  exp) { return (fp64x2)scalbn ((fp64x2_Math)x, exp); }
+		// inline fp64x2 scalbln(fp64x2 x, long exp) { return (fp64x2)scalbln((fp64x2_Math)x, exp); }
 		/* Tests */
 		// inline bool signbit(fp64x2 x) { return (signbit((fp64x2_Math)x) != 0) ? true : false; }
 		// inline bool isfinite(fp64x2 x) { return (isfinite((fp64x2_Math)x) != 0) ? true : false; }

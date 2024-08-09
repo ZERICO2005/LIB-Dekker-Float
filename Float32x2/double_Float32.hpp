@@ -453,10 +453,16 @@ typedef Float32x2 fp32x2;
 		return Float32x2::Dekker_Sqr(x);
 	}
 	inline fp32x2 sqrt(fp32x2 x) {
+		if (x == static_cast<fp32x2>(0.0)) {
+			return x;
+		}
 		fp32x2 guess = (fp32x2)sqrt(x.hi);
 		return (guess + x / guess) * static_cast<fp32>(0.5);
 	}
 	inline fp32x2 cbrt(fp32x2 x) {
+		if (x == static_cast<fp32x2>(0.0)) {
+			return x;
+		}
 		fp32x2 guess = (fp32x2)cbrt(x.hi);
 		return (
 			guess * static_cast<fp32>(2.0) + (x) / Float32x2::Dekker_Sqr(guess)
@@ -605,6 +611,24 @@ typedef Float32x2 fp32x2;
 		return rint(x);
 	}
 
+	/* Float Exponents */
+
+	inline fp32x2 ldexp(fp32x2 x, int  exp) {
+		x.hi = ldexp(x.hi, exp);
+		x.lo = isfinite(x.hi) ? ldexp(x.lo, exp) : x.hi;
+		return x;
+	}
+	inline fp32x2 scalbn(fp32x2 x, int  exp) {
+		x.hi = scalbn(x.hi, exp);
+		x.lo = isfinite(x.hi) ? scalbn(x.lo, exp) : x.hi;
+		return x;
+	}
+	inline fp32x2 scalbln(fp32x2 x, long exp) {
+		x.hi = scalbln(x.hi, exp);
+		x.lo = isfinite(x.hi) ? scalbln(x.lo, exp) : x.hi;
+		return x;
+	}
+
 /* Math overloads (Casts to other types) */
 
 		/* Arithmetic */
@@ -675,9 +699,9 @@ typedef Float32x2 fp32x2;
 		/* Float Exponents */
 		inline int ilogb(fp32x2 x) { return ilogb((fp32x2_Math)x); }
 		inline fp32x2 frexp  (fp32x2 x, int* exp) { return (fp32x2)frexp  ((fp32x2_Math)x, exp); }
-		inline fp32x2 ldexp  (fp32x2 x, int  exp) { return (fp32x2)ldexp  ((fp32x2_Math)x, exp); }
-		inline fp32x2 scalbn (fp32x2 x, int  exp) { return (fp32x2)scalbn ((fp32x2_Math)x, exp); }
-		inline fp32x2 scalbln(fp32x2 x, long exp) { return (fp32x2)scalbln((fp32x2_Math)x, exp); }
+		// inline fp32x2 ldexp  (fp32x2 x, int  exp) { return (fp32x2)ldexp  ((fp32x2_Math)x, exp); }
+		// inline fp32x2 scalbn (fp32x2 x, int  exp) { return (fp32x2)scalbn ((fp32x2_Math)x, exp); }
+		// inline fp32x2 scalbln(fp32x2 x, long exp) { return (fp32x2)scalbln((fp32x2_Math)x, exp); }
 		/* Tests */
 		// inline bool signbit(fp32x2 x) { return (signbit((fp32x2_Math)x) != 0) ? true : false; }
 		// inline bool isfinite(fp32x2 x) { return (isfinite((fp32x2_Math)x) != 0) ? true : false; }

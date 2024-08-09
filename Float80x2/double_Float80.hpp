@@ -466,10 +466,16 @@ typedef Float80x2 fp80x2;
 		return Float80x2::Dekker_Sqr(x);
 	}
 	inline fp80x2 sqrt(fp80x2 x) {
+		if (x == static_cast<fp80x2>(0.0)) {
+			return x;
+		}
 		fp80x2 guess = (fp80x2)sqrt(x.hi);
 		return (guess + x / guess) * static_cast<fp80>(0.5);
 	}
 	inline fp80x2 cbrt(fp80x2 x) {
+		if (x == static_cast<fp80x2>(0.0)) {
+			return x;
+		}
 		fp80x2 guess = (fp80x2)cbrt(x.hi);
 		return (
 			guess * static_cast<fp80>(2.0) + (x) / Float80x2::Dekker_Sqr(guess)
@@ -618,6 +624,24 @@ typedef Float80x2 fp80x2;
 		return rint(x);
 	}
 
+	/* Float Exponents */
+
+	inline fp80x2 ldexp(fp80x2 x, int exp) {
+		x.hi = ldexp(x.hi, exp);
+		x.lo = isfinite(x.hi) ? ldexp(x.lo, exp) : x.hi;
+		return x;
+	}
+	inline fp80x2 scalbn(fp80x2 x, int exp) {
+		x.hi = scalbn(x.hi, exp);
+		x.lo = isfinite(x.hi) ? scalbn(x.lo, exp) : x.hi;
+		return x;
+	}
+	inline fp80x2 scalbln(fp80x2 x, long exp) {
+		x.hi = scalbln(x.hi, exp);
+		x.lo = isfinite(x.hi) ? scalbln(x.lo, exp) : x.hi;
+		return x;
+	}
+
 /* Math overloads (Casts to other types) */
 
 		/* Arithmetic */
@@ -683,9 +707,9 @@ typedef Float80x2 fp80x2;
 		/* Float Exponents */
 		inline int ilogb(fp80x2 x) { return ilogb((fp80x2_Math)x); }
 		inline fp80x2 frexp  (fp80x2 x, int* exp) { return (fp80x2)frexp  ((fp80x2_Math)x, exp); }
-		inline fp80x2 ldexp  (fp80x2 x, int  exp) { return (fp80x2)ldexp  ((fp80x2_Math)x, exp); }
-		inline fp80x2 scalbn (fp80x2 x, int  exp) { return (fp80x2)scalbn ((fp80x2_Math)x, exp); }
-		inline fp80x2 scalbln(fp80x2 x, long exp) { return (fp80x2)scalbln((fp80x2_Math)x, exp); }
+		// inline fp80x2 ldexp  (fp80x2 x, int  exp) { return (fp80x2)ldexp  ((fp80x2_Math)x, exp); }
+		// inline fp80x2 scalbn (fp80x2 x, int  exp) { return (fp80x2)scalbn ((fp80x2_Math)x, exp); }
+		// inline fp80x2 scalbln(fp80x2 x, long exp) { return (fp80x2)scalbln((fp80x2_Math)x, exp); }
 		/* Tests */
 		// inline bool signbit(fp80x2 x) { return (signbit((fp80x2_Math)x) != 0) ? true : false; }
 		// inline bool isfinite(fp80x2 x) { return (isfinite((fp80x2_Math)x) != 0) ? true : false; }
