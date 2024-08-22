@@ -382,29 +382,23 @@ struct Float80x2 {
 
 /* Constructors */
 
-	inline Float80x2() {
-		// this->hi = 0.0;
-		// this->lo = 0.0;
-	}
+	Float80x2() = default;
 
-	inline Float80x2(const fp32& value) {
-		this->hi = (fp32)value;
-		this->lo = 0.0;
-	}
-	inline Float80x2(const fp64& value) {
-		this->hi = (fp64)value;
-		this->lo = 0.0;
-	}
-	inline Float80x2(const fp80& value) {
-		this->hi = value;
-		this->lo = 0.0;
-	}
+	constexpr inline Float80x2(const fp80& value_hi, const fp80& value_lo) :
+		hi(value_hi), lo(value_lo) {}
+
+	constexpr inline Float80x2(const fp32& value) :
+		hi((fp32)value), lo(static_cast<fp80>(0.0)) {}
+
+	constexpr inline Float80x2(const fp64& value) :
+		hi((fp64)value), lo(static_cast<fp80>(0.0)) {}
+
+	constexpr inline Float80x2(const fp80& value) :
+		hi(value), lo(static_cast<fp80>(0.0)) {}
 
 	template<typename fpX>
-	inline Float80x2(const fpX& value) {
-		this->hi = (fp80)value;
-		this->lo = (fp80)(value - (fpX)this->hi);
-	}
+	constexpr inline Float80x2(const fpX& value) :
+		hi((fp80)value), lo((fp80)(value - (fpX)this->hi)) {}
 
 /* Casts */
 
@@ -424,6 +418,47 @@ struct Float80x2 {
 	}
 
 };
+
+//------------------------------------------------------------------------------
+// Float80x2 Constants
+//------------------------------------------------------------------------------
+
+/* C++20 <numbers> */
+
+	constexpr Float80x2 Float80x2_e          = {0xa.df85458a2bb4a9bp-2L,-0xa.04753bfb185861cp-67L}; /**< ~2.718281828 */
+	constexpr Float80x2 Float80x2_log2e      = {0xb.8aa3b295c17f0bcp-3L,-0x8.2f0025f2dc582eep-68L}; /**< ~1.442695041 */
+	constexpr Float80x2 Float80x2_log10e     = {0xd.e5bd8a937287195p-5L,+0xd.56eaabeb4cf70c9p-71L}; /**< ~0.434294482 */
+	constexpr Float80x2 Float80x2_pi         = {0xc.90fdaa22168c235p-2L,-0xe.ce675d1fc8f8cbbp-68L}; /**< ~3.141592654 */
+	constexpr Float80x2 Float80x2_inv_pi     = {0xa.2f9836e4e44152ap-5L,-0xf.62a0b82b2c88fc9p-75L}; /**< ~0.318309886 */
+	constexpr Float80x2 Float80x2_inv_sqrtpi = {0x9.06eba8214db688dp-4L,+0xe.3a914fed7fd8688p-69L}; /**< ~0.564189584 */
+	constexpr Float80x2 Float80x2_ln2        = {0xb.17217f7d1cf79acp-4L,-0xd.871319ff0342543p-70L}; /**< ~0.693147181 */
+	constexpr Float80x2 Float80x2_ln10       = {0x9.35d8dddaaa8ac17p-2L,-0xa.d494ea3e967aeb9p-69L}; /**< ~2.302585093 */
+	constexpr Float80x2 Float80x2_sqrt2      = {0xb.504f333f9de6484p-3L,+0xb.2fb1366ea957d3ep-68L}; /**< ~1.414213562 */
+	constexpr Float80x2 Float80x2_sqrt3      = {0xd.db3d742c265539ep-3L,-0xd.a8bd28f8747c477p-68L}; /**< ~1.732050808 */
+	constexpr Float80x2 Float80x2_inv_sqrt3  = {0x9.3cd3a2c8198e269p-4L,+0xc.7c0f257d92be831p-72L}; /**< ~0.577350269 */
+	constexpr Float80x2 Float80x2_egamma     = {0x9.3c467e37db0c7a5p-4L,-0xb.90701fbfab4d2a5p-70L}; /**< ~0.577215665 */
+	constexpr Float80x2 Float80x2_phi        = {0xc.f1bbcdcbfa53e0bp-3L,-0xc.633f9fa31237cbfp-72L}; /**< ~1.618033989 */
+
+#if __cplusplus >= 201907L
+#include <numbers>
+namespace std {
+	namespace numbers {
+		template<> inline constexpr Float80x2 e_v          <Float80x2> = Float80x2_e         ; /**< ~2.718281828 */
+		template<> inline constexpr Float80x2 log2e_v      <Float80x2> = Float80x2_log2e     ; /**< ~1.442695041 */
+		template<> inline constexpr Float80x2 log10e_v     <Float80x2> = Float80x2_log10e    ; /**< ~0.434294482 */
+		template<> inline constexpr Float80x2 pi_v         <Float80x2> = Float80x2_pi        ; /**< ~3.141592654 */
+		template<> inline constexpr Float80x2 inv_pi_v     <Float80x2> = Float80x2_inv_pi    ; /**< ~0.318309886 */
+		template<> inline constexpr Float80x2 inv_sqrtpi_v <Float80x2> = Float80x2_inv_sqrtpi; /**< ~0.564189584 */
+		template<> inline constexpr Float80x2 ln2_v        <Float80x2> = Float80x2_ln2       ; /**< ~0.693147181 */
+		template<> inline constexpr Float80x2 ln10_v       <Float80x2> = Float80x2_ln10      ; /**< ~2.302585093 */
+		template<> inline constexpr Float80x2 sqrt2_v      <Float80x2> = Float80x2_sqrt2     ; /**< ~1.414213562 */
+		template<> inline constexpr Float80x2 sqrt3_v      <Float80x2> = Float80x2_sqrt3     ; /**< ~1.732050808 */
+		template<> inline constexpr Float80x2 inv_sqrt3_v  <Float80x2> = Float80x2_inv_sqrt3 ; /**< ~0.577350269 */
+		template<> inline constexpr Float80x2 egamma_v     <Float80x2> = Float80x2_egamma    ; /**< ~0.577215665 */
+		template<> inline constexpr Float80x2 phi_v        <Float80x2> = Float80x2_phi       ; /**< ~1.618033989 */
+	}
+}
+#endif
 
 typedef Float80x2 fp80x2;
 
@@ -730,10 +765,18 @@ typedef Float80x2 fp80x2;
 			return stringTo_func.stringTo_FloatNx2(nPtr, endPtr);
 		}
 
+		/**
+		 * @brief Wrapper for stringTo_Float80x2
+		 */
+		inline std::istream& operator>>(std::istream& stream, Float80x2& value) {
+			internal_double_FloatN_stringTo<Float80x2, fp80> func_cin;
+			return func_cin.cin_FloatNx2(stream, value);
+		}
+
 		#include "../FloatNx2/double_FloatN_snprintf.hpp"
 
 		#define PRIFloat80x2 "D"
-		#define PRIfp80x2 "D"
+		#define PRIfp80x2 PRIFloat80x2
 
 		/**
 		 * @brief snprintf a singular Float80x2/fp80x2.
@@ -749,13 +792,21 @@ typedef Float80x2 fp80x2;
 		) {
 			va_list args;
 			va_start(args, format);
-			internal_double_FloatN_snprintf<Float80x2> func_snprintf;
+			internal_double_FloatN_snprintf<Float80x2, fp80> func_snprintf;
 			int ret_val = func_snprintf.FloatNx2_snprintf(
 				PRIFloat80x2, buf, len,
 				format, args
 			);
 			va_end(args);
 			return ret_val;
+		}
+
+		/**
+		 * @brief Wrapper for Float80x2_snprintf
+		 */
+		inline std::ostream& operator<<(std::ostream& stream, const Float80x2& value) {
+			internal_double_FloatN_snprintf<Float80x2, fp80> func_cout;
+			return func_cout.FloatNx2_cout(PRIFloat80x2, stream, value);
 		}
 
 #endif /* DOUBLE_FLOAT80_HPP */

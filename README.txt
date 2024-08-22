@@ -1,4 +1,4 @@
-LIB-Dekker-Float contains a variety of header-only Double-Dekker-Float implementations to boost precision and performance in your C/C++ program.
+LIB-Dekker-Float contains a variety of Dekker-Float implementations to boost precision and performance in your C/C++ program.
 
 This library is still under development, so it may or may not work with your program out of the box quite yet. Additionally, some math.h functions are unimplemented or rely on casting to other types.
 

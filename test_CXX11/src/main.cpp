@@ -8,12 +8,29 @@
 
 #include <cstdio>
 #include <cfloat>
+#include <ios>
+#include <numbers>
 
-#include "../../Float32x2/double_Float32.hpp"
-#include "../../Float64x2/double_Float64.hpp"
+#include "Float32x2/double_Float32.hpp"
+
+#include "Float64x2/double_Float64.hpp"
+
+#include "Float64x2/Float64x2.h"
+
+#include "Float64x4/Float64x4_def.h"
+
 #ifdef Enable_Float80
-	#include "../../Float80x2/double_Float80.hpp"
+	#include "Float80x2/double_Float80.hpp"
 #endif
+#ifdef Enable_Float128
+	#include "Float128x2/double_Float128.hpp"
+#endif
+
+#include "Float64x2/double_Float64_AVX.h"
+
+#include "test_function.hpp"
+
+#include "generate_constants.hpp"
 
 #define PRIFloat64 "l"
 
@@ -80,8 +97,17 @@ void run_math_demo(unsigned int seed) {
 
 int main(void) {
 	// run_demo();
-	run_math_demo(123456);
+	// run_math_demo(123456);
+	// test_function();
+	// generate_constants<Float64x2>();
 
+
+	__attribute__((unused)) char buf[999];
+	Float64x2 x = {1.0, DBL_MIN};
+	Float64x2_snprintf(buf, sizeof(buf), "%+9.320Df", x);
+	
+	printf("[%s]\n", buf);
+	printf("%La\n", LDBL_MAX);
 	fflush(stdout);
 	return 0;
 }

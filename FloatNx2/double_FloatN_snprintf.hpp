@@ -17,7 +17,7 @@
 #include <cstdio>
 #include <iostream>
 
-template<typename FloatNx2>
+template<typename FloatNx2, typename FloatN>
 class internal_double_FloatN_snprintf {
 	private:
 	
@@ -407,8 +407,9 @@ class internal_double_FloatN_snprintf {
 				strncpy(buf, format, len);
 				return (int)strlen(format);
 		}
-
+		
 		FloatNx2 value = va_arg(args, FloatNx2);
+
 		std::string output_str = "";
 		if (fm_start > format) { /* Copy text before % */
 			size_t copy_amount = (size_t)(fm_start - format);
@@ -429,16 +430,16 @@ class internal_double_FloatN_snprintf {
 				output_str += "<unsupported %A FloatNx2_snprintf>";
 				break;
 			case 'e':
-				output_str += "<unsupported %A FloatNx2_snprintf>";
+				output_str += "<unsupported %e FloatNx2_snprintf>";
 				break;
 			case 'E':
-				output_str += "<unsupported %A FloatNx2_snprintf>";
+				output_str += "<unsupported %E FloatNx2_snprintf>";
 				break;
 			case 'g':
-				output_str += "<unsupported %A FloatNx2_snprintf>";
+				output_str += "<unsupported %g FloatNx2_snprintf>";
 				break;
 			case 'G':
-				output_str += "<unsupported %A FloatNx2_snprintf>";
+				output_str += "<unsupported %G FloatNx2_snprintf>";
 				break;
 		}
 		
@@ -448,7 +449,83 @@ class internal_double_FloatN_snprintf {
 		strncpy(buf, output_str.c_str(), len);
 
 		// va_end(args);
-		return (int)strlen(format);
+		return (int)strlen(output_str.c_str());
+	}
+
+	private:
+
+	/**
+	 * @brief converts a fixed amount arguments into a va_list
+	 */
+	static int FloatNx2_cout_snprintf(
+		const char* PRIFloatNx2,
+		char* buf, size_t len,
+		const char* format, ...
+	) {
+		va_list args;
+		va_start(args, format);
+		int ret_val = FloatNx2_snprintf(
+			PRIFloatNx2, buf, len,
+			format, args
+		);
+		va_end(args);
+		return ret_val;
+	}
+
+	public:
+
+	static std::ostream& FloatNx2_cout(
+		const char* PRIFloatNx2,
+		std::ostream& stream, const FloatNx2& value
+	) {
+		std::string format_str = "%";
+		format_str += (stream.flags() & std::ios_base::showpoint) ? "#" : "";
+		format_str += (stream.flags() & std::ios_base::showpos) ? "+" : "";
+		// format_str += (stream.flags() & std::ios_base::right) ? "-" : "";
+		format_str += "*.*";
+		format_str += PRIFloatNx2;
+		bool uppercase_format = (stream.flags() & std::ios_base::uppercase) ? true : false;
+		bool fixed_format = (stream.flags() & std::ios_base::fixed) ? true : false;
+		bool scientific_format = (stream.flags() & std::ios_base::scientific) ? true : false;
+		
+		char format_specifier = 'f';
+		if (fixed_format) {
+			if (scientific_format) {
+				format_specifier = uppercase_format ? 'A' : 'a';
+			} else {
+				format_specifier = uppercase_format ? 'F' : 'f';
+			}
+		} else {
+			if (scientific_format) {
+				format_specifier = uppercase_format ? 'E' : 'e';
+			} else {
+				format_specifier = uppercase_format ? 'G' : 'g';
+			}
+		}
+		
+		#if 1 /* Only %f and %F have been implemented */
+			format_specifier = uppercase_format ? 'F' : 'f';
+		#endif
+		format_str += format_specifier;
+		
+		int width = 0; // stream.width();
+		int precision = (int)stream.precision(); // cast from size_t to int
+		int len_str = FloatNx2_cout_snprintf(PRIFloatNx2, nullptr, 0, format_str.c_str(), width, precision, value);
+		if (len_str < 0) {
+			stream << "Failed to format FloatNx2";
+			return stream;
+		}
+		size_t str_size = (size_t)len_str;
+		char* buf = (char*)calloc(str_size + 1, sizeof(char));
+		if (buf == nullptr) {
+			stream << "Failed to calloc FloatNx22";
+			return stream;
+		}
+		FloatNx2_cout_snprintf(PRIFloatNx2, buf, str_size, format_str.c_str(), width, precision, value);
+		stream << buf;
+		free(buf);
+		buf = nullptr;
+		return stream;
 	}
 };
 

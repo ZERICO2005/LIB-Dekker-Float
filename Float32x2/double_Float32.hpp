@@ -384,7 +384,10 @@ struct Float32x2 {
 
 /* Constructors */
 
-	constexpr inline Float32x2() : hi(), lo() {}
+	Float32x2() = default;
+
+	constexpr inline Float32x2(const fp32& value_hi, const fp32& value_lo) :
+		hi(value_hi), lo(value_lo) {}
 
 	constexpr inline Float32x2(const fp32& value) :
 		hi(value), lo(0.0f) {}
@@ -411,6 +414,47 @@ struct Float32x2 {
 	}
 
 };
+
+//------------------------------------------------------------------------------
+// Float32x2 Constants
+//------------------------------------------------------------------------------
+
+/* C++20 <numbers> */
+
+	constexpr Float32x2 Float32x2_e          = {0x1.5bf0a8p+1f,+0x1.628aeep-24f}; /**< ~2.718281828 */
+	constexpr Float32x2 Float32x2_log2e      = {0x1.715476p+0f,+0x1.4ae0c0p-26f}; /**< ~1.442695041 */
+	constexpr Float32x2 Float32x2_log10e     = {0x1.bcb7b2p-2f,-0x1.5b235ep-27f}; /**< ~0.434294482 */
+	constexpr Float32x2 Float32x2_pi         = {0x1.921fb6p+1f,-0x1.777a5cp-24f}; /**< ~3.141592654 */
+	constexpr Float32x2 Float32x2_inv_pi     = {0x1.45f306p-2f,+0x1.b93910p-27f}; /**< ~0.318309886 */
+	constexpr Float32x2 Float32x2_inv_sqrtpi = {0x1.20dd76p-1f,-0x1.f7ac92p-26f}; /**< ~0.564189584 */
+	constexpr Float32x2 Float32x2_ln2        = {0x1.62e430p-1f,-0x1.05c610p-29f}; /**< ~0.693147181 */
+	constexpr Float32x2 Float32x2_ln10       = {0x1.26bb1cp+1f,-0x1.12aabap-25f}; /**< ~2.302585093 */
+	constexpr Float32x2 Float32x2_sqrt2      = {0x1.6a09e6p+0f,+0x1.9fcef4p-26f}; /**< ~1.414213562 */
+	constexpr Float32x2 Float32x2_sqrt3      = {0x1.bb67aep+0f,+0x1.0b0996p-25f}; /**< ~1.732050808 */
+	constexpr Float32x2 Float32x2_inv_sqrt3  = {0x1.279a74p-1f,+0x1.640cc8p-27f}; /**< ~0.577350269 */
+	constexpr Float32x2 Float32x2_egamma     = {0x1.2788d0p-1f,-0x1.c824f4p-28f}; /**< ~0.577215665 */
+	constexpr Float32x2 Float32x2_phi        = {0x1.9e377ap+0f,-0x1.1a02d6p-26f}; /**< ~1.618033989 */
+
+#if __cplusplus >= 201907L
+#include <numbers>
+namespace std {
+	namespace numbers {
+		template<> inline constexpr Float32x2 e_v          <Float32x2> = Float32x2_e         ; /**< ~2.718281828 */
+		template<> inline constexpr Float32x2 log2e_v      <Float32x2> = Float32x2_log2e     ; /**< ~1.442695041 */
+		template<> inline constexpr Float32x2 log10e_v     <Float32x2> = Float32x2_log10e    ; /**< ~0.434294482 */
+		template<> inline constexpr Float32x2 pi_v         <Float32x2> = Float32x2_pi        ; /**< ~3.141592654 */
+		template<> inline constexpr Float32x2 inv_pi_v     <Float32x2> = Float32x2_inv_pi    ; /**< ~0.318309886 */
+		template<> inline constexpr Float32x2 inv_sqrtpi_v <Float32x2> = Float32x2_inv_sqrtpi; /**< ~0.564189584 */
+		template<> inline constexpr Float32x2 ln2_v        <Float32x2> = Float32x2_ln2       ; /**< ~0.693147181 */
+		template<> inline constexpr Float32x2 ln10_v       <Float32x2> = Float32x2_ln10      ; /**< ~2.302585093 */
+		template<> inline constexpr Float32x2 sqrt2_v      <Float32x2> = Float32x2_sqrt2     ; /**< ~1.414213562 */
+		template<> inline constexpr Float32x2 sqrt3_v      <Float32x2> = Float32x2_sqrt3     ; /**< ~1.732050808 */
+		template<> inline constexpr Float32x2 inv_sqrt3_v  <Float32x2> = Float32x2_inv_sqrt3 ; /**< ~0.577350269 */
+		template<> inline constexpr Float32x2 egamma_v     <Float32x2> = Float32x2_egamma    ; /**< ~0.577215665 */
+		template<> inline constexpr Float32x2 phi_v        <Float32x2> = Float32x2_phi       ; /**< ~1.618033989 */
+	}
+}
+#endif
 
 typedef Float32x2 fp32x2;
 
@@ -722,10 +766,18 @@ typedef Float32x2 fp32x2;
 			return stringTo_func.stringTo_FloatNx2(nPtr, endPtr);
 		}
 
+		/**
+		 * @brief Wrapper for stringTo_Float32x2
+		 */
+		inline std::istream& operator>>(std::istream& stream, Float32x2& value) {
+			internal_double_FloatN_stringTo<Float32x2, fp32> func_cin;
+			return func_cin.cin_FloatNx2(stream, value);
+		}
+
 		#include "../FloatNx2/double_FloatN_snprintf.hpp"
 
 		#define PRIFloat32x2 "D"
-		#define PRIfp32x2 "D"
+		#define PRIfp32x2 PRIFloat32x2
 
 		/**
 		 * @brief snprintf a singular Float32x2/fp32x2.
@@ -741,13 +793,21 @@ typedef Float32x2 fp32x2;
 		) {
 			va_list args;
 			va_start(args, format);
-			internal_double_FloatN_snprintf<Float32x2> func_snprintf;
+			internal_double_FloatN_snprintf<Float32x2, fp32> func_snprintf;
 			int ret_val = func_snprintf.FloatNx2_snprintf(
 				PRIFloat32x2, buf, len,
 				format, args
 			);
 			va_end(args);
 			return ret_val;
+		}
+
+		/**
+		 * @brief Wrapper for Float32x2_snprintf
+		 */
+		inline std::ostream& operator<<(std::ostream& stream, const Float32x2& value) {
+			internal_double_FloatN_snprintf<Float32x2, fp32> func_cout;
+			return func_cout.FloatNx2_cout(PRIFloat32x2, stream, value);
 		}
 
 #endif /* DOUBLE_FLOAT32_HPP */

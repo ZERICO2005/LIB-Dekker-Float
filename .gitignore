@@ -1,4 +1,5 @@
 desktop.ini
 .vscode
 .cache
-test/build/
+*/build/
+.clangd

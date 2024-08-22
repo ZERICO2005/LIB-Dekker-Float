@@ -9,8 +9,10 @@
 #ifndef DOUBLE_FLOATN_TOSTRING_HPP
 #define DOUBLE_FLOATN_TOSTRING_HPP
 
+#include <istream>
 #include <climits>
 #include <cmath>
+#include <limits>
 
 template<typename FloatNx2, typename FloatN>
 class internal_double_FloatN_stringTo {
@@ -43,9 +45,12 @@ class internal_double_FloatN_stringTo {
 
 	static const char* get_exponent(const char* ptr, int& exponent) {
 		exponent = 0;
-		bool exp_sign = (*ptr == '-') ? true : false;
+		bool exp_sign = false;
 		if (*ptr == 'E' || *ptr == 'e') {
 			ptr++;
+			if (*ptr == '-') {
+				exp_sign = true;
+			}
 			if (*ptr == '+' || *ptr == '-') {
 				ptr++;
 			}
@@ -77,13 +82,18 @@ class internal_double_FloatN_stringTo {
 
 	public:
 
-	static FloatNx2 stringTo_FloatNx2(const char* nPtr, char** endPtr = nullptr) {
+	/**
+	 * @remarks memcpy(endPtr, &nPtr, sizeof(*endPtr)) is used
+	 * since *endPtr = (char*)ptr triggers -Wcast-qual
+	 */
+	static FloatNx2 stringTo_FloatNx2(const char* const nPtr, char** const endPtr = nullptr) {
 		if (nPtr == nullptr) {
-			return static_cast<FloatNx2>(0.0);
 			if (endPtr != nullptr) { *endPtr = nullptr; }
+			return static_cast<FloatNx2>(0.0);
 		}
 		if (*nPtr == '\0') {
-			if (endPtr != nullptr) { *endPtr = (char*)nPtr; }
+			return static_cast<FloatNx2>(0.0);
+			if (endPtr != nullptr) { memcpy(endPtr, &nPtr, sizeof(*endPtr)); }
 		}
 		const char* ptr = nPtr;
 		while (*ptr == ' ') {
@@ -100,17 +110,17 @@ class internal_double_FloatN_stringTo {
 			value.lo = std::numeric_limits<FloatN>::infinity();
 			value.hi = sign ? -value.hi : value.hi;
 			value.lo = sign ? -value.lo : value.lo;
-			if (endPtr != nullptr) { *endPtr = (char*)ptr; }
+			if (endPtr != nullptr) { memcpy(endPtr, &nPtr, sizeof(*endPtr)); }
 			return value;
 		}
 		if (compare_text(ptr, "NAN")) {
 			ptr += sizeof("NAN");
 			FloatNx2 value;
-			value.hi = std::numeric_limits<FloatNx2>::quiet_NaN();;
-			value.lo = std::numeric_limits<FloatNx2>::quiet_NaN();;
+			value.hi = std::numeric_limits<FloatN>::quiet_NaN();
+			value.lo = std::numeric_limits<FloatN>::quiet_NaN();
 			value.hi = sign ? -value.hi : value.hi;
 			value.lo = sign ? -value.lo : value.lo;
-			if (endPtr != nullptr) { *endPtr = (char*)ptr; }
+			if (endPtr != nullptr) { memcpy(endPtr, &nPtr, sizeof(*endPtr)); }
 			return value;
 		}
 
@@ -128,7 +138,7 @@ class internal_double_FloatN_stringTo {
 			mult_exp(int_part, exponent);
 			int_part.hi = sign ? -int_part.hi : int_part.hi;
 			int_part.lo = sign ? -int_part.lo : int_part.lo;
-			if (endPtr != nullptr) { *endPtr = (char*)ptr; }
+			if (endPtr != nullptr) { memcpy(endPtr, &nPtr, sizeof(*endPtr)); }
 			return int_part;
 		}
 		ptr++; // character after '.'
@@ -153,8 +163,36 @@ class internal_double_FloatN_stringTo {
 		mult_exp(frac_part, exponent);
 		frac_part.hi = sign ? -frac_part.hi : frac_part.hi;
 		frac_part.lo = sign ? -frac_part.lo : frac_part.lo;
-		if (endPtr != nullptr) { *endPtr = (char*)ptr; }
+		if (endPtr != nullptr) { memcpy(endPtr, &nPtr, sizeof(*endPtr)); }
 		return frac_part;
+	}
+	
+	static std::istream& cin_FloatNx2(std::istream& stream, FloatNx2& value) {
+		std::istream::sentry sentry(stream);
+
+		if (!sentry) {
+			value = static_cast<FloatNx2>(0.0);
+			return stream;
+		}
+
+		std::string num_str;
+		stream >> num_str;
+
+		if (num_str.empty()) {
+			value = static_cast<FloatNx2>(0.0);
+			stream.setstate(std::ios::failbit);
+			return stream;
+		}
+
+		char* endPtr = nullptr;
+		value = stringTo_FloatNx2(num_str.c_str(), &endPtr);
+
+		if (endPtr == num_str.c_str()) {
+			value = static_cast<FloatNx2>(0.0);
+			stream.setstate(std::ios::failbit);
+		}
+
+		return stream;
 	}
 };
 

@@ -11,7 +11,7 @@
 #include <quadmath.h>
 typedef __float128 fp128;
 #define PRIFloat128 "Q"
-#define PRIfp128 "Q"
+#define PRIfp128 PRIFloat128
 
 /* Math overloads */
 	/* Arithmetic */
@@ -73,11 +73,11 @@ typedef __float128 fp128;
 	inline fp128 scalbn (fp128 x, int  exp) { return scalbnq (x, exp); }
 	inline fp128 scalbln(fp128 x, long exp) { return scalblnq(x, exp); }
 	/* Tests */
-	inline bool signbit(fp128 x) { return (signbitq(x) != 0) ? true : false; }
-	inline bool isfinite(fp128 x) { return (finiteq(x) != 0) ? true : false; }
-	inline bool isinf(fp128 x) { return (isinfq(x) != 0) ? true : false; }
-	inline bool isnan(fp128 x) { return (isnanq(x) != 0) ? true : false; }
-	inline bool issignaling(fp128 x) { return (issignalingq(x) != 0) ? true : false; }
+	inline bool signbit(fp128 x) { return (signbitq(x) != 0); }
+	inline bool isfinite(fp128 x) { return (finiteq(x) != 0); }
+	inline bool isinf(fp128 x) { return (isinfq(x) != 0); }
+	inline bool isnan(fp128 x) { return (isnanq(x) != 0); }
+	inline bool issignaling(fp128 x) { return (issignalingq(x) != 0); }
 	/* Transcendental Functions */
 	inline fp128 erf (fp128 x) { return erfq (x); }
 	inline fp128 erfc(fp128 x) { return erfcq(x); }
