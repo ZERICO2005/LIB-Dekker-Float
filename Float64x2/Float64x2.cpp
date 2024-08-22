@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <cstdlib>
 
-#include "double_Float64.hpp"
+#include "Float64x2.hpp"
 
 
 //------------------------------------------------------------------------------
@@ -973,7 +973,7 @@ Float64x2 atanh(Float64x2 a) {
 // Float64x2 from string
 //------------------------------------------------------------------------------
 
-#include "../FloatNx2/double_FloatN_stringTo.hpp"
+#include "../FloatNx2/FloatNx2_stringTo.hpp"
 
 Float64x2 stringTo_Float64x2(const char* nPtr, char** endPtr) {
 	internal_double_FloatN_stringTo<Float64x2, fp64> stringTo_func;
@@ -989,7 +989,7 @@ std::istream& operator>>(std::istream& stream, Float64x2& value) {
 // Float64x2 to string
 //------------------------------------------------------------------------------
 
-#include "../FloatNx2/double_FloatN_snprintf.hpp"
+#include "../FloatNx2/FloatNx2_snprintf.hpp"
 
 int Float64x2_snprintf(char* buf, size_t len, const char* format, ...) {
 	va_list args;

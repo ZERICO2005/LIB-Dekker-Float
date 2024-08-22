@@ -1099,7 +1099,7 @@ int Float64x2_snprintf(char* buf, size_t len, const char* format, ...);
 #endif
 
 #ifdef __cplusplus
-#include "double_Float64.hpp"
+#include "Float64x2.hpp"
 #endif
 
 #endif /* FLOAT64X2_H */ 

@@ -7,7 +7,7 @@
 */
 
 #include "Float64x2.h"
-#include "double_Float64_AVX.h"
+#include "Float64x2_AVX.h"
 
 __m256dx2 _mm256x2_exp_pdx2(const __m256dx2 x) {
 	Float64x2 val[4];

@@ -5,8 +5,8 @@
 **	A copy of the MIT License should be included with
 **	this project. If not, see https://opensource.org/license/MIT
 */
-#ifndef DOUBLE_FLOAT80_HPP
-#define DOUBLE_FLOAT80_HPP
+#ifndef FLOAT80X2_HPP
+#define FLOAT80X2_HPP
 
 #include <cstdint>
 #include <math.h>
@@ -758,7 +758,7 @@ typedef Float80x2 fp80x2;
 
 	/* Strings */
 
-		#include "../FloatNx2/double_FloatN_stringTo.hpp"
+		#include "../FloatNx2/FloatNx2_stringTo.hpp"
 
 		inline Float80x2 stringTo_Float80x2(const char* nPtr, char** endPtr = nullptr) {
 			internal_double_FloatN_stringTo<Float80x2, fp80> stringTo_func;
@@ -773,7 +773,7 @@ typedef Float80x2 fp80x2;
 			return func_cin.cin_FloatNx2(stream, value);
 		}
 
-		#include "../FloatNx2/double_FloatN_snprintf.hpp"
+		#include "../FloatNx2/FloatNx2_snprintf.hpp"
 
 		#define PRIFloat80x2 "D"
 		#define PRIfp80x2 PRIFloat80x2
@@ -809,4 +809,4 @@ typedef Float80x2 fp80x2;
 			return func_cout.FloatNx2_cout(PRIFloat80x2, stream, value);
 		}
 
-#endif /* DOUBLE_FLOAT80_HPP */
+#endif /* FLOAT80X2_HPP */

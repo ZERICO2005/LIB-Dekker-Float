@@ -5,8 +5,8 @@
 **	A copy of the MIT License should be included with
 **	this project. If not, see https://opensource.org/license/MIT
 */
-#ifndef DOUBLE_FLOAT32_HPP
-#define DOUBLE_FLOAT32_HPP
+#ifndef FLOAT32X2_HPP
+#define FLOAT32X2_HPP
 
 #include <cstdarg>
 #include <cstdint>
@@ -759,7 +759,7 @@ typedef Float32x2 fp32x2;
 
 	/* Strings */
 
-		#include "../FloatNx2/double_FloatN_stringTo.hpp"
+		#include "../FloatNx2/FloatNx2_stringTo.hpp"
 
 		inline Float32x2 stringTo_Float32x2(const char* nPtr, char** endPtr = nullptr) {
 			internal_double_FloatN_stringTo<Float32x2, fp32> stringTo_func;
@@ -774,7 +774,7 @@ typedef Float32x2 fp32x2;
 			return func_cin.cin_FloatNx2(stream, value);
 		}
 
-		#include "../FloatNx2/double_FloatN_snprintf.hpp"
+		#include "../FloatNx2/FloatNx2_snprintf.hpp"
 
 		#define PRIFloat32x2 "D"
 		#define PRIfp32x2 PRIFloat32x2
@@ -810,4 +810,4 @@ typedef Float32x2 fp32x2;
 			return func_cout.FloatNx2_cout(PRIFloat32x2, stream, value);
 		}
 
-#endif /* DOUBLE_FLOAT32_HPP */
+#endif /* FLOAT32X2_HPP */

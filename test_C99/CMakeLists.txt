@@ -24,8 +24,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./bin")
 	set(FEATURE_ColorDiagnostics "")
 
 # Compiling
-	set(CMAKE_C_COMPILER "clang")
-	set(CMAKE_CXX_COMPILER "clang++")
+	set(CMAKE_C_COMPILER "gcc")
+	set(CMAKE_CXX_COMPILER "g++")
 
 # Set C and C++ standards
 	set(CMAKE_C_STANDARD 99)
@@ -45,7 +45,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./bin")
 
 # Packages and Macros
 	if(DEFINED FEATURE_ColorDiagnostics)
-		set(FLAG_ColorDiagnostics -fdiagnostics-color=always)
+		set(FLAG_ColorDiagnostics "-fdiagnostics-color=always")
 	else()
 		set(FLAG_ColorDiagnostics "")
 	endif()

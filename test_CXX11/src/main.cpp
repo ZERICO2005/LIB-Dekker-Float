@@ -11,22 +11,22 @@
 #include <ios>
 #include <numbers>
 
-#include "Float32x2/double_Float32.hpp"
+#include "Float32x2/Float32x2.hpp"
 
-#include "Float64x2/double_Float64.hpp"
+#include "Float64x2/Float64x2.hpp"
 
 #include "Float64x2/Float64x2.h"
 
 #include "Float64x4/Float64x4_def.h"
 
 #ifdef Enable_Float80
-	#include "Float80x2/double_Float80.hpp"
+	#include "Float80x2/Float80x2.hpp"
 #endif
 #ifdef Enable_Float128
-	#include "Float128x2/double_Float128.hpp"
+	#include "Float128x2/Float128x2.hpp"
 #endif
 
-#include "Float64x2/double_Float64_AVX.h"
+#include "Float64x2/Float64x2_AVX.h"
 
 #include "test_function.hpp"
 

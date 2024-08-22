@@ -5,8 +5,8 @@
 **	A copy of the MIT License should be included with
 **	this project. If not, see https://opensource.org/license/MIT
 */
-#ifndef DOUBLE_FLOAT128_HPP
-#define DOUBLE_FLOAT128_HPP
+#ifndef FLOAT128X2_HPP
+#define FLOAT128X2_HPP
 
 #include "Float128.hpp"
 
@@ -47,21 +47,21 @@ struct Float128x2 {
 #include <numbers>
 namespace std {
 	namespace numbers {
-		template<> inline constexpr Float128x2 e_v          <Float128x2> = ; /**< ~2.718281828 */
-		template<> inline constexpr Float128x2 log2e_v      <Float128x2> = ; /**< ~1.442695041 */
-		template<> inline constexpr Float128x2 log10e_v     <Float128x2> = ; /**< ~0.434294482 */
-		template<> inline constexpr Float128x2 pi_v         <Float128x2> = ; /**< ~3.141592654 */
-		template<> inline constexpr Float128x2 inv_pi_v     <Float128x2> = ; /**< ~0.318309886 */
-		template<> inline constexpr Float128x2 inv_sqrtpi_v <Float128x2> = ; /**< ~0.564189584 */
-		template<> inline constexpr Float128x2 ln2_v        <Float128x2> = ; /**< ~0.693147181 */
-		template<> inline constexpr Float128x2 ln10_v       <Float128x2> = ; /**< ~2.302585093 */
-		template<> inline constexpr Float128x2 sqrt2_v      <Float128x2> = ; /**< ~1.414213562 */
-		template<> inline constexpr Float128x2 sqrt3_v      <Float128x2> = ; /**< ~1.732050808 */
-		template<> inline constexpr Float128x2 inv_sqrt3_v  <Float128x2> = ; /**< ~0.577350269 */
-		template<> inline constexpr Float128x2 egamma_v     <Float128x2> = ; /**< ~0.577215665 */
-		template<> inline constexpr Float128x2 phi_v        <Float128x2> = ; /**< ~1.618033989 */
+		template<> inline constexpr Float128x2 e_v          <Float128x2> = Float128x2_e         ; /**< ~2.718281828 */
+		template<> inline constexpr Float128x2 log2e_v      <Float128x2> = Float128x2_log2e     ; /**< ~1.442695041 */
+		template<> inline constexpr Float128x2 log10e_v     <Float128x2> = Float128x2_log10e    ; /**< ~0.434294482 */
+		template<> inline constexpr Float128x2 pi_v         <Float128x2> = Float128x2_pi        ; /**< ~3.141592654 */
+		template<> inline constexpr Float128x2 inv_pi_v     <Float128x2> = Float128x2_inv_pi    ; /**< ~0.318309886 */
+		template<> inline constexpr Float128x2 inv_sqrtpi_v <Float128x2> = Float128x2_inv_sqrtpi; /**< ~0.564189584 */
+		template<> inline constexpr Float128x2 ln2_v        <Float128x2> = Float128x2_ln2       ; /**< ~0.693147181 */
+		template<> inline constexpr Float128x2 ln10_v       <Float128x2> = Float128x2_ln10      ; /**< ~2.302585093 */
+		template<> inline constexpr Float128x2 sqrt2_v      <Float128x2> = Float128x2_sqrt2     ; /**< ~1.414213562 */
+		template<> inline constexpr Float128x2 sqrt3_v      <Float128x2> = Float128x2_sqrt3     ; /**< ~1.732050808 */
+		template<> inline constexpr Float128x2 inv_sqrt3_v  <Float128x2> = Float128x2_inv_sqrt3 ; /**< ~0.577350269 */
+		template<> inline constexpr Float128x2 egamma_v     <Float128x2> = Float128x2_egamma    ; /**< ~0.577215665 */
+		template<> inline constexpr Float128x2 phi_v        <Float128x2> = Float128x2_phi       ; /**< ~1.618033989 */
 	}
 }
 #endif
 
-#endif /* DOUBLE_FLOAT128_HPP */
+#endif /* FLOAT128X2_HPP */

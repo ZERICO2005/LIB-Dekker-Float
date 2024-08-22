@@ -11,7 +11,7 @@
 
 #include <cstdio>
 
-// #include "Float64x2/double_Float64.hpp"
+// #include "Float64x2/Float64x2.hpp"
 #ifdef Enable_Float80
 	#include "Float80x2/Float80.hpp"
 #endif

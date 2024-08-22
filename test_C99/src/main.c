@@ -6,7 +6,7 @@
 **	this project. If not, see https://opensource.org/license/MIT
 */
 
-#include "Float64x2/double_Float64_AVX.h"
+#include "Float64x2/Float64x2_AVX.h"
 #include "Float64x2/Float64x2.h"
 
 #include <stdio.h>
