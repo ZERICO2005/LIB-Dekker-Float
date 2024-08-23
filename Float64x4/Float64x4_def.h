@@ -18,7 +18,7 @@ typedef double fp64;
 #include "Float64x2/Float64x2_def.h"
 
 //------------------------------------------------------------------------------
-// Float64x2 struct
+// Float64x4 struct
 //------------------------------------------------------------------------------
 
 typedef struct Float64x4 {
@@ -35,7 +35,7 @@ typedef struct Float64x4 {
     constexpr inline Float64x4(const fp64 values[4])
         : val{values[0], values[1], values[2], values[3]} {}
 
-	constexpr inline Float64x4(const Float64x2 value) :
+	constexpr inline Float64x4(const Float64x2& value) :
 		val{value.hi, value.lo, 0.0, 0.0} {}
 
 	constexpr inline Float64x4(const fp32 value) :
@@ -66,14 +66,14 @@ typedef struct Float64x4 {
 
 /* Casts */
 
+	constexpr inline operator Float64x2() const {
+		return (Float64x2)(this->val[0], this->val[1]);
+	}
 	constexpr inline operator fp32() const {
 		return (fp32)this->val[0];
 	}
 	constexpr inline operator fp64() const {
 		return (fp64)this->val[0];
-	}
-	constexpr inline operator Float64x2() const {
-		return (Float64x2)(this->val[0], this->val[1]);
 	}
 	#ifdef __float80
 	constexpr inline operator __float80() const {

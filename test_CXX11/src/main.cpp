@@ -26,17 +26,24 @@
 	#include "Float128x2/Float128x2.hpp"
 #endif
 
+#include "Float32x4/Float32x4.hpp"
+#include "Float64x4/Float64x4.hpp"
+
 #include "Float64x2/Float64x2_AVX.h"
 
 #include "test_function.hpp"
 
-#include "generate_constants.hpp"
+
 
 #define PRIFloat64 "l"
 
 #include "FloatNx2_demo.hpp"
 
 #include "FloatNx2_math_demo.hpp"
+
+#include "util_mpfr/auto_include_FloatX_mpfr.h"
+
+#include "generate_constants.hpp"
 
 void run_demo(void) {
 	FloatNx2_demo<Float32x2>(
@@ -95,12 +102,16 @@ void run_math_demo(unsigned int seed) {
 	#endif
 }
 
+void run_generate_constants(void) {
+	generate_constants<Float32x4>("Float32x4");
+}
+
 int main(void) {
 	// run_demo();
 	// run_math_demo(123456);
 	// test_function();
-	// generate_constants<Float64x2>();
 
+	// run_generate_constants();
 
 	__attribute__((unused)) char buf[999];
 	Float64x2 x = {1.0, DBL_MIN};
@@ -108,6 +119,7 @@ int main(void) {
 	
 	printf("[%s]\n", buf);
 	printf("%La\n", LDBL_MAX);
+
 	fflush(stdout);
 	return 0;
 }

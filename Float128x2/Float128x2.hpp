@@ -9,19 +9,7 @@
 #define FLOAT128X2_HPP
 
 #include "Float128.hpp"
-
-/**
- * @note Float128x2 is currently unimplemented.
- */
-struct Float128x2 {
-	__float128 hi;
-	__float128 lo;
-	
-	Float128x2() = default;
-
-	constexpr inline Float128x2(const __float128& value_hi, const __float128& value_lo) :
-		hi(value_hi), lo(value_lo) {}
-};
+#include "Float128_def.h"
 
 //------------------------------------------------------------------------------
 // Float128x2 Constants

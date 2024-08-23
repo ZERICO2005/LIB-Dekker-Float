@@ -1,6 +1,6 @@
 /*
-**	Author: zerico2005 (2023 - 2024)
-**	Project: ABS-Fractal-Explorer
+**	Author: zerico2005 (2024)
+**	Project: LIB-Dekker-Float
 **	License: MIT License
 **	A copy of the MIT License should be included with
 **	this project. If not, see https://opensource.org/license/MIT
@@ -9,7 +9,7 @@
 #define MPFR_FLOAT_HPP
 
 // Disabled for now. The overhead from operator overloading made it impractical for rendering fractals.
-#if defined(Enable_FloatMPFR) || true
+#if defined(Enable_FloatMPFR)
 
 #include <cstdint>
 
@@ -18,17 +18,17 @@
 typedef float fp32;
 typedef double fp64;
 #ifdef Enable_Float80
-	#include "../../Float80x2/Float80.hpp"
+	#include "../Float80x2/Float80.hpp"
 #endif
 #ifdef Enable_Float128
-	#include "../../Float128x2/Float128.hpp"
+	#include "../Float128x2/Float128.hpp"
 	#define MPFR_WANT_FLOAT128
 #endif
 #include <mpfr.h>
 
 #define PRImpfr "R"
 
-constexpr mpfr_prec_t MPFR_PRECISION = 256;
+constexpr mpfr_prec_t MPFR_PRECISION = 512;
 
 // template<mpfr_prec_t fpX>
 class FloatMPFR {

@@ -51,4 +51,18 @@ inline Float64x2 mpfr_get_float64x2(mpfr_srcptr op, const mpfr_rnd_t rnd) {
 }
 #endif
 
+#ifdef __cplusplus
+#include "util_mpfr/mpfr_convert.hpp"
+
+template <>
+inline int mpfr_set_type<Float64x2>(mpfr_t rop, const Float64x2& op, const mpfr_rnd_t rnd) {
+	return mpfr_set_float64x2(rop, op, rnd);
+}
+template <>
+inline Float64x2 mpfr_get_type<Float64x2>(mpfr_srcptr op, const mpfr_rnd_t rnd) {
+	return mpfr_get_float64x2(op, rnd);
+}
+
+#endif
+
 #endif /* FLOAT64X2_MPFR_H */

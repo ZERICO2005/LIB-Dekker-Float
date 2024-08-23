@@ -17,6 +17,7 @@ typedef float fp32;
 typedef double fp64;
 
 #include "Float80.hpp"
+#include "Float80x2_def.h"
 
 // Can be changed to other types for better accuracy
 typedef fp80 fp80x2_Math;
