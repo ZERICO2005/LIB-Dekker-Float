@@ -1,0 +1,57 @@
+Proposed type and namespace names:
+
+Some of these can't mathematically exist (Due to the exponent range), or are slower than arbritrary arithmetic.
+
+FP_SF::Float32     // Single - float
+FP_DF::Float32x2   // Double - float
+FP_TF::Float32x3   // Triple - float
+FP_QF::Float32x4   // Quad   - float
+FP_HF::Float32x6   // Hexa   - float
+FP_OF::Float32x8   // Octo   - float
+FP_ZF::Float32x12  // doZen  - float
+FP_XF::Float32x16  // heXa   - float
+
+FP_SD::Float64     // Single - double
+FP_DD::Float64x2   // Double - double
+FP_TD::Float64x3   // Triple - double
+FP_QD::Float64x4   // Quad   - double
+FP_HD::Float64x6   // Hexa   - double
+FP_OD::Float64x8   // Octo   - double
+FP_ZD::Float64x12  // doZen  - double
+FP_XD::Float64x16  // heXa   - double
+
+FP_SL::Float80     // Single - long double
+FP_DL::Float80x2   // Double - long double
+FP_TL::Float80x3   // Triple - long double
+FP_QL::Float80x4   // Quad   - long double
+FP_HL::Float80x6   // Hexa   - long double
+FP_OL::Float80x8   // Octo   - long double
+FP_ZL::Float80x12  // doZen  - long double
+FP_XL::Float80x16  // heXa   - long double
+
+FP_SQ::Float128    // Single - quad
+FP_DQ::Float128x2  // Double - quad
+FP_TQ::Float128x3  // Triple - quad
+FP_QQ::Float128x4  // Quad   - quad
+FP_HQ::Float128x6  // Hexa   - quad
+FP_OQ::Float128x8  // Octo   - quad
+FP_ZQ::Float128x12 // doZen  - quad
+FP_XQ::Float128x16 // heXa   - quad
+
+FP_SH::Float16     // Single - half
+FP_DH::Float16x2   // Double - half
+FP_TH::Float16x3   // Triple - half
+FP_QH::Float16x4   // Quad   - half
+FP_HH::Float16x6   // Hexa   - half
+FP_OH::Float16x8   // Octo   - half
+FP_ZH::Float16x12  // doZen  - half
+FP_XH::Float16x16  // heXa   - half
+
+FP_SB::BFloat16     // Single - brain-float
+FP_DB::BFloat16x2   // Double - brain-float
+FP_TB::BFloat16x3   // Triple - brain-float
+FP_QB::BFloat16x4   // Quad   - brain-float
+FP_HB::BFloat16x6   // Hexa   - brain-float
+FP_OB::BFloat16x8   // Octo   - brain-float
+FP_ZB::BFloat16x12  // doZen  - brain-float
+FP_XB::BFloat16x16  // heXa   - brain-float

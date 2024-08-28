@@ -10,9 +10,194 @@
 
 #include "Float32x4_def.h"
 
+#include <cstdint>
+#include <cmath>
+
 /**
  * @note Float32x4 is currently unimplemented.
  */
+
+//------------------------------------------------------------------------------
+// Float32x4 Compairison
+//------------------------------------------------------------------------------
+
+inline constexpr bool operator==(const Float32x4& x, const Float32x4& y) {
+	return (
+		x.val[0] == y.val[0] && x.val[1] == y.val[1] &&
+		x.val[2] == y.val[2] && x.val[3] == y.val[3]
+	);
+}
+inline constexpr bool operator!=(const Float32x4& x, const Float32x4& y) {
+	return (
+		x.val[0] != y.val[0] || x.val[1] != y.val[1] ||
+		x.val[2] != y.val[2] || x.val[3] != y.val[3]
+	);
+}
+inline constexpr bool operator<(const Float32x4& x, const Float32x4& y) {
+	return
+		(x.val[0] == y.val[0]) ? (
+			(x.val[1] == y.val[1]) ? (
+				(x.val[2] == y.val[2]) ? (
+					x.val[3] < y.val[3]
+				) : (x.val[2] < y.val[2])
+			) : (x.val[1] < y.val[1])
+		) : (x.val[0] < y.val[0]);
+}
+inline constexpr bool operator<=(const Float32x4& x, const Float32x4& y) {
+	return
+		(x.val[0] == y.val[0]) ? (
+			(x.val[1] == y.val[1]) ? (
+				(x.val[2] == y.val[2]) ? (
+					x.val[3] <= y.val[3]
+				) : (x.val[2] < y.val[2])
+			) : (x.val[1] < y.val[1])
+		) : (x.val[0] < y.val[0]);
+}
+inline constexpr bool operator>(const Float32x4& x, const Float32x4& y) {
+	return
+		(x.val[0] == y.val[0]) ? (
+			(x.val[1] == y.val[1]) ? (
+				(x.val[2] == y.val[2]) ? (
+					x.val[3] > y.val[3]
+				) : (x.val[2] > y.val[2])
+			) : (x.val[1] > y.val[1])
+		) : (x.val[0] > y.val[0]);
+}
+inline constexpr bool operator>=(const Float32x4& x, const Float32x4& y) {
+	return
+		(x.val[0] == y.val[0]) ? (
+			(x.val[1] == y.val[1]) ? (
+				(x.val[2] == y.val[2]) ? (
+					x.val[3] >= y.val[3]
+				) : (x.val[2] > y.val[2])
+			) : (x.val[1] > y.val[1])
+		) : (x.val[0] > y.val[0]);
+}
+
+//------------------------------------------------------------------------------
+// Float32x4 Compare to Zero
+//------------------------------------------------------------------------------
+
+/** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
+inline constexpr bool dekker_equal_zero(const Float32x4& x) {
+	return (x.val[0] == 0.0);
+}
+/** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
+inline constexpr bool dekker_notequal_zero(const Float32x4& x) {
+	return (x.val[0] != 0.0);
+}
+/** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
+inline constexpr bool dekker_less_zero(const Float32x4& x) {
+	return (x.val[0] < 0.0);
+}
+/** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
+inline constexpr bool dekker_lessequal_zero(const Float32x4& x) {
+	return (x.val[0] <= 0.0);
+}
+/** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
+inline constexpr bool dekker_greater_zero(const Float32x4& x) {
+	return (x.val[0] > 0.0);
+}
+/** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
+inline constexpr bool dekker_greaterequal_zero(const Float32x4& x) {
+	return (x.val[0] >= 0.0);
+}
+
+//------------------------------------------------------------------------------
+// Float32x4 Arithmetic
+//------------------------------------------------------------------------------
+
+/* Negation */
+
+inline constexpr Float32x4 operator-(const Float32x4& x) {
+	return {-x.val[0], -x.val[1], -x.val[2], -x.val[3]};
+}
+
+//------------------------------------------------------------------------------
+// Float32x4 specialized arithmetic
+//------------------------------------------------------------------------------
+
+/**
+ * @brief Multiplies by a known power of two (such as 2.0f, 0.5f, etc.) or zero
+ */
+inline Float32x4 mul_pwr2(const Float32x4& x, const fp32 y) {
+	Float32x4 ret;
+	ret.val[0] = x.val[0] * y;
+	ret.val[1] = x.val[1] * y;
+	ret.val[2] = x.val[2] * y;
+	ret.val[3] = x.val[3] * y;
+	return ret;
+}
+
+/**
+ * @brief Multiplies by a known power of two (such as 2.0f, 0.5f, etc.) or zero
+ */
+inline Float32x4 mul_pwr2(const fp32 x, const Float32x4& y) {
+	Float32x4 ret;
+	ret.val[0] = x * y.val[0];
+	ret.val[1] = x * y.val[1];
+	ret.val[2] = x * y.val[2];
+	ret.val[3] = x * y.val[3];
+	return ret;
+}
+
+//------------------------------------------------------------------------------
+// Float32x4 bitwise operators
+//------------------------------------------------------------------------------
+
+inline Float32x4 bitwise_not(const Float32x4& x) {
+	Float32x4 ret = x;
+	uint32_t* binary_part = reinterpret_cast<uint32_t*>(&ret);
+	binary_part[0] = ~binary_part[0];
+	binary_part[1] = ~binary_part[1];
+	binary_part[2] = ~binary_part[2];
+	binary_part[3] = ~binary_part[3];
+	return x;
+}
+
+inline Float32x4 bitwise_and(const Float32x4& x, const Float32x4& y) {
+	Float32x4 ret = x;
+	uint32_t* ret_bin = reinterpret_cast<uint32_t*>(&ret);
+	const uint32_t* y_bin = reinterpret_cast<const uint32_t*>(&y);
+	ret_bin[0] &= y_bin[0];
+	ret_bin[1] &= y_bin[1];
+	ret_bin[2] &= y_bin[2];
+	ret_bin[3] &= y_bin[3];
+	return x;
+}
+
+inline Float32x4 bitwise_andnot(const Float32x4& x, const Float32x4& y) {
+	Float32x4 ret = x;
+	uint32_t* ret_bin = reinterpret_cast<uint32_t*>(&ret);
+	const uint32_t* y_bin = reinterpret_cast<const uint32_t*>(&y);
+	ret_bin[0] &= ~y_bin[0];
+	ret_bin[1] &= ~y_bin[1];
+	ret_bin[2] &= ~y_bin[2];
+	ret_bin[3] &= ~y_bin[3];
+	return x;
+}
+
+inline Float32x4 bitwise_or(const Float32x4& x, const Float32x4& y) {
+	Float32x4 ret = x;
+	uint32_t* ret_bin = reinterpret_cast<uint32_t*>(&ret);
+	const uint32_t* y_bin = reinterpret_cast<const uint32_t*>(&y);
+	ret_bin[0] |= y_bin[0];
+	ret_bin[1] |= y_bin[1];
+	ret_bin[2] |= y_bin[2];
+	ret_bin[3] |= y_bin[3];
+	return x;
+}
+
+inline Float32x4 bitwise_xor(const Float32x4& x, const Float32x4& y) {
+	Float32x4 ret = x;
+	uint32_t* ret_bin = reinterpret_cast<uint32_t*>(&ret);
+	const uint32_t* y_bin = reinterpret_cast<const uint32_t*>(&y);
+	ret_bin[0] ^= y_bin[0];
+	ret_bin[1] ^= y_bin[1];
+	ret_bin[2] ^= y_bin[2];
+	ret_bin[3] ^= y_bin[3];
+	return x;
+}
 
 //------------------------------------------------------------------------------
 // Float32x4 Constants
@@ -54,5 +239,101 @@ namespace std {
 	}
 }
 #endif
+
+//------------------------------------------------------------------------------
+// Float32x4 math.h functions
+//------------------------------------------------------------------------------
+
+/* Arithmetic */
+
+	inline constexpr Float32x4 fmax(const Float32x4& x, const Float32x4& y) {
+		return (x > y) ? x : y;
+	}
+	inline constexpr Float32x4 fmax(const Float32x4& x, const Float32x4& y, const Float32x4& z) {
+		return (x > y) ?
+		((x > z) ? x : z) :
+		((y > z) ? y : z);
+	}
+	inline constexpr Float32x4 fmin(const Float32x4& x, const Float32x4& y) {
+		return (x < y) ? x : y;
+	}
+	inline constexpr Float32x4 fmin(const Float32x4& x, const Float32x4& y, const Float32x4& z) {
+		return (x < y) ?
+		((x < z) ? x : z) :
+		((y < z) ? y : z);
+	}
+	inline constexpr Float32x4 fabs(const Float32x4& x) {
+		return (dekker_less_zero(x)) ? -x : x;
+	}
+	inline constexpr Float32x4 copysign(const Float32x4& x, const Float32x4& y) {
+		return (dekker_less_zero(x)) != (dekker_less_zero(y)) ? -x : x;
+	}
+
+/* Tests */
+
+	inline constexpr bool signbit(const Float32x4& x) {
+		return dekker_less_zero(x) ? true : false;
+	}
+	/** Returns true if both x.hi and x.lo are finite */
+	inline constexpr bool isfinite(const Float32x4& x) {
+		return (
+			isfinite(x.val[0]) && isfinite(x.val[1]) &&
+			isfinite(x.val[2]) && isfinite(x.val[3])
+		);
+	}
+	/** Returns true if either x.hi or x.lo are infinite */
+	inline constexpr bool isinf(const Float32x4& x) {
+		return (
+			isinf(x.val[0]) || isinf(x.val[1]) ||
+			isinf(x.val[2]) || isinf(x.val[3])
+		);
+	}
+	/** Returns true if either x.hi or x.lo are nan */
+	inline constexpr bool isnan(const Float32x4& x) {
+		return (
+			isnan(x.val[0]) || isnan(x.val[1]) ||
+			isnan(x.val[2]) || isnan(x.val[3])
+		);
+	}
+	/** Returns true if both x.hi and x.lo are normal */
+	inline constexpr bool isnormal(const Float32x4& x) {
+		return (
+			isnormal(x.val[0]) && isnormal(x.val[1]) &&
+			isnormal(x.val[2]) && isnormal(x.val[3])
+		);
+	}
+	/** Returns true if either {x.hi, y.hi} or {x.lo, y.lo} are unordered */
+	inline constexpr bool isunordered(const Float32x4& x, const Float32x4& y) {
+		return (
+			isunordered(x.val[0], y.val[0]) || isunordered(x.val[1], y.val[1]) ||
+			isunordered(x.val[2], y.val[2]) || isunordered(x.val[3], y.val[3])
+		);
+	}
+	inline constexpr int fpclassify(const Float32x4& x) {
+		return
+			isinf(x)             ? FP_INFINITE :
+			isnan(x)             ? FP_NAN      :
+			dekker_equal_zero(x) ? FP_ZERO     :
+			isnormal(x)          ? FP_NORMAL   :
+			FP_SUBNORMAL;
+	}
+
+/* Comparison */
+
+	inline constexpr bool isgreater(const Float32x4& x, const Float32x4& y) {
+		return (x > y);
+	}
+	inline constexpr bool isgreaterequal(const Float32x4& x, const Float32x4& y) {
+		return (x >= y);
+	}
+	inline constexpr bool isless(const Float32x4& x, const Float32x4& y) {
+		return (x < y);
+	}
+	inline constexpr bool islessequal(const Float32x4& x, const Float32x4& y) {
+		return (x <= y);
+	}
+	inline constexpr bool islessgreater(const Float32x4& x, const Float32x4& y) {
+		return (x < y) || (x > y);
+	}
 
 #endif /* FLOAT32X4_HPP */

@@ -19,6 +19,16 @@ __m256dx2 _mm256x2_exp_pdx2(const __m256dx2 x) {
 	return _mm256x2_load_pdx2(val);
 }
 
+__m256dx2 _mm256x2_expm1_pdx2(const __m256dx2 x) {
+	Float64x2 val[4];
+	_mm256x2_store_pdx2(val, x);
+	val[0] = Float64x2_expm1(val[0]);
+	val[1] = Float64x2_expm1(val[1]);
+	val[2] = Float64x2_expm1(val[2]);
+	val[3] = Float64x2_expm1(val[3]);
+	return _mm256x2_load_pdx2(val);
+}
+
 __m256dx2 _mm256x2_log_pdx2(const __m256dx2 x) {
 	Float64x2 val[4];
 	_mm256x2_store_pdx2(val, x);
@@ -26,6 +36,16 @@ __m256dx2 _mm256x2_log_pdx2(const __m256dx2 x) {
 	val[1] = Float64x2_log(val[1]);
 	val[2] = Float64x2_log(val[2]);
 	val[3] = Float64x2_log(val[3]);
+	return _mm256x2_load_pdx2(val);
+}
+
+__m256dx2 _mm256x2_log1p_pdx2(const __m256dx2 x) {
+	Float64x2 val[4];
+	_mm256x2_store_pdx2(val, x);
+	val[0] = Float64x2_log1p(val[0]);
+	val[1] = Float64x2_log1p(val[1]);
+	val[2] = Float64x2_log1p(val[2]);
+	val[3] = Float64x2_log1p(val[3]);
 	return _mm256x2_load_pdx2(val);
 }
 

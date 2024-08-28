@@ -72,11 +72,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./bin")
 
 	set(WARNING_FLAGS
 	# Basic Warnings
-		-Wall -Wextra -Wshadow
+		-Wall -Wextra -Wpedantic -Wshadow
 	# Strict Warnings
 		-Wfloat-conversion
+		-Wconversion
 		-Wformat=2
-		-Wpedantic
 		-Winfinite-recursion
 		-Wunreachable-code
 	# Very Strict Warnings

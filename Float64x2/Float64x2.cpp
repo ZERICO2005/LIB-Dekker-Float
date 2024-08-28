@@ -7,12 +7,12 @@
 */
 
 /*
-**	Portions of this file are part of the original libQD library, licensed
+**	Portions of this file were part of the libQD library, licensed
 **	under a modifed BSD license that can be found below:
 **	https://www.davidhbailey.com/dhbsoftware/LBNL-BSD-License.docx
 **	Or alternatively from this website:
 **	https://www.davidhbailey.com/dhbsoftware/
-**	A copy of the LBNL-BSD-License is also available can also be found at:
+**	A copy of the LBNL-BSD-License can also be found at:
 **	LIB-Dekker-Float/libQD/LBNL-BSD-License.txt
 */
 
@@ -23,6 +23,7 @@
 #include <cstdlib>
 
 #include "Float64x2.hpp"
+#include "Float64x2_def.h"
 
 
 //------------------------------------------------------------------------------
@@ -169,8 +170,13 @@ static constexpr size_t n_inv_fact_odd = sizeof(inv_fact_odd) / sizeof(inv_fact_
  *
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
+ *
+ * @remarks This was originally the exp(x) function itself. I realized that
+ * this function is able to properly calculate expm1(x) when x is between
+ * -0.5ln(2) and +0.5ln(2). So the function has been modified so it can be used
+ * by both the exp(x) and the expm1(x) function.
  */
-Float64x2 exp(Float64x2 a) {
+static inline Float64x2 taylor_expm1(const Float64x2& x, fp64& m) {
 	/* Strategy:  We first reduce the size of x by noting that
 		
 			exp(kr + m * log(2)) = 2^m * exp(r)^k
@@ -180,31 +186,31 @@ Float64x2 exp(Float64x2 a) {
 		evaluated using the familiar Taylor series.  Reducing the 
 		argument substantially speeds up the convergence.       */  
 
-	const double k = 512.0;
-	const double inv_k = 1.0 / k;
+	const fp64 k = 512.0;
+	const fp64 inv_k = 1.0 / k;
 
-	if (a.hi <= -709.0) {
-		return 0.0;
+	if (x.hi <= -709.0) {
+		return static_cast<Float64x2>(0.0);
 	}
 
-	if (a.hi >= 709.0) {
+	if (x.hi >= 709.0) {
 		return std::numeric_limits<Float64x2>::infinity();
 	}
 
-	if (a == static_cast<Float64x2>(0.0)) {
-		return 1.0;
+	if (dekker_equal_zero(x)) {
+		return static_cast<fp64>(1.0);
 	}
 
-	if (a == static_cast<Float64x2>(0.0)) {
+	if (dekker_equal_zero(x)) {
 		return Float64x2_euler;
 	}
 
-	double m = floor(a.hi / Float64x2_ln2.hi + 0.5);
-	Float64x2 r = (a - Float64x2_ln2 * m) * inv_k; // mul_pwr2
+	m = floor(x.hi * Float64x2_log2e.hi + 0.5);
+	Float64x2 r = mul_pwr2(x - Float64x2_ln2 * m, inv_k);
 	Float64x2 s, t, p;
 
-	p = sqr(r);
-	s = r + (p * 0.5); // mul_pwr2
+	p = square(r);
+	s = r + mul_pwr2(p, 0.5);
 	p *= r;
 	t = p * inv_fact[0];
 	size_t i = 0;
@@ -217,18 +223,46 @@ Float64x2 exp(Float64x2 a) {
 
 	s += t;
 
-	s = (s * 2.0) + sqr(s);
-	s = (s * 2.0) + sqr(s);
-	s = (s * 2.0) + sqr(s);
-	s = (s * 2.0) + sqr(s);
-	s = (s * 2.0) + sqr(s);
-	s = (s * 2.0) + sqr(s);
-	s = (s * 2.0) + sqr(s);
-	s = (s * 2.0) + sqr(s);
-	s = (s * 2.0) + sqr(s);
-	s += 1.0;
+	s = mul_pwr2(s, 2.0) + square(s);
+	s = mul_pwr2(s, 2.0) + square(s);
+	s = mul_pwr2(s, 2.0) + square(s);
+	s = mul_pwr2(s, 2.0) + square(s);
+	s = mul_pwr2(s, 2.0) + square(s);
+	s = mul_pwr2(s, 2.0) + square(s);
+	s = mul_pwr2(s, 2.0) + square(s);
+	s = mul_pwr2(s, 2.0) + square(s);
+	s = mul_pwr2(s, 2.0) + square(s);
+	return s;
+	// Original return code:
+	// s += 1.0;
+	// return ldexp(s, static_cast<int>(m));
+}
 
-	return ldexp(s, static_cast<int>(m));
+Float64x2 exp(Float64x2 x) {
+	fp64 m;
+	Float64x2 ret = taylor_expm1(x, m);
+	ret += 1.0;
+	return ldexp(ret, static_cast<int>(m));
+}
+
+Float64x2 expm1(Float64x2 x) {
+	fp64 m;
+	Float64x2 ret = taylor_expm1(x, m);
+	/**
+	 * @remarks Float64x2_ln2.hi is less than Float64x2_ln2. If this were not the
+	 * case, then one would have to compare against
+	 * nextafter(Float64x2_ln2.hi, 0.0) to ensure the function behaves
+	 * correctly when `x` is very close to `ln2`.
+	 *
+	 * Although it still uses nextafter just to be safe and avoid pontential
+	 * rounding errors.
+	 */
+	if (fabs(x.hi) < static_cast<fp64>(0.5) * std::nextafter(Float64x2_ln2.hi, 0.0)) {
+		return ret; // expm1 to higher accuracy
+	}
+	ret += 1.0;
+	ret = ldexp(ret, static_cast<int>(m));
+	return ret - 1.0; // expm1 to standard accuracy
 }
 
 /** 
@@ -255,18 +289,39 @@ Float64x2 log(Float64x2 x) {
 		Only one iteration is needed, since Newton's iteration
 		approximately doubles the number of digits per iteration. */
 
-	if (x == static_cast<Float64x2>(1.0)) {
+	if (x == static_cast<fp64>(1.0)) {
 		return 0.0;
 	}
 
 	if (x.hi <= 0.0) {
+		if (x == 0.0) {
+			return -std::numeric_limits<Float64x2>::infinity();
+		}
 		// Float64x2::error("(Float64x2::log): Non-positive argument.");
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
 
 	Float64x2 guess = log(x.hi);   /* Initial approximation */
+	guess = guess.hi + x * exp(-guess) - 1.0;
+	return guess;
+}
 
-	guess = guess + x * exp(-guess) - 1.0;
+/**
+ * @remarks using similar methods to log(x)
+ */
+Float64x2 log1p(Float64x2 x) {
+	if (dekker_equal_zero(x)) {
+		return 0.0;
+	}
+	if (x <= -1.0) {
+		if (x == -1.0) {
+			return -std::numeric_limits<Float64x2>::infinity();
+		}
+		// Float64x2::error("(Float64x2::log): Non-positive argument.");
+		return std::numeric_limits<Float64x2>::quiet_NaN();
+	}
+	Float64x2 guess = log1p(x.hi);
+	guess = guess.hi + (x + 1.0) * exp(-guess) - 1.0;
 	return guess;
 }
 
@@ -294,15 +349,15 @@ static constexpr Float64x2 cos_table [4] = {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 static Float64x2 sin_taylor(const Float64x2 &a) {
-	const double thresh = 0.5 * fabs(a.hi) * std::numeric_limits<Float64x2>::epsilon().hi;
+	const fp64 thresh = 0.5 * fabs(a.hi) * std::numeric_limits<Float64x2>::epsilon().hi;
 	Float64x2 r, s, t, x;
 
-	if (a == static_cast<Float64x2>(0.0)) {
+	if (dekker_equal_zero(a)) {
 		return 0.0;
 	}
 
 	size_t i = 0;
-	x = -sqr(a);
+	x = -square(a);
 	s = a;
 	r = a;
 	do {
@@ -323,16 +378,16 @@ static Float64x2 sin_taylor(const Float64x2 &a) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 static Float64x2 cos_taylor(const Float64x2 &a) {
-	const double thresh = 0.5 * std::numeric_limits<Float64x2>::epsilon().hi;
+	const fp64 thresh = 0.5 * std::numeric_limits<Float64x2>::epsilon().hi;
 	Float64x2 r, s, t, x;
 
-	if (a == static_cast<Float64x2>(0.0)) {
+	if (dekker_equal_zero(a)) {
 		return 1.0;
 	}
 
-	x = -sqr(a);
+	x = -square(a);
 	r = x;
-	s = static_cast<Float64x2>(1.0) + (r * 0.5); // mul_pwr2
+	s = static_cast<fp64>(1.0) + mul_pwr2(r, 0.5);
 	size_t i = 0;
 	do {
 		r *= x;
@@ -352,16 +407,16 @@ static Float64x2 cos_taylor(const Float64x2 &a) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 static void sincos_taylor(
-	const Float64x2 &a, Float64x2 &sin_a, Float64x2 &cos_a
+	const Float64x2 &a, Float64x2 &p_sin, Float64x2 &p_cos
 ) {
-	if (a == static_cast<Float64x2>(0.0)) {
-		sin_a = 0.0;
-		cos_a = 1.0;
+	if (dekker_equal_zero(a)) {
+		p_sin = 0.0;
+		p_cos = 1.0;
 		return;
 	}
 
-	sin_a = sin_taylor(a);
-	cos_a = sqrt(static_cast<Float64x2>(1.0) - sqr(sin_a));
+	p_sin = sin_taylor(a);
+	p_cos = sqrt(static_cast<fp64>(1.0) - square(p_sin));
 }
 
 #if 0
@@ -379,20 +434,20 @@ Float64x2 sin(Float64x2 x) {
 	bool neg_flag = (Float64x2_tau2 <= comp) ? true : false;
 	comp = trig_fmod(x, Float64x2_tau2);
 	// printf("\t%+-23.14a %+-23.14a\n", comp.hi, comp.lo);
-	// comp == static_cast<Float64x2>(0.0)
+	// comp == static_cast<fp64>(0.0)
 	bool flip_side = (
 		Float64x2_tau4 <= comp &&
-		comp != static_cast<Float64x2>(0.0)
+		dekker_notequal_zero(comp)
 	) ? true : false;
 	x = trig_fmod(x, Float64x2_tau4);
 	printf("\t%+-23.14a %+-23.14a\n", x.hi, x.lo);
 	flip_side = (
-		x != static_cast<Float64x2>(0.0)
+		dekker_notequal_zero(comp)
 	) ? flip_side : false;
 	x = flip_side ? (Float64x2_tau4 - x) : x;
 	Float64x2 ret = x;
 	Float64x2 x_pow = x;
-	const Float64x2 neg_x_sqr = -sqr(x);
+	const Float64x2 neg_x_sqr = -square(x);
 	size_t i = 0;
 	do {
 		x_pow *= neg_x_sqr;
@@ -412,7 +467,7 @@ Float64x2 sin(Float64x2 x) {
 	Float64x2 ret_hi = x;
 	Float64x2 ret_lo = 0.0;
 	Float64x2 x_pow = x;
-	const Float64x2 neg_x_sqr = -sqr(x);
+	const Float64x2 neg_x_sqr = -square(x);
 	
 	
 	x_pow *= neg_x_sqr;
@@ -454,7 +509,7 @@ Float64x2 sin(Float64x2 a) {
 		we can compute sin(x) from sin(s), cos(s).  This greatly 
 		increases the convergence of the sine Taylor series. */
 
-	if (a == static_cast<Float64x2>(0.0)) {
+	if (dekker_equal_zero(a)) {
 		return 0.0;
 	}
 
@@ -464,7 +519,7 @@ Float64x2 sin(Float64x2 a) {
 
 	// approximately reduce modulo pi/2 and then modulo pi/16.
 	Float64x2 t;
-	double q = floor(r.hi / Float64x2_pi2.hi + 0.5);
+	fp64 q = floor(r.hi / Float64x2_pi2.hi + 0.5);
 	t = r - Float64x2_pi2 * q;
 	int j = static_cast<int>(q);
 	q = floor(t.hi / Float64x2_pi16.hi + 0.5);
@@ -534,18 +589,18 @@ Float64x2 sin(Float64x2 a) {
  */
 Float64x2 cos(Float64x2 a) {
 
-	if (a == static_cast<Float64x2>(0.0)) {
+	if (dekker_equal_zero(a)) {
 		return 1.0;
 	}
 
 	// approximately reduce modulo 2*pi
 	Float64x2 z = round(a / Float64x2_2pi);
-	Float64x2 r = a - z * Float64x2_2pi;
+	Float64x2 ret = a - z * Float64x2_2pi;
 
 	// approximately reduce modulo pi/2 and then modulo pi/16
 	Float64x2 t;
-	double q = floor(r.hi / Float64x2_pi2.hi + 0.5);
-	t = r - Float64x2_pi2 * q;
+	fp64 q = floor(ret.hi / Float64x2_pi2.hi + 0.5);
+	t = ret - Float64x2_pi2 * q;
 	int j = static_cast<int>(q);
 	q = floor(t.hi / Float64x2_pi16.hi + 0.5);
 	t -= Float64x2_pi16 * q;
@@ -582,53 +637,53 @@ Float64x2 cos(Float64x2 a) {
 
 	if (j == 0) {
 		if (k > 0) {
-			r = u * t_cos - v * t_sin;
+			ret = u * t_cos - v * t_sin;
 		} else {
-			r = u * t_cos + v * t_sin;
+			ret = u * t_cos + v * t_sin;
 		}
 	} else if (j == 1) {
 		if (k > 0) {
-			r = - u * t_sin - v * t_cos;
+			ret = - u * t_sin - v * t_cos;
 		} else {
-			r = v * t_cos - u * t_sin;
+			ret = v * t_cos - u * t_sin;
 		}
 	} else if (j == -1) {
 		if (k > 0) {
-			r = u * t_sin + v * t_cos;
+			ret = u * t_sin + v * t_cos;
 		} else {
-			r = u * t_sin - v * t_cos;
+			ret = u * t_sin - v * t_cos;
 		}
 	} else {
 		if (k > 0) {
-			r = v * t_sin - u * t_cos;
+			ret = v * t_sin - u * t_cos;
 		} else {
-			r = - u * t_cos - v * t_sin;
+			ret = - u * t_cos - v * t_sin;
 		}
 	}
 
-	return r;
+	return ret;
 }
 
 /** 
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-void sincos(const Float64x2& a, Float64x2& sin_a, Float64x2& cos_a) {
+void sincos(const Float64x2& x, Float64x2& p_sin, Float64x2& p_cos) {
 
-	if (a == static_cast<Float64x2>(0.0)) {
-		sin_a = static_cast<Float64x2>(0.0);
-		cos_a = static_cast<Float64x2>(1.0);
+	if (dekker_equal_zero(x)) {
+		p_sin = static_cast<fp64>(0.0);
+		p_cos = static_cast<fp64>(1.0);
 		return;
 	}
 
 	// approximately reduce modulo 2*pi
-	Float64x2 z = round(a / Float64x2_2pi);
-	Float64x2 r = a - Float64x2_2pi * z;
+	Float64x2 z = round(x / Float64x2_2pi);
+	Float64x2 ret = x - Float64x2_2pi * z;
 
 	// approximately reduce module pi/2 and pi/16
 	Float64x2 t;
-	double q = floor(r.hi / Float64x2_pi2.hi + 0.5);
-	t = r - Float64x2_pi2 * q;
+	fp64 q = floor(ret.hi / Float64x2_pi2.hi + 0.5);
+	t = ret - Float64x2_pi2 * q;
 	int j = static_cast<int>(q);
 	int abs_j = abs(j);
 	q = floor(t.hi / Float64x2_pi16.hi + 0.5);
@@ -638,50 +693,50 @@ void sincos(const Float64x2& a, Float64x2& sin_a, Float64x2& cos_a) {
 
 	if (abs_j > 2) {
 		// Float64x2::error("(Float64x2::sincos): Cannot reduce modulo pi/2.");
-		cos_a = std::numeric_limits<Float64x2>::quiet_NaN();
-		sin_a = std::numeric_limits<Float64x2>::quiet_NaN();
+		p_cos = std::numeric_limits<Float64x2>::quiet_NaN();
+		p_sin = std::numeric_limits<Float64x2>::quiet_NaN();
 		return;
 	}
 
 	if (abs_k > 4) {
 		// Float64x2::error("(Float64x2::sincos): Cannot reduce modulo pi/16.");
-		cos_a = std::numeric_limits<Float64x2>::quiet_NaN();
-		sin_a = std::numeric_limits<Float64x2>::quiet_NaN();
+		p_cos = std::numeric_limits<Float64x2>::quiet_NaN();
+		p_sin = std::numeric_limits<Float64x2>::quiet_NaN();
 		return;
 	}
 
 	Float64x2 t_sin, t_cos;
-	Float64x2 s, c;
+	Float64x2 sin_val, cos_val;
 
 	sincos_taylor(t, t_sin, t_cos);
 
 	if (abs_k == 0) {
-		s = t_sin;
-		c = t_cos;
+		sin_val = t_sin;
+		cos_val = t_cos;
 	} else {
 		Float64x2 u(cos_table[abs_k-1].hi, cos_table[abs_k-1].lo);
 		Float64x2 v(sin_table[abs_k-1].hi, sin_table[abs_k-1].lo);
 		if (k > 0) {
-			s = u * t_sin + v * t_cos;
-			c = u * t_cos - v * t_sin;
+			sin_val = u * t_sin + v * t_cos;
+			cos_val = u * t_cos - v * t_sin;
 		} else {
-			s = u * t_sin - v * t_cos;
-			c = u * t_cos + v * t_sin;
+			sin_val = u * t_sin - v * t_cos;
+			cos_val = u * t_cos + v * t_sin;
 		}
 	}
 
 	if (abs_j == 0) {
-		sin_a = s;
-		cos_a = c;
+		p_sin = sin_val;
+		p_cos = cos_val;
 	} else if (j == 1) {
-		sin_a = c;
-		cos_a = -s;
+		p_sin = cos_val;
+		p_cos = -sin_val;
 	} else if (j == -1) {
-		sin_a = -c;
-		cos_a = s;
+		p_sin = -cos_val;
+		p_cos = sin_val;
 	} else {
-		sin_a = -s;
-		cos_a = -c;
+		p_sin = -sin_val;
+		p_cos = -cos_val;
 	}
 }
 
@@ -707,20 +762,20 @@ Float64x2 atan(Float64x2 y) {
 		denominator is larger.  Otherwise, the second is used.
 	*/
 
-	if (y == static_cast<Float64x2>(0.0)) {
-		return static_cast<Float64x2>(0.0);
+	if (dekker_equal_zero(y)) {
+		return static_cast<fp64>(0.0);
 	}
 
-	if (static_cast<Float64x2>(1.0) == y) {
+	if (y == static_cast<fp64>(1.0)) {
 		return Float64x2_pi4;
 	}
 
-	if (static_cast<Float64x2>(1.0) == -y) {
+	if (y == static_cast<fp64>(-1.0)) {
 		return -Float64x2_pi4;
 	}
 
-	Float64x2 r = sqrt(static_cast<Float64x2>(1.0) + sqr(y));
-	Float64x2 xx = static_cast<Float64x2>(1.0) / r;
+	Float64x2 r = sqrt(static_cast<fp64>(1.0) + square(y));
+	Float64x2 xx = recip(r);
 	Float64x2 yy = y / r;
 
 	/* Compute double precision approximation to atan. */
@@ -762,28 +817,28 @@ Float64x2 atan2(Float64x2 y, Float64x2 x) {
 		denominator is larger.  Otherwise, the second is used.
 	*/
 
-	if (x == static_cast<Float64x2>(0.0)) {
+	if (dekker_equal_zero(x)) {
 	
-		if (y == static_cast<Float64x2>(0.0)) {
+		if (dekker_equal_zero(y)) {
 			// /* Both x and y is zero. */
 			// Float64x2::error("(Float64x2::atan2): Both arguments zero.");
 			return std::numeric_limits<Float64x2>::quiet_NaN();
 		}
 
-		return (y > static_cast<Float64x2>(0.0)) ? Float64x2_pi2 : -Float64x2_pi2;
-	} else if (y == static_cast<Float64x2>(0.0)) {
-		return (x > static_cast<Float64x2>(0.0)) ? Float64x2(0.0) : Float64x2_pi;
+		return (dekker_greater_zero(y)) ? Float64x2_pi2 : -Float64x2_pi2;
+	} else if (dekker_equal_zero(y)) {
+		return (dekker_greater_zero(x)) ? Float64x2(0.0) : Float64x2_pi;
 	}
 
 	if (x == y) {
-		return (y > static_cast<Float64x2>(0.0)) ? Float64x2_pi4 : -Float64x2_3pi4;
+		return (dekker_greater_zero(y)) ? Float64x2_pi4 : -Float64x2_3pi4;
 	}
 
 	if (x == -y) {
-		return (y > static_cast<Float64x2>(0.0)) ? Float64x2_3pi4 : -Float64x2_pi4;
+		return (dekker_greater_zero(y)) ? Float64x2_3pi4 : -Float64x2_pi4;
 	}
 
-	Float64x2 r = sqrt(sqr(x) + sqr(y));
+	Float64x2 r = sqrt(square(x) + square(y));
 	Float64x2 xx = x / r;
 	Float64x2 yy = y / r;
 
@@ -808,10 +863,10 @@ Float64x2 atan2(Float64x2 y, Float64x2 x) {
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x2 tan(Float64x2 a) {
-	Float64x2 s, c;
-	sincos(a, s, c);
-	return s / c;
+Float64x2 tan(Float64x2 x) {
+	Float64x2 sin_val, cos_val;
+	sincos(x, sin_val, cos_val);
+	return sin_val / cos_val;
 }
 
 /** 
@@ -821,16 +876,16 @@ Float64x2 tan(Float64x2 a) {
 Float64x2 asin(Float64x2 a) {
 	Float64x2 abs_a = fabs(a);
 
-	if (abs_a > static_cast<Float64x2>(1.0)) {
+	if (abs_a > static_cast<fp64>(1.0)) {
 		// Float64x2::error("(Float64x2::asin): Argument out of domain.");
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
 
-	if (abs_a == static_cast<Float64x2>(1.0)) {
-		return (a > static_cast<Float64x2>(0.0)) ? Float64x2_pi2 : -Float64x2_pi2;
+	if (abs_a == static_cast<fp64>(1.0)) {
+		return (dekker_greater_zero(a)) ? Float64x2_pi2 : -Float64x2_pi2;
 	}
 
-	return atan2(a, sqrt(static_cast<Float64x2>(1.0) - sqr(a)));
+	return atan2(a, sqrt(static_cast<fp64>(1.0) - square(a)));
 }
 
 /** 
@@ -840,16 +895,16 @@ Float64x2 asin(Float64x2 a) {
 Float64x2 acos(Float64x2 a) {
 	Float64x2 abs_a = fabs(a);
 
-	if (abs_a > static_cast<Float64x2>(1.0)) {
+	if (abs_a > static_cast<fp64>(1.0)) {
 		// Float64x2::error("(Float64x2::acos): Argument out of domain.");
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
 
-	if (abs_a == static_cast<Float64x2>(1.0)) {
-		return (a > static_cast<Float64x2>(0.0)) ? Float64x2(0.0) : Float64x2_pi;
+	if (abs_a == static_cast<fp64>(1.0)) {
+		return (dekker_greater_zero(a)) ? Float64x2(0.0) : Float64x2_pi;
 	}
 
-	return atan2(sqrt(static_cast<Float64x2>(1.0) - sqr(a)), a);
+	return atan2(sqrt(static_cast<fp64>(1.0) - square(a)), a);
 }
 
 /** 
@@ -857,27 +912,27 @@ Float64x2 acos(Float64x2 a) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 Float64x2 sinh(Float64x2 a) {
-	if (a == static_cast<Float64x2>(0.0)) {
+	if (dekker_equal_zero(a)) {
 		return static_cast<Float64x2>(0.0);
 	}
 
-	if (fabs(a) > static_cast<Float64x2>(0.05)) {
+	if (fabs(a.hi) > static_cast<fp64>(0.05)) {
 		Float64x2 ea = exp(a);
-		return (ea - static_cast<Float64x2>(1.0) / ea) * 0.5; // mul_pwr2
+		return mul_pwr2((ea - recip(ea)), 0.5);
 	}
 
 	/* since a is small, using the above formula gives
 		a lot of cancellation.  So use Taylor series.   */
 	Float64x2 s = a;
 	Float64x2 t = a;
-	Float64x2 r = sqr(t);
-	double m = 1.0;
-	double thresh = fabs(a.hi * std::numeric_limits<Float64x2>::epsilon().hi);
+	Float64x2 r = square(t);
+	fp64 m = 1.0;
+	fp64 thresh = fabs(a.hi * std::numeric_limits<Float64x2>::epsilon().hi);
 
 	do {
 	m += 2.0;
 	t *= r;
-	t /= (m-1) * m;
+	t /= (m - 1.0) * m;
 
 	s += t;
 	} while (fabs(t.hi) > thresh);
@@ -890,48 +945,48 @@ Float64x2 sinh(Float64x2 a) {
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x2 cosh(Float64x2 a) {
-	if (a == static_cast<Float64x2>(0.0)) {
+Float64x2 cosh(Float64x2 x) {
+	if (dekker_equal_zero(x)) {
 		return static_cast<Float64x2>(1.0);
 	}
 
-	Float64x2 ea = exp(a);
-	return (ea + static_cast<Float64x2>(1.0) / (ea)) * 0.5; // mul_pwr2
+	Float64x2 ex = exp(x);
+	return mul_pwr2(ex + recip(ex), 0.5);
 }
 
 /** 
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x2 tanh(Float64x2 a) {
-	if (a == static_cast<Float64x2>(0.0)) {
-		return 0.0;
+Float64x2 tanh(Float64x2 x) {
+	if (dekker_equal_zero(x)) {
+		return static_cast<Float64x2>(0.0);
 	}
 
-	if (fabs(a.hi) > static_cast<fp64>(0.05)) {
-		Float64x2 ea = exp(a);
-		Float64x2 inv_ea = static_cast<Float64x2>(1.0) / (ea);
-		return (ea - inv_ea) / (ea + inv_ea);
+	if (fabs(x.hi) > static_cast<fp64>(0.05)) {
+		Float64x2 ex = exp(x);
+		Float64x2 recip_ex = recip(ex);
+		return (ex - recip_ex) / (ex + recip_ex);
 	}
-	Float64x2 s, c;
-	s = sinh(a);
-	c = sqrt(static_cast<Float64x2>(1.0) + sqr(s));
-	return s / c;
+	Float64x2 sinh_val, cosh_val;
+	sinh_val = sinh(x);
+	cosh_val = sqrt(static_cast<fp64>(1.0) + square(sinh_val));
+	return sinh_val / cosh_val;
 }
 
 /** 
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-void sinhcosh(const Float64x2& a, Float64x2& s, Float64x2& c) {
-	if (fabs(a.hi) <= 0.05) {
-		s = sinh(a);
-		c = sqrt(static_cast<Float64x2>(1.0) + sqr(s));
+void sinhcosh(const Float64x2& x, Float64x2& p_sinh, Float64x2& p_cosh) {
+	if (fabs(x.hi) <= 0.05) {
+		p_sinh = sinh(x);
+		p_cosh = sqrt(static_cast<fp64>(1.0) + square(x));
 	} else {
-		Float64x2 ea = exp(a);
-		Float64x2 inv_ea = static_cast<Float64x2>(1.0) / (ea);
-		s = (ea - inv_ea) * 0.5; // mul_pwr2
-		c = (ea + inv_ea) * 0.5; // mul_pwr2
+		Float64x2 ex = exp(x);
+		Float64x2 recip_ex = recip(ex);
+		p_sinh = mul_pwr2(ex - recip_ex, 0.5);
+		p_cosh = mul_pwr2(ex + recip_ex, 0.5);
 	}
 }
 
@@ -940,7 +995,7 @@ void sinhcosh(const Float64x2& a, Float64x2& s, Float64x2& c) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 Float64x2 asinh(Float64x2 a) {
-	return log(a + sqrt(sqr(a) + static_cast<Float64x2>(1.0)));
+	return log(a + sqrt(square(a) + static_cast<fp64>(1.0)));
 }
 
 /** 
@@ -948,12 +1003,12 @@ Float64x2 asinh(Float64x2 a) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 Float64x2 acosh(Float64x2 a) {
-	if (a < static_cast<Float64x2>(1.0)) {
+	if (a < static_cast<fp64>(1.0)) {
 		// Float64x2::error("(Float64x2::acosh): Argument out of domain.");
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
 
-	return log(a + sqrt(sqr(a) - static_cast<Float64x2>(1.0)));
+	return log(a + sqrt(square(a) - static_cast<fp64>(1.0)));
 }
 
 /** 
@@ -961,12 +1016,12 @@ Float64x2 acosh(Float64x2 a) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 Float64x2 atanh(Float64x2 a) {
-	if (fabs(a) >= static_cast<Float64x2>(1.0)) {
+	if (fabs(a) >= static_cast<fp64>(1.0)) {
 		// Float64x2::error("(Float64x2::atanh): Argument out of domain.");
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
 
-	return log((static_cast<Float64x2>(1.0) + a) / (static_cast<Float64x2>(1.0) - a)) * 0.5;
+	return mul_pwr2(log((static_cast<fp64>(1.0) + a) / (static_cast<fp64>(1.0) - a)), 0.5);
 }
 
 //------------------------------------------------------------------------------
@@ -1015,8 +1070,14 @@ inline std::ostream& operator<<(std::ostream& stream, const Float64x2& value) {
 Float64x2 Float64x2_exp(Float64x2 x) {
 	return exp(x);
 }
+Float64x2 Float64x2_expm1(Float64x2 x) {
+	return exp(x);
+}
 Float64x2 Float64x2_log(Float64x2 x) {
 	return log(x);
+}
+Float64x2 Float64x2_log1p(Float64x2 x) {
+	return log1p(x);
 }
 Float64x2 Float64x2_sin(Float64x2 x) {
 	return sin(x);

@@ -554,7 +554,7 @@ typedef Float80x2 fp80x2;
 		return (isunordered(x.hi, y.hi) || isunordered(x.lo, y.lo));
 	}
 	inline int fpclassify(fp80x2 x) {
-		if (isfinite(x)) { return FP_INFINITE; }
+		if (isinf(x)) { return FP_INFINITE; }
 		if (isnan(x)) { return FP_NAN; }
 		if (x == static_cast<fp80x2>(0.0)) { return FP_ZERO; }
 		if (isnormal(x)) { return FP_NORMAL; }

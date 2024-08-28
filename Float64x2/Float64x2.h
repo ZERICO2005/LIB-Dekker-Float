@@ -5,6 +5,7 @@
 **	A copy of the MIT License should be included with
 **	this project. If not, see https://opensource.org/license/MIT
 */
+
 #ifndef FLOAT64X2_H
 #define FLOAT64X2_H
 
@@ -69,6 +70,29 @@ typedef union Bitwise_Float64x2 {
 #define FLOAT64X2_2_PI       {0x1.45f306dc9c883p-1,-0x1.6b01ec5417056p-55} /**< ~0.636619772 */
 #define FLOAT64X2_2_SQRTPI   {0x1.20dd750429b6dp+0,+0x1.1ae3a914fed80p-56} /**< ~1.128379167 */
 #define FLOAT64X2_SQRT1_2    {0x1.6a09e667f3bcdp-1,-0x1.bdd3413b26456p-55} /**< ~0.707106781 */
+
+//------------------------------------------------------------------------------
+// Float64x2 <float.h>
+//------------------------------------------------------------------------------
+
+#define FLOAT64X2_RADIX       FLT_RADIX
+#define FLOAT64X2_MANT_DIG    104
+#define FLOAT64X2_DECIMAL_DIG (DBL_MAX_10_EXP - DBL_MIN_10_EXP + DBL_DIG + 1) /**< ~631 with ieee doubles */
+#define FLOAT64X2_DIG         31
+#define FLOAT64X2_MIN_EXP     (DBL_MIN_EXP    + 53)
+#define FLOAT64X2_MIN_10_EXP  (DBL_MIN_10_EXP + 16)
+#define FLOAT64X2_MAX_EXP     (DBL_MAX_EXP   )
+#define FLOAT64X2_MAX_10_EXP  (DBL_MAX_10_EXP)
+#define FLOAT64X2_MAX         {DBL_MAX, DBL_MAX * 0x1.0p-54}
+#define FLOAT64X2_EPSILON     {0x1.0p-104, 0.0}
+#define FLOAT64X2_MIN         {DBL_MIN * 0x1.0p+53, DBL_MIN}
+#ifdef DBL_TRUE_MIN
+	#define FLOAT64X2_TRUE_MIN    {DBL_TRUE_MIN, 0.0}
+	#define FLOAT64X2_DENORM_MIN  FLOAT64X2_TRUE_MIN
+#endif
+#ifdef DBL_HAS_SUBNORM
+	#define FLOAT64X2_HAS_SUBNORM DBL_HAS_SUBNORM
+#endif
 
 #ifdef __cplusplus
 	extern "C" {
@@ -217,9 +241,6 @@ inline Float64x2 Float64x2_sub(const Float64x2 x, const Float64x2 y) {
 	}
 #endif
 
-/**
- * @brief Subtracts two Float64x2 values
- */
 inline Float64x2 Float64x2_dekker_mul12(const fp64 x, const fp64 y) {
 	Float64x2 a = Float64x2_dekker_split(x);
 	Float64x2 b = Float64x2_dekker_split(y);
@@ -253,24 +274,6 @@ inline Float64x2 Float64x2_div(const Float64x2 x, const Float64x2 y) {
 	return r;
 }
 
-/**
- * @brief returns 0 on division by 0
- */
-inline Float64x2 Float64x2_div_zero(const Float64x2 x, const Float64x2 y) {
-	if (y.hi == 0.0) {
-		return Float64x2_set_zero();
-	}
-	fp64 u = x.hi / y.hi;
-	Float64x2 t = Float64x2_dekker_mul12(u, y.hi);
-	fp64 l = (x.hi - t.hi - t.lo + x.lo - u * y.lo) / y.hi;
-
-	Float64x2 r;
-	r.hi = u + l;
-	r.lo = u - r.hi + l;
-	return r;
-}
-
-
 inline Float64x2 Float64x2_dekker_square12(const fp64 x) {
 	Float64x2 a = Float64x2_dekker_split(x);
 	fp64 p = a.hi * a.hi;
@@ -280,7 +283,7 @@ inline Float64x2 Float64x2_dekker_square12(const fp64 x) {
 	r.hi = p + q;
 	r.lo = (
 		((p - r.hi) + q) +
-		(a.lo + a.lo)
+		(a.lo * a.lo)
 	);
 	return r;
 }
@@ -472,59 +475,6 @@ inline Float64x2 Float64x2_div_d_d(const fp64 x, const fp64 y) {
 }
 
 /**
- * @brief Returns 0 on division by 0
- */
-inline Float64x2 Float64x2_div_zero_dx2_d(const Float64x2 x, const fp64 y) {
-	if (y == 0.0) {
-		return Float64x2_set_zero();
-	}
-	fp64 u = x.hi / y;
-	Float64x2 t = Float64x2_dekker_mul12(u, y);
-	fp64 l = (((x.hi - t.hi) - t.lo) + x.lo) / y;
-
-	Float64x2 r;
-	r.hi = u + l;
-	r.lo = (u - r.hi) + l;
-	return r;
-}
-
-/**
- * @brief Returns 0 on division by 0
- */
-
-inline Float64x2 Float64x2_div_zero_d_dx2(const fp64 x, const Float64x2 y) {
-	if (y.hi == 0.0) {
-		return Float64x2_set_zero();
-	}
-	fp64 u = x / y.hi;
-	Float64x2 t = Float64x2_dekker_mul12(u, y.hi);
-	fp64 l = (((x - t.hi) - t.lo) - (u * y.lo)) / y.hi;
-
-	Float64x2 r;
-	r.hi = u + l;
-	r.lo = (u - r.hi) + l;
-	return r;
-}
-
-/**
- * @brief Returns 0 on division by 0. Divides two fp64 values with the
- * result stored as a Float64x2
- */
-inline Float64x2 Float64x2_div_zero_d_d(const fp64 x, const fp64 y) {
-	if (y == 0.0) {
-		return Float64x2_set_zero();
-	}
-	fp64 u = x / y;
-	Float64x2 t = Float64x2_dekker_mul12(u, y);
-	fp64 l = ((x - t.hi) - t.lo) / y;
-
-	Float64x2 r;
-	r.hi = u + l;
-	r.lo = (u - r.hi) + l;
-	return r;
-}
-
-/**
  * @brief Squares a fp64 value with the result stored as a Float64x2
  */
 inline Float64x2 Float64x2_square_d(const fp64 x) {
@@ -583,6 +533,14 @@ inline Float64x2 Float64x2_mul_power2_d_d(const fp64 x, const fp64 y) {
 //------------------------------------------------------------------------------
 // Float64x2 bitwise operations
 //------------------------------------------------------------------------------
+
+inline Float64x2 Float64x2_bitwise_not(const Float64x2 x) {
+	Bitwise_Float64x2 x0;
+	x0.float_part = x;
+	x0.binary_part.hi = ~x0.binary_part.hi;
+	x0.binary_part.lo = ~x0.binary_part.lo;
+	return x0.float_part;
+}
 
 inline Float64x2 Float64x2_bitwise_and(const Float64x2 x, const Float64x2 y) {
 	Bitwise_Float64x2 x0, y0;
@@ -693,39 +651,27 @@ inline bool Float64x2_islessgreater(const Float64x2 x, const Float64x2 y) {
 //------------------------------------------------------------------------------
 
 inline bool Float64x2_cmpeq_zero(const Float64x2 x) {
-	return (x.hi == 0.0 && x.lo == 0.0);
+	return (x.hi == 0.0);
 }
 
 inline bool Float64x2_cmpneq_zero(const Float64x2 x) {
-	return (x.hi != 0.0 || x.lo != 0.0);
+	return (x.hi != 0.0);
 }
 
 inline bool Float64x2_cmplt_zero(const Float64x2 x) {
-	if (x.hi == 0.0) {
-		return (x.lo < 0.0);
-	}
 	return (x.hi < 0.0);
 }
 
 inline bool Float64x2_cmple_zero(const Float64x2 x) {
-	if (x.hi == 0.0) {
-		return (x.lo <= 0.0);
-	}
-	return (x.hi < 0.0);
+	return (x.hi <= 0.0);
 }
 
 inline bool Float64x2_cmpgt_zero(const Float64x2 x) {
-	if (x.hi == 0.0) {
-		return (x.lo > 0.0);
-	}
 	return (x.hi > 0.0);
 }
 
 inline bool Float64x2_cmpge_zero(const Float64x2 x) {
-	if (x.hi == 0.0) {
-		return (x.lo >= 0.0);
-	}
-	return (x.hi > 0.0);
+	return (x.hi >= 0.0);
 }
 
 //------------------------------------------------------------------------------
@@ -964,17 +910,23 @@ inline Float64x2 Float64x2_copysign(const Float64x2 x, const Float64x2 y) {
 }
 
 inline Float64x2 Float64x2_sqrt(const Float64x2 x) {
+	if (Float64x2_cmpeq_zero(x)) {
+		return x;
+	}
 	fp64 guess = sqrt(x.hi);
 	return Float64x2_mul_power2_dx2_d(Float64x2_add_d_dx2(
-		guess, Float64x2_div_zero_dx2_d(x, guess)
+		guess, Float64x2_div_dx2_d(x, guess)
 	), 0.5);
 }
 
 inline Float64x2 Float64x2_cbrt(const Float64x2 x) {
+	if (Float64x2_cmpeq_zero(x)) {
+		return x;
+	}
 	fp64 guess = cbrt(x.hi);
 	return Float64x2_div_dx2_d(Float64x2_add(
 			Float64x2_mul_power2_d_d(2.0, guess),
-			Float64x2_div_zero(x, Float64x2_square_d(guess))
+			Float64x2_div(x, Float64x2_square_d(guess))
 	), 3.0);
 }
 
@@ -999,6 +951,7 @@ inline Float64x2 Float64x2_fmod(const Float64x2 x, const Float64x2 y) {
 //------------------------------------------------------------------------------
 
 Float64x2 Float64x2_exp(Float64x2 x);
+Float64x2 Float64x2_expm1(Float64x2 x);
 inline Float64x2 Float64x2_exp2(const Float64x2 x) {
 	const Float64x2 mult_val = FLOAT64X2_LN2;
 	return Float64x2_exp(Float64x2_mul(x, mult_val));
@@ -1009,6 +962,7 @@ inline Float64x2 Float64x2_exp10(const Float64x2 x) {
 }
 
 Float64x2 Float64x2_log(Float64x2 x);
+Float64x2 Float64x2_log1p(Float64x2 x);
 inline Float64x2 Float64x2_log2(const Float64x2 x) {
 	const Float64x2 mult_val = FLOAT64X2_LOG2E;
 	return Float64x2_mul(Float64x2_log(x), mult_val);
@@ -1024,9 +978,7 @@ inline Float64x2 Float64x2_log10(const Float64x2 x) {
 
 Float64x2 Float64x2_sin(Float64x2 x);
 Float64x2 Float64x2_cos(Float64x2 x);
-void Float64x2_sincos(
-	Float64x2 theta, Float64x2* p_sin, Float64x2* p_cos
-);
+void Float64x2_sincos(Float64x2 x, Float64x2* p_sin, Float64x2* p_cos);
 inline Float64x2 Float64x2_tan(const Float64x2 x) {
 	Float64x2 t_sin, t_cos;
 	Float64x2_sincos(x, &t_sin, &t_cos);
@@ -1047,9 +999,7 @@ inline Float64x2 Float64x2_cosh(const Float64x2 x) {
 	), 0.5);
 }
 Float64x2 Float64x2_tanh(Float64x2 x);
-void Float64x2_sinhcosh(
-	Float64x2 theta, Float64x2* p_sinh, Float64x2* p_cosh
-);
+void Float64x2_sinhcosh(Float64x2 x, Float64x2* p_sinh, Float64x2* p_cosh);
 
 inline Float64x2 Float64x2_asinh(const Float64x2 x) {
 	return Float64x2_log(Float64x2_add(x,

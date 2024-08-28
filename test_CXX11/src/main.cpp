@@ -17,7 +17,7 @@
 
 #include "Float64x2/Float64x2.h"
 
-#include "Float64x4/Float64x4_def.h"
+// #include "Float64x4/Float64x4.hpp"
 
 #ifdef Enable_Float80
 	#include "Float80x2/Float80x2.hpp"
@@ -27,6 +27,7 @@
 #endif
 
 #include "Float32x4/Float32x4.hpp"
+#include "Float64x4/Float64x4.h"
 #include "Float64x4/Float64x4.hpp"
 
 #include "Float64x2/Float64x2_AVX.h"
@@ -119,6 +120,13 @@ int main(void) {
 	
 	printf("[%s]\n", buf);
 	printf("%La\n", LDBL_MAX);
+
+	Float64x2 y = Float64x2_set_d(3.0);
+	Float64x4 result = Float64x4_recip_quick_dx2(y);
+	mpfr_t p;
+	mpfr_init2(p, 512);
+	mpfr_set_float64x4(p, result, MPFR_RNDN);
+	mpfr_printf("\nFloat64x4: \n1/3 = %.70Rf\n", p);
 
 	fflush(stdout);
 	return 0;

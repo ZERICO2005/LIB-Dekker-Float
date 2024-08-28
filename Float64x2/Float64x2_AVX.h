@@ -687,24 +687,45 @@ inline __m256dx2 _mm256x2_mul_power2_pd_pd(__m256d x, __m256d y) {
 // __m256dx2 bitwise operations
 //------------------------------------------------------------------------------
 
+/**
+ * @brief bitwise not `~x`
+ */
+inline __m256dx2 _mm256x2_not_pdx2(__m256dx2 x) {
+	x.hi = _mm256_andnot_pd(x.hi, _mm256_setzero_pd());
+	x.lo = _mm256_andnot_pd(x.lo, _mm256_setzero_pd());
+	return x;
+}
+
+/**
+ * @brief bitwise and `x & y`
+ */
 inline __m256dx2 _mm256x2_and_pdx2(__m256dx2 x, __m256dx2 y) {
 	x.hi = _mm256_and_pd(x.hi, y.hi);
 	x.lo = _mm256_and_pd(x.lo, y.lo);
 	return x;
 }
 
+/**
+ * @brief bitwise andnot `x & ~y`
+ */
 inline __m256dx2 _mm256x2_andnot_pdx2(__m256dx2 x, __m256dx2 y) {
 	x.hi = _mm256_andnot_pd(x.hi, y.hi);
 	x.lo = _mm256_andnot_pd(x.lo, y.lo);
 	return x;
 }
 
+/**
+ * @brief bitwise or `x | y`
+ */
 inline __m256dx2 _mm256x2_or_pdx2(__m256dx2 x, __m256dx2 y) {
 	x.hi = _mm256_or_pd(x.hi, y.hi);
 	x.lo = _mm256_or_pd(x.lo, y.lo);
 	return x;
 }
 
+/**
+ * @brief bitwise xor `x ^ y`
+ */
 inline __m256dx2 _mm256x2_xor_pdx2(__m256dx2 x, __m256dx2 y) {
 	x.hi = _mm256_xor_pd(x.hi, y.hi);
 	x.lo = _mm256_xor_pd(x.lo, y.lo);
@@ -1315,13 +1336,12 @@ inline __m256dx2 _mm256x2_cbrt_pdx2(__m256dx2 x) {
 }
 
 /**
- * @brief returns the fraction part of a __m256dx2 value. int_part may be NULL
+ * @brief returns the fraction part of a __m256dx2 value.
+ * @note int_part cannot not be NULL
  */
 inline __m256dx2 _mm256x2_modf_pdx2(__m256dx2 x, __m256dx2* int_part) {
 	__m256dx2 trunc_part = _mm256x2_trunc_pdx2(x);
-	if (int_part != NULL) {
-		*int_part = trunc_part;
-	}
+	*int_part = trunc_part;
 	return _mm256x2_sub_pdx2(x, trunc_part);
 }
 
@@ -1336,6 +1356,9 @@ inline __m256dx2 _mm256x2_fmod_pdx2(__m256dx2 x, __m256dx2 y) {
 
 /** @note This function doesn't use AVX for calculations */
 __m256dx2 _mm256x2_exp_pdx2(__m256dx2 x);
+
+/** @note This function doesn't use AVX for calculations */
+__m256dx2 _mm256x2_expm1_pdx2(__m256dx2 x);
 
 /** @note This function doesn't use AVX for calculations */
 inline __m256dx2 _mm256x2_exp2_pdx2(const __m256dx2 a) {
@@ -1355,6 +1378,9 @@ inline __m256dx2 _mm256x2_exp10_pdx2(const __m256dx2 a) {
 
 /** @note This function doesn't use AVX for calculations */
 __m256dx2 _mm256x2_log_pdx2(__m256dx2 x);
+
+/** @note This function doesn't use AVX for calculations */
+__m256dx2 _mm256x2_log1p_pdx2(__m256dx2 x);
 
 /** @note This function doesn't use AVX for calculations */
 inline __m256dx2 _mm256x2_log2_pdx2(const __m256dx2 x) {
