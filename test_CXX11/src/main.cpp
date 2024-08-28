@@ -106,6 +106,32 @@ void run_math_demo(unsigned int seed) {
 void run_generate_constants(void) {
 	generate_constants<Float32x4>("Float32x4");
 }
+void get_fact(void) {
+	// for (unsigned long i = 0; i <= 99; i += 1) {
+	// 	FloatMPFR f;
+	// 	mpfr_fac_ui(f.value, i, MPFR_RNDN);
+	// 	mpfr_d_div(f.value, 1.0, f.value, MPFR_RNDN);
+	// 	Float64x4 num = mpfr_get_float64x4(f.value, MPFR_RNDN);
+	// 	printf(
+	// 		"/* %2lu! */ {%-22.13a,%+-23.13a,%+-23.13a,%+-23.13a},\n", i,
+	// 		num.val[0], num.val[1], num.val[2], num.val[3]
+	// 	);
+	// }
+	for (unsigned long i = 3; i <= 3; i += 1) {
+		FloatMPFR f;
+		mpfr_set_ui(f.value, i, MPFR_RNDN);
+		mpfr_div_ui(f.value, f.value, 4, MPFR_RNDN);
+		FloatMPFR c;
+		mpfr_const_pi(c.value, MPFR_RNDN);
+		mpfr_mul(f.value, f.value, c.value, MPFR_RNDN);
+		// mpfr_sinpi(f.value, f.value, MPFR_RNDN);
+		Float64x4 num = mpfr_get_float64x4(f.value, MPFR_RNDN);
+		printf(
+			"/* sin(pi * %3lu/1024) */ {%-20.13a,%+-22.13a,%+-23.13a,%+-23.13a},\n", i,
+			num.val[0], num.val[1], num.val[2], num.val[3]
+		);
+	}
+}
 
 int main(void) {
 	// run_demo();
@@ -113,7 +139,7 @@ int main(void) {
 	// test_function();
 
 	// run_generate_constants();
-
+	
 	__attribute__((unused)) char buf[999];
 	Float64x2 x = {1.0, DBL_MIN};
 	Float64x2_snprintf(buf, sizeof(buf), "%+9.320Df", x);
@@ -127,7 +153,7 @@ int main(void) {
 	mpfr_init2(p, 512);
 	mpfr_set_float64x4(p, result, MPFR_RNDN);
 	mpfr_printf("\nFloat64x4: \n1/3 = %.70Rf\n", p);
-
+get_fact();
 	fflush(stdout);
 	return 0;
 }

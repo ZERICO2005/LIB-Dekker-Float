@@ -20,7 +20,8 @@
 #define FLOAT64X4_HPP
 
 #include "Float64x4_def.h"
-#include "Float64x2/Float64x2_def.h"
+#include "Float64x4.h"
+#include "Float64x2/Float64x2.hpp"
 
 #include <cstdint>
 #include <cmath>
@@ -88,6 +89,230 @@ inline constexpr bool operator>=(const Float64x4& x, const Float64x4& y) {
 }
 
 //------------------------------------------------------------------------------
+// Float64x4 Compairison Float64x2
+//------------------------------------------------------------------------------
+
+inline constexpr bool operator==(const Float64x4& x, const Float64x2& y) {
+	return (
+		x.val[0] == y.hi && x.val[1] == y.lo &&
+		x.val[2] == 0.0  && x.val[3] == 0.0 
+	);
+}
+inline constexpr bool operator!=(const Float64x4& x, const Float64x2& y) {
+	return (
+		x.val[0] != y.hi || x.val[1] != y.lo ||
+		x.val[2] != 0.0  || x.val[3] != 0.0 
+	);
+}
+inline constexpr bool operator<(const Float64x4& x, const Float64x2& y) {
+	return
+		(x.val[0] == y.hi) ? (
+			(x.val[1] == y.lo) ? (
+				(x.val[2] == 0.0 ) ? (
+					x.val[3] < 0.0
+				) : (x.val[2] < 0.0 )
+			) : (x.val[1] < y.lo)
+		) : (x.val[0] < y.hi);
+}
+inline constexpr bool operator<=(const Float64x4& x, const Float64x2& y) {
+	return
+		(x.val[0] == y.hi) ? (
+			(x.val[1] == y.lo) ? (
+				(x.val[2] == 0.0 ) ? (
+					x.val[3] <= 0.0
+				) : (x.val[2] < 0.0 )
+			) : (x.val[1] < y.lo)
+		) : (x.val[0] < y.hi);
+}
+inline constexpr bool operator>(const Float64x4& x, const Float64x2& y) {
+	return
+		(x.val[0] == y.hi) ? (
+			(x.val[1] == y.lo) ? (
+				(x.val[2] == 0.0 ) ? (
+					x.val[3] > 0.0
+				) : (x.val[2] > 0.0 )
+			) : (x.val[1] > y.lo)
+		) : (x.val[0] > y.hi);
+}
+inline constexpr bool operator>=(const Float64x4& x, const Float64x2& y) {
+	return
+		(x.val[0] == y.hi) ? (
+			(x.val[1] == y.lo) ? (
+				(x.val[2] == 0.0 ) ? (
+					x.val[3] >= 0.0
+				) : (x.val[2] > 0.0 )
+			) : (x.val[1] > y.lo)
+		) : (x.val[0] > y.hi);
+}
+
+
+
+inline constexpr bool operator==(const Float64x2& x, const Float64x4& y) {
+	return (
+		x.hi == y.val[0] && x.lo == y.val[1] &&
+		0.0  == y.val[2] && 0.0  == y.val[3]
+	);
+}
+inline constexpr bool operator!=(const Float64x2& x, const Float64x4& y) {
+	return (
+		x.hi != y.val[0] || x.lo != y.val[1] ||
+		0.0  != y.val[2] || 0.0  != y.val[3]
+	);
+}
+inline constexpr bool operator<(const Float64x2& x, const Float64x4& y) {
+	return
+		(x.hi == y.val[0]) ? (
+			(x.lo == y.val[1]) ? (
+				(0.0  == y.val[2]) ? (
+					0.0  < y.val[3]
+				) : (0.0  < y.val[2])
+			) : (x.lo < y.val[1])
+		) : (x.hi < y.val[0]);
+}
+inline constexpr bool operator<=(const Float64x2& x, const Float64x4& y) {
+	return
+		(x.hi == y.val[0]) ? (
+			(x.lo == y.val[1]) ? (
+				(0.0  == y.val[2]) ? (
+					0.0  <= y.val[3]
+				) : (0.0  < y.val[2])
+			) : (x.lo < y.val[1])
+		) : (x.hi < y.val[0]);
+}
+inline constexpr bool operator>(const Float64x2& x, const Float64x4& y) {
+	return
+		(x.hi == y.val[0]) ? (
+			(x.lo == y.val[1]) ? (
+				(0.0  == y.val[2]) ? (
+					0.0  > y.val[3]
+				) : (0.0  > y.val[2])
+			) : (x.lo > y.val[1])
+		) : (x.hi > y.val[0]);
+}
+inline constexpr bool operator>=(const Float64x2& x, const Float64x4& y) {
+	return
+		(x.hi == y.val[0]) ? (
+			(x.lo == y.val[1]) ? (
+				(0.0  == y.val[2]) ? (
+					0.0  >= y.val[3]
+				) : (0.0  > y.val[2])
+			) : (x.lo > y.val[1])
+		) : (x.hi > y.val[0]);
+}
+
+//------------------------------------------------------------------------------
+// Float64x4 Compairison fp64
+//------------------------------------------------------------------------------
+
+inline constexpr bool operator==(const Float64x4& x, const fp64 y) {
+	return (
+		x.val[0] == y   && x.val[1] == 0.0 &&
+		x.val[2] == 0.0 && x.val[3] == 0.0
+	);
+}
+inline constexpr bool operator!=(const Float64x4& x, const fp64 y) {
+	return (
+		x.val[0] != y   || x.val[1] != 0.0 ||
+		x.val[2] != 0.0 || x.val[3] != 0.0
+	);
+}
+inline constexpr bool operator<(const Float64x4& x, const fp64 y) {
+	return
+		(x.val[0] == y  ) ? (
+			(x.val[1] == 0.0) ? (
+				(x.val[2] == 0.0) ? (
+					x.val[3] < 0.0
+				) : (x.val[2] < 0.0)
+			) : (x.val[1] < 0.0)
+		) : (x.val[0] < y  );
+}
+inline constexpr bool operator<=(const Float64x4& x, const fp64 y) {
+	return
+		(x.val[0] == y  ) ? (
+			(x.val[1] == 0.0) ? (
+				(x.val[2] == 0.0) ? (
+					x.val[3] <= 0.0
+				) : (x.val[2] < 0.0)
+			) : (x.val[1] < 0.0)
+		) : (x.val[0] < y  );
+}
+inline constexpr bool operator>(const Float64x4& x, const fp64 y) {
+	return
+		(x.val[0] == y  ) ? (
+			(x.val[1] == 0.0) ? (
+				(x.val[2] == 0.0) ? (
+					x.val[3] > 0.0
+				) : (x.val[2] > 0.0)
+			) : (x.val[1] > 0.0)
+		) : (x.val[0] > y  );
+}
+inline constexpr bool operator>=(const Float64x4& x, const fp64 y) {
+	return
+		(x.val[0] == y  ) ? (
+			(x.val[1] == 0.0) ? (
+				(x.val[2] == 0.0) ? (
+					x.val[3] >= 0.0
+				) : (x.val[2] > 0.0)
+			) : (x.val[1] > 0.0)
+		) : (x.val[0] > y  );
+}
+
+
+
+inline constexpr bool operator==(const fp64 x, const Float64x4& y) {
+	return (
+		x   == y.val[0] && 0.0 == y.val[1] &&
+		0.0 == y.val[2] && 0.0 == y.val[3]
+	);
+}
+inline constexpr bool operator!=(const fp64 x, const Float64x4& y) {
+	return (
+		x   != y.val[0] || 0.0 != y.val[1] ||
+		0.0 != y.val[2] || 0.0 != y.val[3]
+	);
+}
+inline constexpr bool operator<(const fp64 x, const Float64x4& y) {
+	return
+		(x   == y.val[0]) ? (
+			(0.0 == y.val[1]) ? (
+				(0.0 == y.val[2]) ? (
+					0.0 < y.val[3]
+				) : (0.0 < y.val[2])
+			) : (0.0 < y.val[1])
+		) : (x   < y.val[0]);
+}
+inline constexpr bool operator<=(const fp64 x, const Float64x4& y) {
+	return
+		(x   == y.val[0]) ? (
+			(0.0 == y.val[1]) ? (
+				(0.0 == y.val[2]) ? (
+					0.0 <= y.val[3]
+				) : (0.0 < y.val[2])
+			) : (0.0 < y.val[1])
+		) : (x   < y.val[0]);
+}
+inline constexpr bool operator>(const fp64 x, const Float64x4& y) {
+	return
+		(x   == y.val[0]) ? (
+			(0.0 == y.val[1]) ? (
+				(0.0 == y.val[2]) ? (
+					0.0 > y.val[3]
+				) : (0.0 > y.val[2])
+			) : (0.0 > y.val[1])
+		) : (x   > y.val[0]);
+}
+inline constexpr bool operator>=(const fp64 x, const Float64x4& y) {
+	return
+		(x   == y.val[0]) ? (
+			(0.0 == y.val[1]) ? (
+				(0.0 == y.val[2]) ? (
+					0.0 >= y.val[3]
+				) : (0.0 > y.val[2])
+			) : (0.0 > y.val[1])
+		) : (x   > y.val[0]);
+}
+
+//------------------------------------------------------------------------------
 // Float64x4 Compare to Zero
 //------------------------------------------------------------------------------
 
@@ -117,225 +342,7 @@ inline constexpr bool dekker_greaterequal_zero(const Float64x4& x) {
 }
 
 //------------------------------------------------------------------------------
-// qd_real functions
-//------------------------------------------------------------------------------
-/** 
- * @author Taken from libQD which can be found under a
- * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
- */
-
-
-namespace qd {
-
-	/*********** Basic Functions ************/
-	/* Computes fl(a+b) and err(a+b).  Assumes |a| >= |b|. */
-	inline double quick_two_sum(double a, double b, double &err) {
-		double s = a + b;
-		err = b - (s - a);
-		return s;
-	}
-
-	/* Computes fl(a-b) and err(a-b).  Assumes |a| >= |b| */
-	inline double quick_two_diff(double a, double b, double &err) {
-		double s = a - b;
-		err = (a - s) - b;
-		return s;
-	}
-
-	/* Computes fl(a+b) and err(a+b).  */
-	inline double two_sum(double a, double b, double &err) {
-		double s = a + b;
-		double bb = s - a;
-		err = (a - (s - bb)) + (b - bb);
-		return s;
-	}
-
-	/* Computes fl(a-b) and err(a-b).  */
-	inline double two_diff(double a, double b, double &err) {
-		double s = a - b;
-		double bb = s - a;
-		err = (a - (s - bb)) - (b + bb);
-		return s;
-	}
-
-#ifndef QD_FMS
-#define _QD_SPLITTER 134217729.0               // = 2^27 + 1
-#define _QD_SPLIT_THRESH 6.69692879491417e+299 // = 2^996
-/* Computes high word and lo word of a */
-inline void split(double a, double &hi, double &lo) {
-	double temp;
-	if (a > _QD_SPLIT_THRESH || a < -_QD_SPLIT_THRESH) {
-		a *= 3.7252902984619140625e-09;  // 2^-28
-		temp = _QD_SPLITTER * a;
-		hi = temp - (temp - a);
-		lo = a - hi;
-		hi *= 268435456.0;          // 2^28
-		lo *= 268435456.0;          // 2^28
-	} else {
-		temp = _QD_SPLITTER * a;
-		hi = temp - (temp - a);
-		lo = a - hi;
-	}
-}
-#endif
-
-/* Computes fl(a*b) and err(a*b). */
-inline double two_prod(double a, double b, double &err) {
-	#ifdef QD_FMS
-		double p = a * b;
-		err = QD_FMS(a, b, p);
-		return p;
-	#else
-		double a_hi, a_lo, b_hi, b_lo;
-		double p = a * b;
-		split(a, a_hi, a_lo);
-		split(b, b_hi, b_lo);
-		err = ((a_hi * b_hi - p) + a_hi * b_lo + a_lo * b_hi) + a_lo * b_lo;
-		return p;
-	#endif
-}
-
-/* Computes fl(a*a) and err(a*a).  Faster than the above method. */
-inline double two_sqr(double a, double &err) {
-	#ifdef QD_FMS
-		double p = a * a;
-		err = QD_FMS(a, a, p);
-		return p;
-	#else
-		double hi, lo;
-		double q = a * a;
-		split(a, hi, lo);
-		err = ((hi * hi - q) + 2.0 * hi * lo) + lo * lo;
-		return q;
-	#endif
-}
-
-	inline void quick_renorm(
-		double &c0, double &c1, 
-		double &c2, double &c3, double &c4
-	) {
-		double t0, t1, t2, t3;
-		double s;
-		s  = qd::quick_two_sum(c3, c4, t3);
-		s  = qd::quick_two_sum(c2, s , t2);
-		s  = qd::quick_two_sum(c1, s , t1);
-		c0 = qd::quick_two_sum(c0, s , t0);
-
-		s  = qd::quick_two_sum(t2, t3, t2);
-		s  = qd::quick_two_sum(t1, s , t1);
-		c1 = qd::quick_two_sum(t0, s , t0);
-
-		s  = qd::quick_two_sum(t1, t2, t1);
-		c2 = qd::quick_two_sum(t0, s , t0);
-		
-		c3 = t0 + t1;
-	}
-
-	inline void renorm(
-		double &c0, double &c1, 
-		double &c2, double &c3
-	) {
-		double s0, s1, s2 = 0.0, s3 = 0.0;
-
-		if (std::isinf(c0)) return;
-
-		s0 = qd::quick_two_sum(c2, c3, c3);
-		s0 = qd::quick_two_sum(c1, s0, c2);
-		c0 = qd::quick_two_sum(c0, s0, c1);
-
-		s0 = c0;
-		s1 = c1;
-		if (s1 != 0.0) {
-			s1 = qd::quick_two_sum(s1, c2, s2);
-			if (s2 != 0.0)
-			s2 = qd::quick_two_sum(s2, c3, s3);
-			else
-			s1 = qd::quick_two_sum(s1, c3, s2);
-		} else {
-			s0 = qd::quick_two_sum(s0, c2, s1);
-			if (s1 != 0.0)
-			s1 = qd::quick_two_sum(s1, c3, s2);
-			else
-			s0 = qd::quick_two_sum(s0, c3, s1);
-		}
-
-		c0 = s0;
-		c1 = s1;
-		c2 = s2;
-		c3 = s3;
-	}
-
-	inline void renorm(
-		double &c0, double &c1, 
-		double &c2, double &c3, double &c4
-	) {
-		double s0, s1, s2 = 0.0, s3 = 0.0;
-
-		if (std::isinf(c0)) return;
-
-		s0 = qd::quick_two_sum(c3, c4, c4);
-		s0 = qd::quick_two_sum(c2, s0, c3);
-		s0 = qd::quick_two_sum(c1, s0, c2);
-		c0 = qd::quick_two_sum(c0, s0, c1);
-
-		s0 = c0;
-		s1 = c1;
-
-		if (s1 != 0.0) {
-			s1 = qd::quick_two_sum(s1, c2, s2);
-			if (s2 != 0.0) {
-			s2 = qd::quick_two_sum(s2, c3, s3);
-			if (s3 != 0.0)
-				s3 += c4;
-			else
-				s2 = qd::quick_two_sum(s2, c4, s3);
-			} else {
-			s1 = qd::quick_two_sum(s1, c3, s2);
-			if (s2 != 0.0)
-				s2 = qd::quick_two_sum(s2, c4, s3);
-			else
-				s1 = qd::quick_two_sum(s1, c4, s2);
-			}
-		} else {
-			s0 = qd::quick_two_sum(s0, c2, s1);
-			if (s1 != 0.0) {
-			s1 = qd::quick_two_sum(s1, c3, s2);
-			if (s2 != 0.0)
-				s2 = qd::quick_two_sum(s2, c4, s3);
-			else
-				s1 = qd::quick_two_sum(s1, c4, s2);
-			} else {
-			s0 = qd::quick_two_sum(s0, c3, s1);
-			if (s1 != 0.0)
-				s1 = qd::quick_two_sum(s1, c4, s2);
-			else
-				s0 = qd::quick_two_sum(s0, c4, s1);
-			}
-		}
-
-		c0 = s0;
-		c1 = s1;
-		c2 = s2;
-		c3 = s3;
-	}
-
-	inline void three_sum(double &a, double &b, double &c) {
-		double t1, t2, t3;
-		t1 = qd::two_sum(a, b, t2);
-		a  = qd::two_sum(c, t1, t3);
-		b  = qd::two_sum(t2, t3, c);
-	}
-
-	inline void three_sum2(double &a, double &b, double &c) {
-		double t1, t2, t3;
-		t1 = qd::two_sum(a, b, t2);
-		a  = qd::two_sum(c, t1, t3);
-		b = t2 + t3;
-	}
-}
-
-//------------------------------------------------------------------------------
-// Float64x4 Addition and Subtraction
+// Float64x4 Basic Arithmetic
 //------------------------------------------------------------------------------
 
 /* Negation */
@@ -344,131 +351,120 @@ inline constexpr Float64x4 operator-(const Float64x4& x) {
 	return {-x.val[0], -x.val[1], -x.val[2], -x.val[3]};
 }
 
-inline Float64x4 operator+(const Float64x4& x, const fp64 y) {
-	double c0, c1, c2, c3;
-	double e;
+/* Addition */
 
-	c0 = qd::two_sum(x.val[0], y, e);
-	c1 = qd::two_sum(x.val[1], e, e);
-	c2 = qd::two_sum(x.val[2], e, e);
-	c3 = qd::two_sum(x.val[3], e, e);
-
-	qd::renorm(c0, c1, c2, c3, e);
-
-	return Float64x4(c0, c1, c2, c3);
-}
-inline Float64x4 operator+(const fp64 x, const Float64x4& y) {
-	return y + x;
-}
-
-inline Float64x4 operator-(const Float64x4& x, const fp64 y) {
-	double c0, c1, c2, c3;
-	double e;
-
-	c0 = qd::two_diff(x.val[0], y, e);
-	c1 = qd::two_diff(x.val[1], e, e);
-	c2 = qd::two_diff(x.val[2], e, e);
-	c3 = qd::two_diff(x.val[3], e, e);
-
-	qd::renorm(c0, c1, c2, c3, e);
-
-	return Float64x4(c0, c1, c2, c3);
-}
-inline Float64x4 operator-(const fp64 x, const Float64x4& y) {
-	return x + -y;
+inline Float64x4 operator+(const Float64x4& x, const Float64x4& y) {
+	return Float64x4_add(x, y);
 }
 
 inline Float64x4 operator+(const Float64x4& x, const Float64x2& y) {
-	double s0, s1, s2, s3;
-	double t0, t1;
-
-	s0 = qd::two_sum(x.val[0], y.hi, t0);
-	s1 = qd::two_sum(x.val[1], y.lo, t1);
-
-	s1 = qd::two_sum(s1, t0, t0);
-
-	s2 = x.val[2];
-	qd::three_sum(s2, t0, t1);
-
-	s3 = qd::two_sum(t0, x.val[3], t0);
-	t0 += t1;
-
-	qd::renorm(s0, s1, s2, s3, t0);
-	return Float64x4(s0, s1, s2, s3);
+	return Float64x4_add_dx4_dx2(x, y);
 }
+inline Float64x4 operator+(const Float64x4& x, const fp64 y) {
+	return Float64x4_add_dx4_d(x, y);
+}
+
 inline Float64x4 operator+(const Float64x2& x, const Float64x4& y) {
-	return y + x;
+	return Float64x4_add_dx2_dx4(x, y);
+}
+
+inline Float64x4 operator+(const fp64 x, const Float64x4& y) {
+	return Float64x4_add_d_dx4(x, y);
+}
+
+/* Subtraction */
+
+inline Float64x4 operator-(const Float64x4& x, const Float64x4& y) {
+	return Float64x4_add(x, y);
 }
 
 inline Float64x4 operator-(const Float64x4& x, const Float64x2& y) {
-	double s0, s1, s2, s3;
-	double t0, t1;
-
-	s0 = qd::two_diff(x.val[0], y.hi, t0);
-	s1 = qd::two_diff(x.val[1], y.lo, t1);
-
-	s1 = qd::two_sum(s1, t0, t0);
-
-	s2 = x.val[2];
-	qd::three_sum(s2, t0, t1);
-
-	s3 = qd::two_sum(t0, x.val[3], t0);
-	t0 += t1;
-
-	qd::renorm(s0, s1, s2, s3, t0);
-	return Float64x4(s0, s1, s2, s3);
+	return Float64x4_sub_dx4_dx2(x, y);
 }
+inline Float64x4 operator-(const Float64x4& x, const fp64 y) {
+	return Float64x4_sub_dx4_d(x, y);
+}
+
 inline Float64x4 operator-(const Float64x2& x, const Float64x4& y) {
-	return x + -y;
+	return Float64x4_sub_dx2_dx4(x, y);
 }
 
-/** @note cray style error bounds */
-inline Float64x4 operator+(const Float64x4& x, const Float64x4& y) {
-	fp64 s0, s1, s2, s3;
-	fp64 t0, t1, t2, t3;
-	
-	s0 = qd::two_sum(x.val[0], y.val[0], t0);
-	s1 = qd::two_sum(x.val[1], y.val[1], t1);
-	s2 = qd::two_sum(x.val[2], y.val[2], t2);
-	s3 = qd::two_sum(x.val[3], y.val[3], t3);
-
-	s1 = qd::two_sum(s1, t0, t0);
-	qd::three_sum(s2, t0, t1);
-	qd::three_sum2(s3, t0, t2);
-	t0 = t0 + t1 + t3;
-
-	qd::renorm(s0, s1, s2, s3, t0);
-	return Float64x4(s0, s1, s2, s3);
+inline Float64x4 operator-(const fp64 x, const Float64x4& y) {
+	return Float64x4_sub_d_dx4(x, y);
 }
 
-/** @note cray style error bounds */
-inline Float64x4 operator-(const Float64x4& x, const Float64x4& y) {
-	fp64 s0, s1, s2, s3;
-	fp64 t0, t1, t2, t3;
-	
-	s0 = qd::two_diff(x.val[0], y.val[0], t0);
-	s1 = qd::two_diff(x.val[1], y.val[1], t1);
-	s2 = qd::two_diff(x.val[2], y.val[2], t2);
-	s3 = qd::two_diff(x.val[3], y.val[3], t3);
+/* Multiplication */
 
-	s1 = qd::two_sum(s1, t0, t0);
-	qd::three_sum(s2, t0, t1);
-	qd::three_sum2(s3, t0, t2);
-	t0 = t0 + t1 + t3;
-
-	qd::renorm(s0, s1, s2, s3, t0);
-	return Float64x4(s0, s1, s2, s3);
+inline Float64x4 operator*(const Float64x4& x, const Float64x4& y) {
+	return Float64x4_mul(x, y);
 }
 
-/* Compound Assignment */
+inline Float64x4 operator*(const Float64x4& x, const Float64x2& y) {
+	return Float64x4_mul_dx4_dx2(x, y);
+}
+inline Float64x4 operator*(const Float64x4& x, const fp64 y) {
+	return Float64x4_mul_dx4_d(x, y);
+}
 
+inline Float64x4 operator*(const Float64x2& x, const Float64x4& y) {
+	return Float64x4_mul_dx2_dx4(x, y);
+}
 
-inline Float64x4& operator+=(Float64x4 &x, const fp64 y) {
+inline Float64x4 operator*(const fp64 x, const Float64x4& y) {
+	return Float64x4_mul_d_dx4(x, y);
+}
+
+/* Square */
+
+inline Float64x4 square(const Float64x4& x) {
+	return Float64x4_square(x);
+}
+
+/* Division */
+
+inline Float64x4 operator/(const Float64x4& x, const Float64x4& y) {
+	return Float64x4_div(x, y);
+}
+
+inline Float64x4 operator/(const Float64x4& x, const Float64x2& y) {
+	return Float64x4_div_dx4_dx2(x, y);
+}
+inline Float64x4 operator/(const Float64x4& x, const fp64 y) {
+	return Float64x4_div_dx4_d(x, y);
+}
+
+inline Float64x4 operator/(const Float64x2& x, const Float64x4& y) {
+	return Float64x4_div_dx2_dx4(x, y);
+}
+
+inline Float64x4 operator/(const fp64 x, const Float64x4& y) {
+	return Float64x4_div_d_dx4(x, y);
+}
+
+/* Reciprocal */
+
+inline Float64x4 recip(const Float64x4& x) {
+	return Float64x4_recip(x);
+}
+
+//------------------------------------------------------------------------------
+// Float64x4 Compound Assignment
+//------------------------------------------------------------------------------
+
+inline Float64x4& operator+=(Float64x4 &x, const Float64x4 &y) {
 	x = x + y;
 	return x;
 }
-inline Float64x4& operator-=(Float64x4 &x, const fp64 y) {
+inline Float64x4& operator-=(Float64x4 &x, const Float64x4 &y) {
 	x = x - y;
+	return x;
+}
+inline Float64x4& operator*=(Float64x4 &x, const Float64x4 &y) {
+	x = x * y;
+	return x;
+}
+inline Float64x4& operator/=(Float64x4 &x, const Float64x4 &y) {
+	x = x / y;
 	return x;
 }
 
@@ -480,13 +476,29 @@ inline Float64x4& operator-=(Float64x4 &x, const Float64x2 &y) {
 	x = x - y;
 	return x;
 }
+inline Float64x4& operator*=(Float64x4 &x, const Float64x2 &y) {
+	x = x * y;
+	return x;
+}
+inline Float64x4& operator/=(Float64x4 &x, const Float64x2 &y) {
+	x = x / y;
+	return x;
+}
 
-inline Float64x4& operator+=(Float64x4& x, const Float64x4& y) {
+inline Float64x4& operator+=(Float64x4 &x, const fp64 y) {
 	x = x + y;
 	return x;
 }
-inline Float64x4& operator-=(Float64x4& x, const Float64x4& y) {
+inline Float64x4& operator-=(Float64x4 &x, const fp64 y) {
 	x = x - y;
+	return x;
+}
+inline Float64x4& operator*=(Float64x4 &x, const fp64 y) {
+	x = x * y;
+	return x;
+}
+inline Float64x4& operator/=(Float64x4 &x, const fp64 y) {
+	x = x / y;
 	return x;
 }
 
@@ -496,200 +508,24 @@ inline Float64x4& operator++(Float64x4& x) {
 	x += 1.0;
 	return x;
 }
+
 inline Float64x4& operator--(Float64x4& x) {
 	x -= 1.0;
 	return x;
 }
+
 inline Float64x4 operator++(Float64x4& x, int) {
 	Float64x4 temp = x;
 	x += 1.0;
 	return temp;
 }
+
 inline Float64x4 operator--(Float64x4& x, int) {
 	Float64x4 temp = x;
 	x -= 1.0;
 	return temp;
 }
 
-//------------------------------------------------------------------------------
-// Float64x4 Multiplication
-//------------------------------------------------------------------------------
-
-inline Float64x4 operator*(const Float64x4& x, const fp64 y) {
-	double p0, p1, p2, p3;
-	double q0, q1, q2;
-	double s0, s1, s2, s3, s4;
-
-	p0 = qd::two_prod(x.val[0], y, q0);
-	p1 = qd::two_prod(x.val[1], y, q1);
-	p2 = qd::two_prod(x.val[2], y, q2);
-	p3 = x.val[3] * y;
-
-	s0 = p0;
-
-	s1 = qd::two_sum(q0, p1, s2);
-
-	qd::three_sum(s2, q1, p2);
-
-	qd::three_sum2(q1, q2, p3);
-	s3 = q1;
-
-	s4 = q2 + p2;
-
-	qd::renorm(s0, s1, s2, s3, s4);
-	return Float64x4(s0, s1, s2, s3);
-}
-inline Float64x4 operator*(const fp64 x, const Float64x4& y) {
-	return y * x;
-}
-
-inline Float64x4 operator*(const Float64x4& x, const Float64x2& y) {
-	double p0, p1, p2, p3, p4;
-	double q0, q1, q2, q3, q4;
-	double s0, s1, s2;
-	double t0, t1;
-
-	p0 = qd::two_prod(x.val[0], y.hi, q0);
-	p1 = qd::two_prod(x.val[0], y.lo, q1);
-	p2 = qd::two_prod(x.val[1], y.hi, q2);
-	p3 = qd::two_prod(x.val[1], y.lo, q3);
-	p4 = qd::two_prod(x.val[2], y.hi, q4);
-	
-	qd::three_sum(p1, p2, q0);
-	
-	/* Five-Three-Sum */
-	qd::three_sum(p2, p3, p4);
-	q1 = qd::two_sum(q1, q2, q2);
-	s0 = qd::two_sum(p2, q1, t0);
-	s1 = qd::two_sum(p3, q2, t1);
-	s1 = qd::two_sum(s1, t0, t0);
-	s2 = t0 + t1 + p4;
-	p2 = s0;
-
-	p3 = x.val[2] * y.hi + x.val[3] * y.lo + q3 + q4;
-	qd::three_sum2(p3, q0, s1);
-	p4 = q0 + s2;
-
-	qd::renorm(p0, p1, p2, p3, p4);
-	return Float64x4(p0, p1, p2, p3);
-}
-inline Float64x4 operator*(const Float64x2& x, const Float64x4& y) {
-	return y * x;
-}
-
-inline Float64x4 square(const Float64x4& x) {
-	double p0, p1, p2, p3, p4, p5;
-	double q0, q1, q2, q3;
-	double s0, s1;
-	double t0, t1;
-
-	p0 = qd::two_sqr(x.val[0], q0);
-	p1 = qd::two_prod(2.0 * x.val[0], x.val[1], q1);
-	p2 = qd::two_prod(2.0 * x.val[0], x.val[2], q2);
-	p3 = qd::two_sqr(x.val[1], q3);
-
-	p1 = qd::two_sum(q0, p1, q0);
-
-	q0 = qd::two_sum(q0, q1, q1);
-	p2 = qd::two_sum(p2, p3, p3);
-
-	s0 = qd::two_sum(q0, p2, t0);
-	s1 = qd::two_sum(q1, p3, t1);
-
-	s1 = qd::two_sum(s1, t0, t0);
-	t0 += t1;
-
-	s1 = qd::quick_two_sum(s1, t0, t0);
-	p2 = qd::quick_two_sum(s0, s1, t1);
-	p3 = qd::quick_two_sum(t1, t0, q0);
-
-	p4 = 2.0 * x.val[0] * x.val[3];
-	p5 = 2.0 * x.val[1] * x.val[2];
-
-	p4 = qd::two_sum(p4, p5, p5);
-	q2 = qd::two_sum(q2, q3, q3);
-
-	t0 = qd::two_sum(p4, q2, t1);
-	t1 = t1 + p5 + q3;
-
-	p3 = qd::two_sum(p3, t0, p4);
-	p4 = p4 + q0 + t1;
-
-	qd::renorm(p0, p1, p2, p3, p4);
-	return Float64x4(p0, p1, p2, p3);
-}
-
-/** @note cray style error bounds */
-inline Float64x4 operator*(const Float64x4& x, const Float64x4& y) {
-	double p0, p1, p2, p3, p4, p5;
-	double q0, q1, q2, q3, q4, q5;
-	double t0, t1;
-	double s0, s1, s2;
-
-	p0 = qd::two_prod(x.val[0], y.val[0], q0);
-
-	p1 = qd::two_prod(x.val[0], y.val[1], q1);
-	p2 = qd::two_prod(x.val[1], y.val[0], q2);
-
-	p3 = qd::two_prod(x.val[0], y.val[2], q3);
-	p4 = qd::two_prod(x.val[1], y.val[1], q4);
-	p5 = qd::two_prod(x.val[2], y.val[0], q5);
-
-	/* Start Accumulation */
-	qd::three_sum(p1, p2, q0);
-
-	/* Six-Three Sum  of p2, q1, q2, p3, p4, p5. */
-	qd::three_sum(p2, q1, q2);
-	qd::three_sum(p3, p4, p5);
-	/* compute (s0, s1, s2) = (p2, q1, q2) + (p3, p4, p5). */
-	s0 = qd::two_sum(p2, p3, t0);
-	s1 = qd::two_sum(q1, p4, t1);
-	s2 = q2 + p5;
-	s1 = qd::two_sum(s1, t0, t0);
-	s2 += (t0 + t1);
-
-	/* O(eps^3) order terms */
-	s1 += x.val[0] * y.val[3] + x.val[1] * y.val[2] + x.val[2] * y.val[1] + x.val[3] * y.val[0] + q0 + q3 + q4 + q5;
-	qd::renorm(p0, p1, s0, s1, s2);
-	return Float64x4(p0, p1, s0, s1);
-}
-
-//------------------------------------------------------------------------------
-// Float64x4 Division
-//------------------------------------------------------------------------------
-
-inline Float64x4 operator/(const Float64x4& x, const Float64x4& y) {
-	double q0, q1, q2, q3;
-	Float64x4 r;
-
-	q0 = x.val[0] / y.val[0];
-	r = x - (y * q0);
-
-	q1 = r.val[0] / y.val[0];
-	r -= (y * q1);
-
-	q2 = r.val[0] / y.val[0];
-	r -= (y * q2);
-
-	q3 = r.val[0] / y.val[0];
-
-	qd::renorm(q0, q1, q2, q3);
-
-	return Float64x4(q0, q1, q2, q3);
-}
-
-inline Float64x4 operator/(const Float64x4& x, const Float64x2& y) {
-	return x / Float64x4(y);
-}
-inline Float64x4 operator/(const Float64x4& x, const fp64 y) {
-	return x / Float64x4(y);
-}
-inline Float64x4 operator/(const Float64x2& x, const Float64x4& y) {
-	return Float64x4(x) / y;
-}
-inline Float64x4 operator/(const fp64 x, const Float64x4& y) {
-	return Float64x4(x) / y;
-}
 
 //------------------------------------------------------------------------------
 // Float64x4 specialized arithmetic
@@ -818,6 +654,12 @@ namespace std {
 }
 #endif
 
+constexpr Float64x4 Float64x4_2pi  = {0x1.921fb54442d18p+2,+0x1.1a62633145c07p-52,-0x1.f1976b7ed8fbcp-108,+0x1.4cf98e804177dp-162}; /**< ~6.283185307 */
+constexpr Float64x4 Float64x4_pi2  = {0x1.921fb54442d18p+0,+0x1.1a62633145c07p-54,-0x1.f1976b7ed8fbcp-110,+0x1.4cf98e804177dp-164}; /**< ~1.570796327 */
+constexpr Float64x4 Float64x4_pi4  = {0x1.921fb54442d18p-1,+0x1.1a62633145c07p-55,-0x1.f1976b7ed8fbcp-111,+0x1.4cf98e804177dp-165}; /**< ~0.785398163 */
+constexpr Float64x4 Float64x4_3pi4 = {0x1.2d97c7f3321d2p+1,+0x1.a79394c9e8a0ap-54,+0x1.456737b06ea1ap-108,-0x1.83226a8fe7731p-162}; /**< ~2.356194490 */
+constexpr Float64x4 Float64x4_tau  = Float64x4_2pi; /**< ~6.283185307 */
+
 //------------------------------------------------------------------------------
 // Float64x4 math.h functions
 //------------------------------------------------------------------------------
@@ -853,8 +695,12 @@ namespace std {
 	inline constexpr Float64x4 copysign(const Float64x4& x, const Float64x4& y) {
 		return (dekker_less_zero(x)) != (dekker_less_zero(y)) ? -x : x;
 	}
-	Float64x4 sqrt(const Float64x4& x);
-	Float64x4 cbrt(const Float64x4& x);
+	inline Float64x4 sqrt(const Float64x4& x) {
+		return Float64x4_sqrt(x);
+	}
+	inline Float64x4 cbrt(const Float64x4& x) {
+		return Float64x4_cbrt(x);
+	}
 	/** @note Naive implementation of hypot, may overflow for large inputs */
 	inline Float64x2 hypot(const Float64x4& x, const Float64x4& y) {
 		return sqrt(
@@ -872,19 +718,23 @@ namespace std {
 
 	Float64x4  sin (const Float64x4& x);
 	Float64x4  cos (const Float64x4& x);
-	Float64x4  tan (const Float64x4& x);
+	void sincos(const Float64x4& x, Float64x4& p_sin , Float64x4& p_cos );
+	inline Float64x4 tan(const Float64x4& x) {
+		Float64x4 sin_val, cos_val;
+		sincos(x, sin_val, cos_val);
+		return sin_val / cos_val;
+	}
 	Float64x4 asin (const Float64x4& x);
 	Float64x4 acos (const Float64x4& x);
 	Float64x4 atan (const Float64x4& x);
 	Float64x4  sinh(const Float64x4& x);
 	Float64x4  cosh(const Float64x4& x);
+	void sinhcosh(const Float64x4& x, Float64x4& p_sinh, Float64x4& p_cosh);
 	Float64x4  tanh(const Float64x4& x);
 	Float64x4 asinh(const Float64x4& x);
 	Float64x4 acosh(const Float64x4& x);
 	Float64x4 atanh(const Float64x4& x);
 	Float64x4 atan2(const Float64x4& y, const Float64x4& x);
-	void sincos  (const Float64x4& x, Float64x4& p_sin , Float64x4& p_cos );
-	void sinhcosh(const Float64x4& x, Float64x4& p_sinh, Float64x4& p_cosh);
 
 /* Logarithms and Exponents */
 
@@ -991,26 +841,7 @@ namespace std {
 	 * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
 	 */
 	inline Float64x4 trunc(const Float64x4& x) {
-		fp64 x0, x1, x2, x3;
-		x1 = x2 = x3 = 0.0;
-		x0 = std::trunc(x.val[0]);
-
-		if (x0 == x.val[0]) {
-			x1 = std::trunc(x.val[1]);
-			
-			if (x1 == x.val[1]) {
-				x2 = std::trunc(x.val[2]);
-
-				if (x2 == x.val[2]) {
-					x3 = std::trunc(x.val[3]);
-				}
-			}
-
-			qd::renorm(x0, x1, x2, x3);
-			return Float64x4(x0, x1, x2, x3);
-		}
-
-		return Float64x4(x0, x1, x2, x3);
+		return Float64x4_trunc(x);
 	}
 
 	/** 
@@ -1018,26 +849,7 @@ namespace std {
 	 * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
 	 */
 	inline Float64x4 floor(const Float64x4& x) {
-		fp64 x0, x1, x2, x3;
-		x1 = x2 = x3 = 0.0;
-		x0 = std::floor(x.val[0]);
-
-		if (x0 == x.val[0]) {
-			x1 = std::floor(x.val[1]);
-			
-			if (x1 == x.val[1]) {
-				x2 = std::floor(x.val[2]);
-
-				if (x2 == x.val[2]) {
-					x3 = std::floor(x.val[3]);
-				}
-			}
-
-			qd::renorm(x0, x1, x2, x3);
-			return Float64x4(x0, x1, x2, x3);
-		}
-
-		return Float64x4(x0, x1, x2, x3);
+		return Float64x4_floor(x);
 	}
 	
 	/** 
@@ -1045,69 +857,14 @@ namespace std {
 	 * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
 	 */
 	inline Float64x4 ceil(const Float64x4& x) {
-		fp64 x0, x1, x2, x3;
-		x1 = x2 = x3 = 0.0;
-		x0 = std::ceil(x.val[0]);
-
-		if (x0 == x.val[0]) {
-			x1 = std::ceil(x.val[1]);
-			
-			if (x1 == x.val[1]) {
-				x2 = std::ceil(x.val[2]);
-
-				if (x2 == x.val[2]) {
-					x3 = std::ceil(x.val[3]);
-				}
-			}
-
-			qd::renorm(x0, x1, x2, x3);
-			return Float64x4(x0, x1, x2, x3);
-		}
-
-		return Float64x4(x0, x1, x2, x3);
+		return Float64x4_ceil(x);
 	}
 	/** 
 	 * @author Taken from libQD which can be found under a
 	 * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
 	 */
 	inline Float64x4 round(const Float64x4& x) {
-		fp64 x0, x1, x2, x3;
-
-		x0 = round(x.val[0]);
-		x1 = x2 = x3 = 0.0;
-
-		if (x0 == x.val[0]) {
-			/* First double is already an integer. */
-			x1 = round(x.val[1]);
-
-			if (x1 == x.val[1]) {
-			/* Second double is already an integer. */
-			x2 = round(x.val[2]);
-			
-			if (x2 == x.val[2]) {
-				/* Third double is already an integer. */
-				x3 = round(x.val[3]);
-			} else {
-				if (std::fabs(x2 - x.val[2]) == 0.5 && x.val[3] < 0.0) {
-				x2 -= 1.0;
-				}
-			}
-
-			} else {
-			if (std::fabs(x1 - x.val[1]) == 0.5 && x.val[2] < 0.0) {
-				x1 -= 1.0;
-			}
-			}
-
-		} else {
-			/* First double is not an integer. */
-			if (std::fabs(x0 - x.val[0]) == 0.5 && x.val[1] < 0.0) {
-				x0 -= 1.0;
-			}
-		}
-		
-		qd::renorm(x0, x1, x2, x3);
-		return Float64x4(x0, x1, x2, x3);
+		return Float64x4_round(x);
 	}
 	inline Float64x4 rint(const Float64x4& x) {
 		switch (fegetround()) {

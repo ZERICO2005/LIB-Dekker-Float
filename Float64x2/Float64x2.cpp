@@ -226,26 +226,29 @@ static inline Float64x2 taylor_expm1(const Float64x2& x, fp64& m) {
 	s = mul_pwr2(s, 2.0) + square(s);
 	s = mul_pwr2(s, 2.0) + square(s);
 	s = mul_pwr2(s, 2.0) + square(s);
+
 	s = mul_pwr2(s, 2.0) + square(s);
 	s = mul_pwr2(s, 2.0) + square(s);
 	s = mul_pwr2(s, 2.0) + square(s);
+
 	s = mul_pwr2(s, 2.0) + square(s);
 	s = mul_pwr2(s, 2.0) + square(s);
 	s = mul_pwr2(s, 2.0) + square(s);
+	
 	return s;
 	// Original return code:
 	// s += 1.0;
 	// return ldexp(s, static_cast<int>(m));
 }
 
-Float64x2 exp(Float64x2 x) {
+Float64x2 exp(const Float64x2& x) {
 	fp64 m;
 	Float64x2 ret = taylor_expm1(x, m);
 	ret += 1.0;
 	return ldexp(ret, static_cast<int>(m));
 }
 
-Float64x2 expm1(Float64x2 x) {
+Float64x2 expm1(const Float64x2& x) {
 	fp64 m;
 	Float64x2 ret = taylor_expm1(x, m);
 	/**
@@ -272,7 +275,7 @@ Float64x2 expm1(Float64x2 x) {
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x2 log(Float64x2 x) {
+Float64x2 log(const Float64x2& x) {
 	/* Strategy.  The Taylor series for log converges much more
 		slowly than that of exp, due to the lack of the factorial
 		term in the denominator.  Hence this routine instead tries
@@ -309,7 +312,7 @@ Float64x2 log(Float64x2 x) {
 /**
  * @remarks using similar methods to log(x)
  */
-Float64x2 log1p(Float64x2 x) {
+Float64x2 log1p(const Float64x2& x) {
 	if (dekker_equal_zero(x)) {
 		return 0.0;
 	}
@@ -426,7 +429,7 @@ static inline Float64x2 trig_fmod(Float64x2 x, Float64x2 y) {
 	return x - (y * floor_part);
 }
 
-Float64x2 sin(Float64x2 x) {
+Float64x2 sin(const Float64x2& x) {
 	// printf("\n\t%+-23.14a %+-23.14a\n", x.hi, x.lo);
 	Float64x2 comp;
 	comp = trig_fmod(x, Float64x2_tau);
@@ -462,7 +465,7 @@ Float64x2 sin(Float64x2 x) {
 
 #if 0
 
-Float64x2 sin(Float64x2 x) {
+Float64x2 sin(const Float64x2& x) {
 	x = fmod(x, Float64x2_tau);
 	Float64x2 ret_hi = x;
 	Float64x2 ret_lo = 0.0;
@@ -496,7 +499,7 @@ Float64x2 sin(Float64x2 x) {
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x2 sin(Float64x2 a) {  
+Float64x2 sin(const Float64x2& a) {  
 
 	/* Strategy.  To compute sin(x), we choose integers a, b so that
 
@@ -587,7 +590,7 @@ Float64x2 sin(Float64x2 a) {
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x2 cos(Float64x2 a) {
+Float64x2 cos(const Float64x2& a) {
 
 	if (dekker_equal_zero(a)) {
 		return 1.0;
@@ -744,7 +747,7 @@ void sincos(const Float64x2& x, Float64x2& p_sin, Float64x2& p_cos) {
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x2 atan(Float64x2 y) {
+Float64x2 atan(const Float64x2& y) {
 	/* Strategy: Instead of using Taylor series to compute 
 		arctan, we instead use Newton's iteration to solve
 		the equation
@@ -799,7 +802,7 @@ Float64x2 atan(Float64x2 y) {
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x2 atan2(Float64x2 y, Float64x2 x) {
+Float64x2 atan2(const Float64x2& y, const Float64x2& x) {
 	/* Strategy: Instead of using Taylor series to compute 
 		arctan, we instead use Newton's iteration to solve
 		the equation
@@ -863,17 +866,7 @@ Float64x2 atan2(Float64x2 y, Float64x2 x) {
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x2 tan(Float64x2 x) {
-	Float64x2 sin_val, cos_val;
-	sincos(x, sin_val, cos_val);
-	return sin_val / cos_val;
-}
-
-/** 
- * @author Taken from libQD dd_real.cpp which can be found under a
- * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
- */
-Float64x2 asin(Float64x2 a) {
+Float64x2 asin(const Float64x2& a) {
 	Float64x2 abs_a = fabs(a);
 
 	if (abs_a > static_cast<fp64>(1.0)) {
@@ -892,7 +885,7 @@ Float64x2 asin(Float64x2 a) {
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x2 acos(Float64x2 a) {
+Float64x2 acos(const Float64x2& a) {
 	Float64x2 abs_a = fabs(a);
 
 	if (abs_a > static_cast<fp64>(1.0)) {
@@ -911,7 +904,7 @@ Float64x2 acos(Float64x2 a) {
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x2 sinh(Float64x2 a) {
+Float64x2 sinh(const Float64x2& a) {
 	if (dekker_equal_zero(a)) {
 		return static_cast<Float64x2>(0.0);
 	}
@@ -930,11 +923,11 @@ Float64x2 sinh(Float64x2 a) {
 	fp64 thresh = fabs(a.hi * std::numeric_limits<Float64x2>::epsilon().hi);
 
 	do {
-	m += 2.0;
-	t *= r;
-	t /= (m - 1.0) * m;
+		m += 2.0;
+		t *= r;
+		t /= (m - 1.0) * m;
 
-	s += t;
+		s += t;
 	} while (fabs(t.hi) > thresh);
 
 	return s;
@@ -945,7 +938,7 @@ Float64x2 sinh(Float64x2 a) {
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x2 cosh(Float64x2 x) {
+Float64x2 cosh(const Float64x2& x) {
 	if (dekker_equal_zero(x)) {
 		return static_cast<Float64x2>(1.0);
 	}
@@ -958,7 +951,7 @@ Float64x2 cosh(Float64x2 x) {
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x2 tanh(Float64x2 x) {
+Float64x2 tanh(const Float64x2& x) {
 	if (dekker_equal_zero(x)) {
 		return static_cast<Float64x2>(0.0);
 	}
@@ -994,7 +987,7 @@ void sinhcosh(const Float64x2& x, Float64x2& p_sinh, Float64x2& p_cosh) {
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x2 asinh(Float64x2 a) {
+Float64x2 asinh(const Float64x2& a) {
 	return log(a + sqrt(square(a) + static_cast<fp64>(1.0)));
 }
 
@@ -1002,7 +995,7 @@ Float64x2 asinh(Float64x2 a) {
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x2 acosh(Float64x2 a) {
+Float64x2 acosh(const Float64x2& a) {
 	if (a < static_cast<fp64>(1.0)) {
 		// Float64x2::error("(Float64x2::acosh): Argument out of domain.");
 		return std::numeric_limits<Float64x2>::quiet_NaN();
@@ -1015,7 +1008,7 @@ Float64x2 acosh(Float64x2 a) {
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x2 atanh(Float64x2 a) {
+Float64x2 atanh(const Float64x2& a) {
 	if (fabs(a) >= static_cast<fp64>(1.0)) {
 		// Float64x2::error("(Float64x2::atanh): Argument out of domain.");
 		return std::numeric_limits<Float64x2>::quiet_NaN();
@@ -1088,6 +1081,10 @@ Float64x2 Float64x2_cos(Float64x2 x) {
 void Float64x2_sincos(Float64x2 theta, Float64x2* p_sin, Float64x2* p_cos) {
 	sincos(theta, *p_sin, *p_cos);
 }
+// tan is inlined
+// Float64x2 Float64x2_tan(Float64x2 x) {
+// 	return tan(x);
+// }
 Float64x2 Float64x2_asin(Float64x2 x) {
 	return asin(x);
 }

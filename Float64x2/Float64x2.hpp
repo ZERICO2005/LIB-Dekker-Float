@@ -721,45 +721,45 @@ namespace std {
 
 	/* Arithmetic */
 
-	inline constexpr Float64x2 fmax(Float64x2 x, Float64x2 y) {
+	inline constexpr Float64x2 fmax(const Float64x2& x, const Float64x2& y) {
 		return (x > y) ? x : y;
 	}
-	inline constexpr Float64x2 fmax(Float64x2 x, Float64x2 y, Float64x2 z) {
+	inline constexpr Float64x2 fmax(const Float64x2& x, const Float64x2& y, const Float64x2& z) {
 		return (x > y) ?
 		((x > z) ? x : z) :
 		((y > z) ? y : z);
 	}
-	inline constexpr Float64x2 fmin(Float64x2 x, Float64x2 y) {
+	inline constexpr Float64x2 fmin(const Float64x2& x, const Float64x2& y) {
 		return (x < y) ? x : y;
 	}
-	inline constexpr Float64x2 fmin(Float64x2 x, Float64x2 y, Float64x2 z) {
+	inline constexpr Float64x2 fmin(const Float64x2& x, const Float64x2& y, const Float64x2& z) {
 		return (x < y) ?
 		((x < z) ? x : z) :
 		((y < z) ? y : z);
 	}
-	inline constexpr Float64x2 fabs(Float64x2 x) {
+	inline constexpr Float64x2 fabs(const Float64x2& x) {
 		return (dekker_less_zero(x)) ? -x : x;
 	}
-	inline constexpr Float64x2 fdim(Float64x2 x, Float64x2 y) {
+	inline constexpr Float64x2 fdim(const Float64x2& x, const Float64x2& y) {
 		return (x > y) ? (x - y) : static_cast<Float64x2>(0.0);
 	}
 	/** @note Naive implementation of fma (Fused multiply add). May lose precision */
-	inline Float64x2 fma(Float64x2 x, Float64x2 y, Float64x2 z) {
+	inline Float64x2 fma(const Float64x2& x, const Float64x2& y, const Float64x2& z) {
 		return (x * y) + z;
 	}
-	inline constexpr Float64x2 copysign(Float64x2 x, Float64x2 y) {
+	inline constexpr Float64x2 copysign(const Float64x2& x, const Float64x2& y) {
 		return (
 			(dekker_less_zero(x)) != (dekker_less_zero(y))
 		) ? -x : x;
 	}
-	inline Float64x2 sqrt(Float64x2 x) {
+	inline Float64x2 sqrt(const Float64x2& x) {
 		if (dekker_equal_zero(x)) {
 			return x;
 		}
 		fp64 guess = sqrt(x.hi);
 		return mul_pwr2((guess + x / guess), static_cast<fp64>(0.5));
 	}
-	inline Float64x2 cbrt(Float64x2 x) {
+	inline Float64x2 cbrt(const Float64x2& x) {
 		if (dekker_equal_zero(x)) {
 			return x;
 		}
@@ -769,13 +769,13 @@ namespace std {
 		) / static_cast<fp64>(3.0);
 	}
 	/** @note Naive implementation of hypot, may overflow for large inputs */
-	inline Float64x2 hypot(Float64x2 x, Float64x2 y) {
+	inline Float64x2 hypot(const Float64x2& x, const Float64x2& y) {
 		return sqrt(
 			square(x) + square(y)
 		);
 	}
 	/** @note Naive implementation of hypot, may overflow for large inputs */
-	inline Float64x2 hypot(Float64x2 x, Float64x2 y, Float64x2 z) {
+	inline Float64x2 hypot(const Float64x2& x, const Float64x2& y, const Float64x2& z) {
 		return sqrt(
 			square(x) + square(y) + square(z)
 		);
@@ -783,26 +783,30 @@ namespace std {
 
 /* Trigonometry */
 
-	Float64x2  sin (Float64x2 x);
-	Float64x2  cos (Float64x2 x);
-	Float64x2  tan (Float64x2 x);
-	Float64x2 asin (Float64x2 x);
-	Float64x2 acos (Float64x2 x);
-	Float64x2 atan (Float64x2 x);
-	Float64x2  sinh(Float64x2 x);
-	Float64x2  cosh(Float64x2 x);
-	Float64x2  tanh(Float64x2 x);
-	Float64x2 asinh(Float64x2 x);
-	Float64x2 acosh(Float64x2 x);
-	Float64x2 atanh(Float64x2 x);
-	Float64x2 atan2(Float64x2 y, Float64x2 x);
-	void sincos  (const Float64x2& x, Float64x2& p_sin , Float64x2& p_cos );
+	Float64x2  sin (const Float64x2& x);
+	Float64x2  cos (const Float64x2& x);
+	void sincos(const Float64x2& x, Float64x2& p_sin , Float64x2& p_cos );
+	inline Float64x2 tan(const Float64x2& x) {
+		Float64x2 sin_val, cos_val;
+		sincos(x, sin_val, cos_val);
+		return sin_val / cos_val;
+	}
+	Float64x2 asin (const Float64x2& x);
+	Float64x2 acos (const Float64x2& x);
+	Float64x2 atan (const Float64x2& x);
+	Float64x2  sinh(const Float64x2& x);
+	Float64x2  cosh(const Float64x2& x);
 	void sinhcosh(const Float64x2& x, Float64x2& p_sinh, Float64x2& p_cosh);
+	Float64x2  tanh(const Float64x2& x);
+	Float64x2 asinh(const Float64x2& x);
+	Float64x2 acosh(const Float64x2& x);
+	Float64x2 atanh(const Float64x2& x);
+	Float64x2 atan2(const Float64x2& y, const Float64x2& x);
 
 /* Logarithms and Exponents */
 
-	Float64x2 log(Float64x2 x);
-	Float64x2 log1p(Float64x2 x);
+	Float64x2 log(const Float64x2& x);
+	Float64x2 log1p(const Float64x2& x);
 	inline Float64x2 log2(const Float64x2 x) {
 		return log(x) * Float64x2_log2e;
 	}
@@ -811,8 +815,8 @@ namespace std {
 	}
 	inline Float64x2 logb(const Float64x2 x) { return logb(x.hi + x.lo); }
 
-	Float64x2 exp(Float64x2 x);
-	Float64x2 expm1(Float64x2 x);
+	Float64x2 exp(const Float64x2& x);
+	Float64x2 expm1(const Float64x2& x);
 	inline Float64x2 exp2(const Float64x2 x) {
 		return exp(x * Float64x2_ln2);
 	}
@@ -829,30 +833,30 @@ namespace std {
 
 /* Tests */
 
-	inline constexpr bool signbit(Float64x2 x) {
+	inline constexpr bool signbit(const Float64x2& x) {
 		return (x.hi < 0.0) ? true : false;
 	}
 	/** Returns true if both x.hi and x.lo are finite */
-	inline constexpr bool isfinite(Float64x2 x) {
+	inline constexpr bool isfinite(const Float64x2& x) {
 		return (isfinite(x.hi) && isfinite(x.lo));
 	}
 	/** Returns true if either x.hi or x.lo are infinite */
-	inline constexpr bool isinf(Float64x2 x) {
+	inline constexpr bool isinf(const Float64x2& x) {
 		return (isinf(x.hi) || isinf(x.lo));
 	}
 	/** Returns true if either x.hi or x.lo are nan */
-	inline constexpr bool isnan(Float64x2 x) {
+	inline constexpr bool isnan(const Float64x2& x) {
 		return (isnan(x.hi) || isnan(x.lo));
 	}
 	/** Returns true if both x.hi and x.lo are normal */
-	inline constexpr bool isnormal(Float64x2 x) {
+	inline constexpr bool isnormal(const Float64x2& x) {
 		return (isnormal(x.hi) && isnormal(x.lo));
 	}
 	/** Returns true if either {x.hi, y.hi} or {x.lo, y.lo} are unordered */
-	inline constexpr bool isunordered(Float64x2 x, Float64x2 y) {
+	inline constexpr bool isunordered(const Float64x2& x, const Float64x2& y) {
 		return (isunordered(x.hi, y.hi) || isunordered(x.lo, y.lo));
 	}
-	inline constexpr int fpclassify(Float64x2 x) {
+	inline constexpr int fpclassify(const Float64x2& x) {
 		return
 			isinf(x)             ? FP_INFINITE :
 			isnan(x)             ? FP_NAN      :
@@ -863,25 +867,25 @@ namespace std {
 
 /* Comparison */
 
-	inline constexpr bool isgreater(Float64x2 x, Float64x2 y) {
+	inline constexpr bool isgreater(const Float64x2& x, const Float64x2& y) {
 		return (x > y);
 	}
-	inline constexpr bool isgreaterequal(Float64x2 x, Float64x2 y) {
+	inline constexpr bool isgreaterequal(const Float64x2& x, const Float64x2& y) {
 		return (x >= y);
 	}
-	inline constexpr bool isless(Float64x2 x, Float64x2 y) {
+	inline constexpr bool isless(const Float64x2& x, const Float64x2& y) {
 		return (x < y);
 	}
-	inline constexpr bool islessequal(Float64x2 x, Float64x2 y) {
+	inline constexpr bool islessequal(const Float64x2& x, const Float64x2& y) {
 		return (x <= y);
 	}
-	inline constexpr bool islessgreater(Float64x2 x, Float64x2 y) {
+	inline constexpr bool islessgreater(const Float64x2& x, const Float64x2& y) {
 		return (x < y) || (x > y);
 	}
 	
 /* Rounding */
 
-	inline Float64x2 trunc(Float64x2 x) {
+	inline Float64x2 trunc(const Float64x2& x) {
 		Float64x2 int_hi = trunc(x.hi);
 		Float64x2 int_lo = trunc(x.lo);
 		fp64 frac_hi = x.hi - int_hi.hi;
@@ -894,19 +898,19 @@ namespace std {
 		trunc_all += int_hi;
 		return trunc_all;
 	}
-	inline Float64x2 floor(Float64x2 x) {
+	inline Float64x2 floor(const Float64x2& x) {
 		Float64x2 int_part = trunc(x);
 		return (
 			dekker_less_zero(x) && int_part != x
 		) ? int_part - static_cast<fp64>(1.0) : int_part;
 	}
-	inline Float64x2 ceil(Float64x2 x) {
+	inline Float64x2 ceil(const Float64x2& x) {
 		Float64x2 int_part = trunc(x);
 		return (
 			dekker_greater_zero(x) && int_part != x
 		) ? int_part + static_cast<fp64>(1.0) : int_part;
 	}
-	inline Float64x2 round(Float64x2 x) {
+	inline Float64x2 round(const Float64x2& x) {
 		Float64x2 int_part = trunc(x);
 		Float64x2 frac_part = x - int_part;
 		if (dekker_greaterequal_zero(x)) {
@@ -920,7 +924,7 @@ namespace std {
 		}
 		return int_part;
 	}
-	inline Float64x2 rint(Float64x2 x) {
+	inline Float64x2 rint(const Float64x2& x) {
 		switch (fegetround()) {
 			default:
 			case FE_TOWARDZERO:
@@ -933,40 +937,40 @@ namespace std {
 				return round(x);
 		}
 	}
-	inline long lround(Float64x2 x) {
+	inline long lround(const Float64x2& x) {
 		return (long)round(x);
 	}
-	inline long lrint(Float64x2 x) {
+	inline long lrint(const Float64x2& x) {
 		return (long)rint(x);
 	}
-	inline long long llround(Float64x2 x) {
+	inline long long llround(const Float64x2& x) {
 		return (long long)round(x);
 	}
-	inline long long llrint(Float64x2 x) {
+	inline long long llrint(const Float64x2& x) {
 		return (long long)rint(x);
 	}
 
 	/* Integer and Remainder */
 
-	inline Float64x2 fmod(Float64x2 x, Float64x2 y) {
+	inline Float64x2 fmod(const Float64x2& x, const Float64x2& y) {
 		Float64x2 trunc_part = trunc(x / y);
 		return x - y * trunc_part;
 	}
-	inline Float64x2 modf(Float64x2 x, Float64x2* int_part) {
+	inline Float64x2 modf(const Float64x2& x, Float64x2* int_part) {
 		Float64x2 trunc_part = trunc(x);
 		if (int_part != nullptr) {
 			*int_part = trunc_part;
 		}
 		return x - trunc_part;
 	}
-	inline Float64x2 nearbyint(Float64x2 x) {
+	inline Float64x2 nearbyint(const Float64x2& x) {
 		return rint(x);
 	}
-	inline Float64x2 remainder(Float64x2 x, Float64x2 y) {
+	inline Float64x2 remainder(const Float64x2& x, const Float64x2& y) {
 		Float64x2 round_part = round(x / y);
 		return x - y * round_part;
 	}
-	inline Float64x2 remquo(Float64x2 x, Float64x2 y, int* quo) {
+	inline Float64x2 remquo(const Float64x2& x, const Float64x2& y, int* quo) {
 		Float64x2 q = round(x / y);
 		Float64x2 r = x - y * q;
 		*quo = (int)(q.hi + q.lo);
@@ -974,11 +978,11 @@ namespace std {
 	}
 	/* Float Exponents */
 	/** @brief ilogb(x.hi) */
-	inline int ilogb(Float64x2 x) {
+	inline int ilogb(const Float64x2& x) {
 		return ilogb(x.hi);
 	}
 	/** @brief frexp(x.hi, exp) */
-	inline Float64x2 frexp(Float64x2 x, int* exp) {
+	inline Float64x2 frexp(const Float64x2& x, int* exp) {
 		return frexp(x.hi, exp);
 	}
 	inline Float64x2 ldexp(Float64x2 x, int exp) {
@@ -1003,22 +1007,22 @@ namespace std {
 	 * @note casts to long double for calculation as this function is not
 	 * currently implemeneted.
 	 */
-	inline Float64x2 erf(Float64x2 x) { return (Float64x2)erf((long double)x); }
+	inline Float64x2 erf(const Float64x2& x) { return (Float64x2)erf((long double)x); }
 	/** 
 	 * @note casts to long double for calculation as this function is not
 	 * currently implemeneted.
 	 */
-	inline Float64x2 erfc(Float64x2 x) { return (Float64x2)erfc((long double)x); }
+	inline Float64x2 erfc(const Float64x2& x) { return (Float64x2)erfc((long double)x); }
 	/** 
 	 * @note casts to long double for calculation as this function is not
 	 * currently implemeneted.
 	 */
-	inline Float64x2 lgamma(Float64x2 x) { return (Float64x2)lgamma((long double)x); }
+	inline Float64x2 lgamma(const Float64x2& x) { return (Float64x2)lgamma((long double)x); }
 	/** 
 	 * @note casts to long double for calculation as this function is not
 	 * currently implemeneted.
 	 */
-	inline Float64x2 tgamma(Float64x2 x) { return (Float64x2)tgamma((long double)x); }
+	inline Float64x2 tgamma(const Float64x2& x) { return (Float64x2)tgamma((long double)x); }
 
 //------------------------------------------------------------------------------
 // Float64x2 String Operations

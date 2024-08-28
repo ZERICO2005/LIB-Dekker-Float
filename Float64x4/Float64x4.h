@@ -838,7 +838,8 @@ inline void Float64x4_quick_renorm_err(
  * @brief Negates a Float64x4 value (multiplies by -1.0)
  */
 inline Float64x4 Float64x4_negate(const Float64x4 x) {
-	return (Float64x4){-x.val[0], -x.val[1], -x.val[2], -x.val[3]};
+	Float64x4 ret = {-x.val[0], -x.val[1], -x.val[2], -x.val[3]};
+	return ret;
 }
 
 //------------------------------------------------------------------------------
@@ -1518,6 +1519,38 @@ inline Float64x4 Float64x4_mul_dx4_dx2(const Float64x4 x, const Float64x2 y) {
 	return p;
 }
 
+inline Float64x4 Float64x4_mul_dx2_dx4(const Float64x2 x, const Float64x4 y) {
+	Float64x4 p;
+	fp64 p_err;
+	fp64 q0, q1, q2, q3, q4;
+	fp64 s0, s1, s2;
+	fp64 t0, t1;
+
+	p.val[0] = Float64_two_prod(x.hi, y.val[0], &q0);
+	p.val[1] = Float64_two_prod(x.lo, y.val[0], &q1);
+	p.val[2] = Float64_two_prod(x.hi, y.val[1], &q2);
+	p.val[3] = Float64_two_prod(x.lo, y.val[1], &q3);
+	p_err    = Float64_two_prod(x.hi, y.val[2], &q4);
+	
+	Float64x4_three_sum(&p.val[1], &p.val[2], &q0);
+	
+	/* Five-Three-Sum */
+	Float64x4_three_sum(&p.val[2], &p.val[3], &p_err);
+	q1 = Float64_two_sum(q1      , q2, &q2);
+	s0 = Float64_two_sum(p.val[2], q1, &t0);
+	s1 = Float64_two_sum(p.val[3], q2, &t1);
+	s1 = Float64_two_sum(s1      , t0, &t0);
+	s2 = t0 + t1 + p_err;
+	p.val[2] = s0;
+
+	p.val[3] = y.val[2] * x.hi + y.val[3] * x.lo + q3 + q4;
+	Float64x4_three_sum2(&p.val[3], &q0, &s1);
+	p_err = q0 + s2;
+
+	Float64x4_renorm_err(&p, &p_err);
+	return p;
+}
+
 inline Float64x4 Float64x4_mul_dx4_d(const Float64x4 x, const fp64 y) {
 	fp64 p0, p1, p2, p3;
 	fp64 q0, q1, q2;
@@ -1528,6 +1561,32 @@ inline Float64x4 Float64x4_mul_dx4_d(const Float64x4 x, const fp64 y) {
 	p1 = Float64_two_prod(x.val[1], y, &q1);
 	p2 = Float64_two_prod(x.val[2], y, &q2);
 	p3 = x.val[3] * y;
+
+	s.val[0] = p0;
+
+	s.val[1] = Float64_two_sum(q0, p1, &s.val[2]);
+
+	Float64x4_three_sum(&s.val[2], &q1, &p2);
+
+	Float64x4_three_sum2(&q1, &q2, &p3);
+	s.val[3] = q1;
+
+	s_err = q2 + p2;
+
+	Float64x4_renorm_err(&s, &s_err);
+	return s;
+}
+
+inline Float64x4 Float64x4_mul_d_dx4(const fp64 x, const Float64x4 y) {
+	fp64 p0, p1, p2, p3;
+	fp64 q0, q1, q2;
+	Float64x4 s;
+	fp64 s_err;
+
+	p0 = Float64_two_prod(x, y.val[0], &q0);
+	p1 = Float64_two_prod(x, y.val[1], &q1);
+	p2 = Float64_two_prod(x, y.val[2], &q2);
+	p3 = x * y.val[3];
 
 	s.val[0] = p0;
 
@@ -1560,7 +1619,6 @@ inline Float64x4 Float64x4_mul_dx2_d(const Float64x2 x, const fp64 y) {
 	fp64 p0, p1;
 	fp64 q0, q1;
 	Float64x4 s;
-	fp64 s_err;
 
 	p0 = Float64_two_prod(x.hi, y, &q0);
 	p1 = Float64_two_prod(x.lo, y, &q1);
@@ -1582,7 +1640,6 @@ inline Float64x4 Float64x4_mul_d_dx2(const fp64 x, const Float64x2 y) {
 	fp64 p0, p1;
 	fp64 q0, q1;
 	Float64x4 s;
-	fp64 s_err;
 
 	p0 = Float64_two_prod(x, y.hi, &q0);
 	p1 = Float64_two_prod(x, y.lo, &q1);
@@ -2504,7 +2561,7 @@ inline Float64x4 Float64x4_ceil(const Float64x4 x) {
  * @author Taken from libQD which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x4 Float64x4_round(const Float64x4 x) {
+inline Float64x4 Float64x4_round(const Float64x4 x) {
 	Float64x4 ret = {
 		round(x.val[0]), 0.0, 0.0, 0.0
 	};
@@ -2603,7 +2660,8 @@ inline Float64x4 Float64x4_sqrt(const Float64x4 x) {
 	if (Float64x4_cmpeq_zero(x)) {
 		return x;
 	}
-	Float64x2 guess = Float64x2_sqrt((Float64x2){x.val[0], x.val[1]});
+	Float64x2 x_temp = {x.val[0], x.val[1]};
+	Float64x2 guess = Float64x2_sqrt(x_temp);
 	return Float64x4_mul_power2_dx4_d(Float64x4_add_dx2_dx4(
 		guess, Float64x4_div_dx4_dx2(x, guess)
 	), 0.5);
@@ -2613,7 +2671,8 @@ inline Float64x4 Float64x4_cbrt(const Float64x4 x) {
 	if (Float64x4_cmpeq_zero(x)) {
 		return x;
 	}
-	Float64x2 guess = Float64x2_cbrt((Float64x2){x.val[0], x.val[1]});
+	Float64x2 x_temp = {x.val[0], x.val[1]};
+	Float64x2 guess = Float64x2_cbrt(x_temp);
 	return Float64x4_div_dx4_d(Float64x4_add_dx2_dx4(
 			Float64x2_mul_power2_d_dx2(2.0, guess),
 			Float64x4_div(x, Float64x4_square_dx2(guess))
@@ -2639,7 +2698,7 @@ inline Float64x4 Float64x4_fmod(const Float64x4 x, const Float64x4 y) {
 //------------------------------------------------------------------------------
 // Float64x4 exponents and logarithms
 //------------------------------------------------------------------------------
-#if 0
+
 Float64x4 Float64x4_exp(Float64x4 x);
 Float64x4 Float64x4_expm1(Float64x4 x);
 inline Float64x4 Float64x4_exp2(const Float64x4 x) {
@@ -2661,11 +2720,11 @@ inline Float64x4 Float64x4_log10(const Float64x4 x) {
 	const Float64x4 mult_val = FLOAT64X4_LOG10E;
 	return Float64x4_mul(Float64x4_log(x), mult_val);
 }
-#endif
+
 //------------------------------------------------------------------------------
 // Float64x4 trigonometry
 //------------------------------------------------------------------------------
-#if 0
+
 Float64x4 Float64x4_sin(Float64x4 x);
 Float64x4 Float64x4_cos(Float64x4 x);
 void Float64x4_sincos(Float64x4 x, Float64x4* p_sin, Float64x4* p_cos);
@@ -2711,7 +2770,6 @@ inline Float64x4 Float64x4_atanh(const Float64x4 x) {
 			Float64x4_sub_d_dx4(1.0, x)
 	)), 0.5);
 }
-#endif
 
 #ifdef __cplusplus
 	}

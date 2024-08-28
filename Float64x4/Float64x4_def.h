@@ -67,7 +67,7 @@ typedef struct Float64x4 {
 /* Casts */
 
 	constexpr inline operator Float64x2() const {
-		return (Float64x2)(this->val[0], this->val[1]);
+		return Float64x2(this->val[0], this->val[1]);
 	}
 	constexpr inline operator fp32() const {
 		return (fp32)this->val[0];
