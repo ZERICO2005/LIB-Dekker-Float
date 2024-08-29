@@ -503,14 +503,18 @@ typedef Float32x2 fp32x2;
 		if (x == static_cast<fp32x2>(0.0)) {
 			return x;
 		}
-		fp32x2 guess = (fp32x2)sqrt(x.hi);
+		fp32x2 guess;
+		guess.hi = sqrt(x.hi);
+		guess.lo = static_cast<fp32>(0.0);
 		return (guess + x / guess) * static_cast<fp32>(0.5);
 	}
 	inline fp32x2 cbrt(fp32x2 x) {
 		if (x == static_cast<fp32x2>(0.0)) {
 			return x;
 		}
-		fp32x2 guess = (fp32x2)cbrt(x.hi);
+		fp32x2 guess;
+		guess.hi = cbrt(x.hi);
+		guess.lo = static_cast<fp32>(0.0);
 		return (
 			guess * static_cast<fp32>(2.0) + (x) / Float32x2::Dekker_Sqr(guess)
 		) / static_cast<fp32>(3.0);
@@ -633,16 +637,16 @@ typedef Float32x2 fp32x2;
 		}
 	}
 	inline long lround(fp32x2 x) {
-		return (long)round(x);
+		return static_cast<long>(round(x));
 	}
 	inline long lrint(fp32x2 x) {
-		return (long)rint(x);
+		return static_cast<long>(rint(x));
 	}
 	inline long long llround(fp32x2 x) {
-		return (long long)round(x);
+		return static_cast<long long>(round(x));
 	}
 	inline long long llrint(fp32x2 x) {
-		return (long long)rint(x);
+		return static_cast<long long>(rint(x));
 	}
 
 	/* Integer and Remainder */

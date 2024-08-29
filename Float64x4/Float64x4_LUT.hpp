@@ -155,7 +155,7 @@ static constexpr Float64x4 inv_fact[] = {
 /* 96! */ {0x1.a6829981e4928p-499,-0x1.c050f08af35ffp-553,-0x1.64782a5c5135dp-607,-0x1.f44bd959f0702p-661},
 /* 97! */ {0x1.16c503a23d142p-505,-0x1.3ce8de0c80e84p-559,+0x1.e2a8cc4c53a7bp-613,+0x1.e40b5a844795cp-670},
 /* 98! */ {0x1.6c1b7275dcd65p-512,+0x1.e4b07fefab393p-566,-0x1.9410ba8621263p-622,+0x1.637f3c2b41c00p-679},
-/* 99! */ {0x1.d6c3cf76c59bap-519,-0x1.ff1bcc5d84e20p-573,-0x1.cd98cd1941049p-627,-0x1.7057f339ba1c7p-681},
+/* 99! */ {0x1.d6c3cf76c59bap-519,-0x1.ff1bcc5d84e20p-573,-0x1.cd98cd1941049p-627,-0x1.7057f339ba1c7p-681}
 };
 
 static constexpr Float64x4 inv_fact_even[] = {
@@ -261,7 +261,7 @@ static constexpr Float64x4 inv_fact_odd[] = {
 /* 93! */ {0x1.596e0e189e2b7p-479,+0x1.0f8d397260e68p-537,+0x1.c011be0e4aeedp-595,+0x1.131a12180227bp-650},
 /* 95! */ {0x1.3ce1f3216b6dep-492,-0x1.503cb46836880p-546,+0x1.f4a5e03ac317ap-600,-0x1.dce38c0dd1506p-656},
 /* 97! */ {0x1.16c503a23d142p-505,-0x1.3ce8de0c80e84p-559,+0x1.e2a8cc4c53a7bp-613,+0x1.e40b5a844795cp-670},
-/* 99! */ {0x1.d6c3cf76c59bap-519,-0x1.ff1bcc5d84e20p-573,-0x1.cd98cd1941049p-627,-0x1.7057f339ba1c7p-681},
+/* 99! */ {0x1.d6c3cf76c59bap-519,-0x1.ff1bcc5d84e20p-573,-0x1.cd98cd1941049p-627,-0x1.7057f339ba1c7p-681}
 };
 
 /** @brief sin(pi * (k / 1024)) */

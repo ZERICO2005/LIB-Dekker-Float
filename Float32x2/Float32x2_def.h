@@ -42,7 +42,7 @@ typedef struct Float32x2 {
 
 	template<typename fpX>
 	constexpr inline Float32x2(const fpX& value) :
-		hi((fp32)value), lo((fp32)(value - (fpX)this->hi)) {}
+		hi(static_cast<fp32>(value)), lo(static_cast<fp32>(value - static_cast<fpX>this->hi)) {}
 
 /* Casts */
 
@@ -52,7 +52,7 @@ typedef struct Float32x2 {
 
 	template<typename fpX>
 	constexpr inline operator fpX() const {
-		return (fpX)this->hi + (fpX)this->lo;
+		return static_cast<fpX>(this->hi) + static_cast<fpX>(this->lo);
 	}
 
 #endif

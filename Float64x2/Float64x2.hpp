@@ -626,7 +626,7 @@ namespace std {
 				std::numeric_limits<fp64>::max() * 0x1.0p-54
 			};
 		}
-		inline static constexpr Float64x2 lowest() { return -max(); };
+		inline static constexpr Float64x2 lowest() { return -max(); }
 		inline static constexpr Float64x2 epsilon() { return {0x1.0p-104, 0.0}; }
 		inline static constexpr Float64x2 round_error() { return {0.5, 0.0}; }
 		inline static constexpr Float64x2 infinity() {
@@ -938,16 +938,16 @@ namespace std {
 		}
 	}
 	inline long lround(const Float64x2& x) {
-		return (long)round(x);
+		return static_cast<long>(round(x));
 	}
 	inline long lrint(const Float64x2& x) {
-		return (long)rint(x);
+		return static_cast<long>(rint(x));
 	}
 	inline long long llround(const Float64x2& x) {
-		return (long long)round(x);
+		return static_cast<long long>(round(x));
 	}
 	inline long long llrint(const Float64x2& x) {
-		return (long long)rint(x);
+		return static_cast<long long>(rint(x));
 	}
 
 	/* Integer and Remainder */
@@ -973,7 +973,7 @@ namespace std {
 	inline Float64x2 remquo(const Float64x2& x, const Float64x2& y, int* quo) {
 		Float64x2 q = round(x / y);
 		Float64x2 r = x - y * q;
-		*quo = (int)(q.hi + q.lo);
+		*quo = static_cast<int>(q.hi + q.lo);
 		return r;
 	}
 	/* Float Exponents */
@@ -1007,22 +1007,38 @@ namespace std {
 	 * @note casts to long double for calculation as this function is not
 	 * currently implemeneted.
 	 */
-	inline Float64x2 erf(const Float64x2& x) { return (Float64x2)erf((long double)x); }
+	inline Float64x2 erf(const Float64x2& x) {
+		return static_cast<Float64x2>(
+			erf(static_cast<long double>(x))
+		);
+	}
 	/** 
 	 * @note casts to long double for calculation as this function is not
 	 * currently implemeneted.
 	 */
-	inline Float64x2 erfc(const Float64x2& x) { return (Float64x2)erfc((long double)x); }
+	inline Float64x2 erfc(const Float64x2& x) {
+		return static_cast<Float64x2>(
+			erfc(static_cast<long double>(x))
+		);
+	}
 	/** 
 	 * @note casts to long double for calculation as this function is not
 	 * currently implemeneted.
 	 */
-	inline Float64x2 lgamma(const Float64x2& x) { return (Float64x2)lgamma((long double)x); }
+	inline Float64x2 lgamma(const Float64x2& x) {
+		return static_cast<Float64x2>(
+			lgamma(static_cast<long double>(x))
+		);
+	}
 	/** 
 	 * @note casts to long double for calculation as this function is not
 	 * currently implemeneted.
 	 */
-	inline Float64x2 tgamma(const Float64x2& x) { return (Float64x2)tgamma((long double)x); }
+	inline Float64x2 tgamma(const Float64x2& x) {
+		return static_cast<Float64x2>(
+			tgamma(static_cast<long double>(x))
+		);
+	}
 
 //------------------------------------------------------------------------------
 // Float64x2 String Operations

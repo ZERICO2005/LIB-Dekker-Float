@@ -38,14 +38,14 @@ typedef struct Float128x2 {
 		hi(values[0]), lo(values[1]) {}
 
 	constexpr inline Float128x2(const fp32 value) :
-		hi((fp128)value), lo(0.0Q) {}
+		hi(static_cast<fp128>(value)), lo(0.0Q) {}
 
 	constexpr inline Float128x2(const fp64 value) :
-		hi((fp128)value), lo(0.0Q) {}
+		hi(static_cast<fp128>(value)), lo(0.0Q) {}
 
 	#ifdef __float80
 	constexpr inline Float128x2(const __float80 value) :
-		hi((fp128)value), lo(0.0Q) {}
+		hi(static_cast<fp128>(value)), lo(0.0Q) {}
 	#endif
 
 	constexpr inline Float128x2(const fp128 value) :
@@ -53,19 +53,19 @@ typedef struct Float128x2 {
 
 	template<typename fpX>
 	constexpr inline Float128x2(const fpX& value) :
-		hi((fp128)value), lo((fp128)(value - (fpX)this->hi)) {}
+		hi(static_cast<fp128>(value)), lo(static_cast<fp128>(value - static_cast<fpX>(this->hi))) {}
 
 /* Casts */
 
 	constexpr inline operator fp32() const {
-		return (fp32)this->hi;
+		return static_cast<fp32>(this->hi);
 	}
 	constexpr inline operator fp64() const {
-		return (fp64)this->hi;
+		return static_cast<fp64>(this->hi);
 	}
 	#ifdef __float80
 	constexpr inline operator __float80() const {
-		return (__float80)this->hi;
+		return static_cast<__float80>(this->hi);
 	}
 	#endif
 	constexpr inline operator fp128() const {
@@ -74,7 +74,7 @@ typedef struct Float128x2 {
 
 	template<typename fpX>
 	constexpr inline operator fpX() const {
-		return (fpX)this->hi + (fpX)this->lo;
+		return static_cast<fpX>(this->hi) + static_cast<fpX>(this->lo);
 	}
 
 #endif

@@ -161,10 +161,10 @@ inline Float64x4 Float64x4_set_u64(const uint64_t values[4]) {
 
 inline Float64x4 Float64x4_set_i64(const int64_t values[4]) {
 	Bitwise_Float64x4 ret;
-	ret.binary_part.val[0] = (int64_t)values[0];
-	ret.binary_part.val[1] = (int64_t)values[1];
-	ret.binary_part.val[2] = (int64_t)values[2];
-	ret.binary_part.val[3] = (int64_t)values[3];
+	ret.binary_part.val[0] = (uint64_t)values[0];
+	ret.binary_part.val[1] = (uint64_t)values[1];
+	ret.binary_part.val[2] = (uint64_t)values[2];
+	ret.binary_part.val[3] = (uint64_t)values[3];
 	return ret.float_part;
 }
 
@@ -589,7 +589,7 @@ inline void Float64x4_three_sum2(
 }
 
 #if 1
-inline void Float64x4_renorm(Float64x4* FLOAT64X4_RESTRICT x) {
+inline void Float64x4_renorm(Float64x4* FLOAT64X4_RESTRICT const x) {
 	fp64 s0, s1, s2 = 0.0, s3 = 0.0;
 
 	if (isinf(x->val[0])) {
@@ -624,9 +624,22 @@ inline void Float64x4_renorm(Float64x4* FLOAT64X4_RESTRICT x) {
 	x->val[3] = s3;
 }
 
+inline void Float64x4_quick_renorm(Float64x4* FLOAT64X4_RESTRICT const x) {
+	fp64 t0, t1, t2;
+	fp64 s;
+	s         = x->val[3];
+	s         = Float64_quick_two_sum(x->val[2], s, &t2);
+	s         = Float64_quick_two_sum(x->val[1], s, &t1);
+	x->val[0] = Float64_quick_two_sum(x->val[0], s, &t0);
+
+	s         = Float64_quick_two_sum(t1, t2, &t1);
+	x->val[1] = Float64_quick_two_sum(t0, s , &t0);
+	x->val[2] = Float64_quick_two_sum(t0, t1, &t0);
+	x->val[3] = t0;
+}
+
 inline void Float64x4_renorm_err(
-	Float64x4* FLOAT64X4_RESTRICT x,
-	fp64* FLOAT64X4_RESTRICT const err
+	Float64x4* FLOAT64X4_RESTRICT const x, fp64* FLOAT64X4_RESTRICT const err
 ) {
 	fp64 s0, s1, s2 = 0.0, s3 = 0.0;
 
@@ -685,7 +698,7 @@ inline void Float64x4_renorm_err(
 }
 
 inline void Float64x4_quick_renorm_err(
-	Float64x4* FLOAT64X4_RESTRICT x, fp64* FLOAT64X4_RESTRICT const err
+	Float64x4* FLOAT64X4_RESTRICT const x, fp64* FLOAT64X4_RESTRICT const err
 ) {
 	fp64 t0, t1, t2, t3;
 	fp64 s;
@@ -850,6 +863,8 @@ inline Float64x4 Float64x4_negate(const Float64x4 x) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 
+/* Float64x4 + Float64x4 */
+
 /** @brief Orginally qd_real::ieee_add */
 inline Float64x4 Float64x4_add_accurate(const Float64x4 x, const Float64x4 y) {
 	int i, j, k;
@@ -987,6 +1002,8 @@ inline Float64x4 Float64x4_add(const Float64x4 x, const Float64x4 y) {
 	#endif
 }
 
+/* Float64x4 + Float64x2 */
+
 inline Float64x4 Float64x4_add_dx4_dx2(const Float64x4 x, const Float64x2 y) {
 	Float64x4 s;
 	fp64 t0, t1;
@@ -1005,6 +1022,8 @@ inline Float64x4 Float64x4_add_dx4_dx2(const Float64x4 x, const Float64x2 y) {
 	Float64x4_renorm_err(&s, &t0);
 	return s;
 }
+
+/* Float64x2 + Float64x4 */
 
 inline Float64x4 Float64x4_add_dx2_dx4(const Float64x2 x, const Float64x4 y) {
 	Float64x4 s;
@@ -1025,6 +1044,8 @@ inline Float64x4 Float64x4_add_dx2_dx4(const Float64x2 x, const Float64x4 y) {
 	return s;
 }
 
+/* Float64x4 + fp64 */
+
 inline Float64x4 Float64x4_add_dx4_d(const Float64x4 x, const fp64 y) {
 	Float64x4 ret;
 	fp64 e;
@@ -1037,6 +1058,8 @@ inline Float64x4 Float64x4_add_dx4_d(const Float64x4 x, const fp64 y) {
 	Float64x4_renorm_err(&ret, &e);
 	return ret;
 }
+
+/* fp64 + Float64x4 */
 
 inline Float64x4 Float64x4_add_d_dx4(const fp64 x, const Float64x4 y) {
 	Float64x4 ret;
@@ -1055,6 +1078,8 @@ inline Float64x4 Float64x4_add_d_dx4(const fp64 x, const Float64x4 y) {
 // Float64x4 Optimized Addition
 //------------------------------------------------------------------------------
 
+/* Float64x2 + Float64x2 */
+
 inline Float64x4 Float64x4_add_dx2_dx2(const Float64x2 x, const Float64x2 y) {
 	Float64x4 s;
 	fp64 t0, t1;
@@ -1070,6 +1095,8 @@ inline Float64x4 Float64x4_add_dx2_dx2(const Float64x2 x, const Float64x2 y) {
 	return s;
 }
 
+/* Float64x2 + fp64 */
+
 inline Float64x4 Float64x4_add_dx2_d(const Float64x2 x, const fp64 y) {
 	Float64x4 s;
 	fp64 t0;
@@ -1083,6 +1110,8 @@ inline Float64x4 Float64x4_add_dx2_d(const Float64x2 x, const fp64 y) {
 	return s; // renormalization not needed
 }
 
+/* fp64 + Float64x2 */
+
 inline Float64x4 Float64x4_add_d_dx2(const fp64 x, const Float64x2 y) {
 	Float64x4 s;
 	fp64 t0;
@@ -1095,6 +1124,8 @@ inline Float64x4 Float64x4_add_d_dx2(const fp64 x, const Float64x2 y) {
 	s.val[3] = 0.0;
 	return s; // renormalization not needed
 }
+
+/* fp64 + fp64 */
 
 inline Float64x4 Float64x4_add_d_d(const fp64 x, const fp64 y) {
 	Float64x4 s;
@@ -1114,6 +1145,8 @@ inline Float64x4 Float64x4_add_d_d(const fp64 x, const fp64 y) {
  * @author Taken and/or modified from libQD which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
+
+/* Float64x4 - Float64x4 */
 
 /** @brief Orginally qd_real::ieee_add */
 inline Float64x4 Float64x4_sub_accurate(const Float64x4 x, const Float64x4 y) {
@@ -1224,15 +1257,16 @@ inline Float64x4 Float64x4_sub_quick(const Float64x4 x, const Float64x4 y) {
 	w2 = x.val[2] - u2;
 	w3 = x.val[3] - u3;
 
-	u0 = -y.val[0] - v0;
-	u1 = -y.val[1] - v1;
-	u2 = -y.val[2] - v2;
-	u3 = -y.val[3] - v3;
+	// u is negative
+	u0 = y.val[0] + v0;
+	u1 = y.val[1] + v1;
+	u2 = y.val[2] + v2;
+	u3 = y.val[3] + v3;
 
-	t0 = w0 + u0;
-	t1 = w1 + u1;
-	t2 = w2 + u2;
-	t3 = w3 + u3;
+	t0 = w0 - u0;
+	t1 = w1 - u1;
+	t2 = w2 - u2;
+	t3 = w3 - u3;
 
 	s.val[1] = Float64_two_sum(s.val[1], t0, &t0);
 	Float64x4_three_sum (&s.val[2], &t0, &t1);
@@ -1251,6 +1285,8 @@ inline Float64x4 Float64x4_sub(const Float64x4 x, const Float64x4 y) {
 		return Float64x4_sub_quick(x, y);
 	#endif
 }
+
+/* Float64x4 - Float64x2 */
 
 inline Float64x4 Float64x4_sub_dx4_dx2(const Float64x4 x, const Float64x2 y) {
 	Float64x4 s;
@@ -1271,6 +1307,8 @@ inline Float64x4 Float64x4_sub_dx4_dx2(const Float64x4 x, const Float64x2 y) {
 	return s;
 }
 
+/* Float64x2 - Float64x4 */
+
 inline Float64x4 Float64x4_sub_dx2_dx4(const Float64x2 x, const Float64x4 y) {
 	Float64x4 s;
 	fp64 t0, t1;
@@ -1290,6 +1328,8 @@ inline Float64x4 Float64x4_sub_dx2_dx4(const Float64x2 x, const Float64x4 y) {
 	return s;
 }
 
+/* Float64x4 - fp64 */
+
 inline Float64x4 Float64x4_sub_dx4_d(const Float64x4 x, const fp64 y) {
 	Float64x4 ret;
 	fp64 e;
@@ -1302,6 +1342,8 @@ inline Float64x4 Float64x4_sub_dx4_d(const Float64x4 x, const fp64 y) {
 	Float64x4_renorm_err(&ret, &e);
 	return ret;
 }
+
+/* fp64 - Float64x4 */
 
 inline Float64x4 Float64x4_sub_d_dx4(const fp64 x, const Float64x4 y) {
 	Float64x4 ret;
@@ -1324,6 +1366,8 @@ inline Float64x4 Float64x4_sub_d_dx4(const fp64 x, const Float64x4 y) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 
+/* Float64x2 - Float64x2 */
+
 inline Float64x4 Float64x4_sub_dx2_dx2(const Float64x2 x, const Float64x2 y) {
 	Float64x4 s;
 	fp64 t0, t1;
@@ -1339,6 +1383,8 @@ inline Float64x4 Float64x4_sub_dx2_dx2(const Float64x2 x, const Float64x2 y) {
 	return s;
 }
 
+/* Float64x2 - fp64 */
+
 inline Float64x4 Float64x4_sub_dx2_d(const Float64x2 x, const fp64 y) {
 	Float64x4 s;
 	fp64 t0;
@@ -1352,6 +1398,8 @@ inline Float64x4 Float64x4_sub_dx2_d(const Float64x2 x, const fp64 y) {
 	return s; // renormalization not needed
 }
 
+/* fp64 - Float64x2 */
+
 inline Float64x4 Float64x4_sub_d_dx2(const fp64 x, const Float64x2 y) {
 	Float64x4 s;
 	fp64 t0;
@@ -1364,6 +1412,8 @@ inline Float64x4 Float64x4_sub_d_dx2(const fp64 x, const Float64x2 y) {
 	s.val[3] = 0.0;
 	return s; // renormalization not needed
 }
+
+/* fp64 - fp64 */
 
 inline Float64x4 Float64x4_sub_d_d(const fp64 x, const fp64 y) {
 	Float64x4 s;
@@ -1379,6 +1429,12 @@ inline Float64x4 Float64x4_sub_d_d(const fp64 x, const fp64 y) {
 //------------------------------------------------------------------------------
 // Float64x4 Multiplication
 //------------------------------------------------------------------------------
+/** 
+ * @author Taken/Modified from libQD which can be found under a
+ * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
+ */
+
+/* Float64x4 * Float64x4 */
 
 /** @brief Orginally qd_real::accurate_mul */
 inline Float64x4 Float64x4_mul_accurate(const Float64x4 x, const Float64x4 y) {
@@ -1487,6 +1543,8 @@ inline Float64x4 Float64x4_mul(const Float64x4 x, const Float64x4 y) {
 	#endif
 }
 
+/* Float64x4 * Float64x2 */
+
 inline Float64x4 Float64x4_mul_dx4_dx2(const Float64x4 x, const Float64x2 y) {
 	Float64x4 p;
 	fp64 p_err;
@@ -1518,6 +1576,8 @@ inline Float64x4 Float64x4_mul_dx4_dx2(const Float64x4 x, const Float64x2 y) {
 	Float64x4_renorm_err(&p, &p_err);
 	return p;
 }
+
+/* Float64x2 * Float64x4 */
 
 inline Float64x4 Float64x4_mul_dx2_dx4(const Float64x2 x, const Float64x4 y) {
 	Float64x4 p;
@@ -1551,6 +1611,8 @@ inline Float64x4 Float64x4_mul_dx2_dx4(const Float64x2 x, const Float64x4 y) {
 	return p;
 }
 
+/* Float64x4 * fp64 */
+
 inline Float64x4 Float64x4_mul_dx4_d(const Float64x4 x, const fp64 y) {
 	fp64 p0, p1, p2, p3;
 	fp64 q0, q1, q2;
@@ -1576,6 +1638,8 @@ inline Float64x4 Float64x4_mul_dx4_d(const Float64x4 x, const fp64 y) {
 	Float64x4_renorm_err(&s, &s_err);
 	return s;
 }
+
+/* fp64 * Float64x4 */
 
 inline Float64x4 Float64x4_mul_d_dx4(const fp64 x, const Float64x4 y) {
 	fp64 p0, p1, p2, p3;
@@ -1611,6 +1675,41 @@ inline Float64x4 Float64x4_mul_d_dx4(const fp64 x, const Float64x4 y) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 
+/* Float64x2 * Float64x2 */
+
+inline Float64x4 Float64x4_mul_dx2_dx2(const Float64x2 x, const Float64x2 y) {
+	Float64x4 p;
+	fp64 p_err;
+	fp64 q0, q1, q2, q3;
+	fp64 s0, s1, s2;
+	fp64 t0, t1;
+
+	p.val[0] = Float64_two_prod(x.hi, y.hi, &q0);
+	p.val[1] = Float64_two_prod(x.lo, y.hi, &q1);
+	p.val[2] = Float64_two_prod(x.hi, y.lo, &q2);
+	p.val[3] = Float64_two_prod(x.lo, y.lo, &q3);
+	
+	Float64x4_three_sum(&p.val[1], &p.val[2], &q0);
+	
+	/* Five-Three-Sum */
+	p.val[2] = Float64_two_sum(p.val[2], p.val[3], &p.val[3]);
+	q1 = Float64_two_sum(q1      , q2, &q2);
+	s0 = Float64_two_sum(p.val[2], q1, &t0);
+	s1 = Float64_two_sum(p.val[3], q2, &t1);
+	s1 = Float64_two_sum(s1      , t0, &t0);
+	s2 = t0 + t1;
+	p.val[2] = s0;
+
+	p.val[3] = q3;
+	Float64x4_three_sum2(&p.val[3], &q0, &s1);
+	p_err = q0 + s2;
+
+	Float64x4_renorm_err(&p, &p_err);
+	return p;
+}
+
+/* Float64x2 * fp64 */
+
 /**
  * @brief Multiplies a Float64x2 value with a fp64 value. Storing the result as
  * a Float64x4 value
@@ -1632,6 +1731,8 @@ inline Float64x4 Float64x4_mul_dx2_d(const Float64x2 x, const fp64 y) {
 	return s;
 }
 
+/* fp64 * Float64x2 */
+
 /**
  * @brief Multiplies a fp64 value with a Float64x2 value. Storing the result as
  * a Float64x4 value
@@ -1652,6 +1753,8 @@ inline Float64x4 Float64x4_mul_d_dx2(const fp64 x, const Float64x2 y) {
 	Float64x4_renorm(&s);
 	return s;
 }
+
+/* fp64 * fp64 */
 
 /**
  * @brief Multiplies a fp64 value with another fp64 value. Storing the result

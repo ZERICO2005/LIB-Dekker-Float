@@ -79,7 +79,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./bin")
 		-Winfinite-recursion
 		-Wunreachable-code
 		# Add extra warnings below
-
 	)
 	set(WARNING_IGNORE_FLAGS
 		# Supress extra warnings below

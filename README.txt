@@ -14,11 +14,12 @@ Available Precisions:
 
 SIMD Types:
 * Float64x2 AVX (x86/x86_x64)
+* Float64x4 AVX (x86/x86_x64)
 
 Under Development:
 * Float128x2 (Requires quadmath)
-* Float64x4 AVX (x86/x86_x64)
 * Float64x2 SSE2 (x86/x86_x64)
+* Float64x4 SSE2 (x86/x86_x64)
 * Float32x4
 
 # Attribution

@@ -505,14 +505,18 @@ typedef Float80x2 fp80x2;
 		if (x == static_cast<fp80x2>(0.0)) {
 			return x;
 		}
-		fp80x2 guess = (fp80x2)sqrt(x.hi);
+		fp80x2 guess;
+		guess.hi = sqrt(x.hi);
+		guess.lo = static_cast<fp80>(0.5);
 		return (guess + x / guess) * static_cast<fp80>(0.5);
 	}
 	inline fp80x2 cbrt(fp80x2 x) {
 		if (x == static_cast<fp80x2>(0.0)) {
 			return x;
 		}
-		fp80x2 guess = (fp80x2)cbrt(x.hi);
+		fp80x2 guess;
+		guess.hi = cbrt(x.hi);
+		guess.lo = static_cast<fp80>(0.5);
 		return (
 			guess * static_cast<fp80>(2.0) + (x) / Float80x2::Dekker_Sqr(guess)
 		) / static_cast<fp80>(3.0);

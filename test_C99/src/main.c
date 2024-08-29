@@ -8,6 +8,7 @@
 
 #include "Float64x2/Float64x2_AVX.h"
 #include "Float64x2/Float64x2.h"
+#include "Float64x4/Float64x4_AVX.h"
 #include "Float64x4/Float64x4.h"
 
 #include <stdio.h>

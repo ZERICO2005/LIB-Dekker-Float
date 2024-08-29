@@ -417,6 +417,7 @@ class internal_double_FloatN_snprintf {
 		}
 
 		switch (specifier) {
+			default:
 			case 'f':
 				output_str += FloatNx2_write(param, value, 10, false);
 				break;

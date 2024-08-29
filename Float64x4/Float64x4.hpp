@@ -26,11 +26,6 @@
 #include <cstdint>
 #include <cmath>
 
-
-/**
- * @note Float64x4 is currently unimplemented.
- */
-
 //------------------------------------------------------------------------------
 // Float64x4 Compairison
 //------------------------------------------------------------------------------
@@ -746,7 +741,7 @@ constexpr Float64x4 Float64x4_tau  = Float64x4_2pi; /**< ~6.283185307 */
 	inline Float64x4 log10(const Float64x4& x) {
 		return log(x) * Float64x4_log10e;
 	}
-	inline Float64x4 logb(const Float64x4& x) { return logb((fp64)x); }
+	inline Float64x4 logb(const Float64x4& x) { return logb(x.val[0]); }
 
 	Float64x4 exp(const Float64x4& x);
 	Float64x4 expm1(const Float64x4& x);
@@ -880,16 +875,16 @@ constexpr Float64x4 Float64x4_tau  = Float64x4_2pi; /**< ~6.283185307 */
 		}
 	}
 	inline long lround(const Float64x4& x) {
-		return (long)round(x);
+		return static_cast<long>(round(x));
 	}
 	inline long lrint(const Float64x4& x) {
-		return (long)rint(x);
+		return static_cast<long>(rint(x));
 	}
 	inline long long llround(const Float64x4& x) {
-		return (long long)round(x);
+		return static_cast<long long>(round(x));
 	}
 	inline long long llrint(const Float64x4& x) {
-		return (long long)rint(x);
+		return static_cast<long long>(rint(x));
 	}
 
 /* Integer and Remainder */
@@ -915,7 +910,7 @@ constexpr Float64x4 Float64x4_tau  = Float64x4_2pi; /**< ~6.283185307 */
 	inline Float64x4 remquo(const Float64x4& x, const Float64x4& y, int* quo) {
 		Float64x4 q = round(x / y);
 		Float64x4 r = x - y * q;
-		*quo = (int)((fp64)q);
+		*quo = static_cast<int>(q.val[0] + q.val[1]);
 		return r;
 	}
 
@@ -971,5 +966,45 @@ constexpr Float64x4 Float64x4_tau  = Float64x4_2pi; /**< ~6.283185307 */
 		ret.val[3] = x.val[0];
 		return ret;
 	}
+
+/* Transcendental Functions */
+	
+	/** 
+	 * @note casts to long double for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float64x4 erf(const Float64x4& x) {
+		return static_cast<Float64x4>(
+			erf(static_cast<long double>(x))
+		);
+	}
+	/** 
+	 * @note casts to long double for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float64x4 erfc(const Float64x4& x) {
+		return static_cast<Float64x4>(
+			erfc(static_cast<long double>(x))
+		);
+	}
+	/** 
+	 * @note casts to long double for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float64x4 lgamma(const Float64x4& x) {
+		return static_cast<Float64x4>(
+			lgamma(static_cast<long double>(x))
+		);
+	}
+	/** 
+	 * @note casts to long double for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float64x4 tgamma(const Float64x4& x) {
+		return static_cast<Float64x4>(
+			tgamma(static_cast<long double>(x))
+		);
+	}
+
 
 #endif /* FLOAT64X4_HPP */

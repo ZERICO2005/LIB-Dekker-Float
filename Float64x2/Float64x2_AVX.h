@@ -1281,7 +1281,7 @@ inline __m256dx2 _mm256x2_round_pdx2(__m256dx2 x) {
 //------------------------------------------------------------------------------
 
 inline __m256dx2 _mm256x2_fabs_pdx2(__m256dx2 x) {
-	__m256d cmp_lt = _mm256_cmplt_pdx2(x, _mm256x2_setzero_pdx2());
+	__m256d cmp_lt = _mm256_cmp_pd(x.hi, _mm256_setzero_pd(), _CMP_LT_OQ);
 	
 	__m256d fabs_mask = _mm256_blendv_pd(
 		_mm256_set1_pd(1.0), _mm256_set1_pd(-1.0), cmp_lt
@@ -1336,7 +1336,7 @@ inline __m256dx2 _mm256x2_cbrt_pdx2(__m256dx2 x) {
 }
 
 /**
- * @brief returns the fraction part of a __m256dx2 value.
+ * @brief returns the fractional part of a __m256dx2 value.
  * @note int_part cannot not be NULL
  */
 inline __m256dx2 _mm256x2_modf_pdx2(__m256dx2 x, __m256dx2* int_part) {
@@ -1397,7 +1397,6 @@ inline __m256dx2 _mm256x2_log10_pdx2(const __m256dx2 x) {
 	);
 	return _mm256x2_div_pdx2(_mm256x2_log_pdx2(x), __m256dx2_log10);
 }
-
 
 //------------------------------------------------------------------------------
 // __m256dx2 trigonometry
