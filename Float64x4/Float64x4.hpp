@@ -370,7 +370,7 @@ inline Float64x4 operator+(const fp64 x, const Float64x4& y) {
 /* Subtraction */
 
 inline Float64x4 operator-(const Float64x4& x, const Float64x4& y) {
-	return Float64x4_add(x, y);
+	return Float64x4_sub(x, y);
 }
 
 inline Float64x4 operator-(const Float64x4& x, const Float64x2& y) {

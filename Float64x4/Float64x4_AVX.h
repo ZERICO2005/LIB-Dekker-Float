@@ -1724,27 +1724,11 @@ inline void _mm256_three_sum2_pd(
 // __m256dx4 qd_real renormalization
 //------------------------------------------------------------------------------
 
-inline void _mm256x4_quick_renorm_pdx4(__m256dx4* __M256DX4_RESTRICT const x) {
-	__m256d t0, t1, t2;
-	__m256d s;
-	s         = x->val[3];
-	s         = _mm256_quick_two_sum_pd(x->val[2], s, &t2);
-	s         = _mm256_quick_two_sum_pd(x->val[1], s, &t1);
-	x->val[0] = _mm256_quick_two_sum_pd(x->val[0], s, &t0);
-
-	s         = _mm256_quick_two_sum_pd(t1, t2, &t1);
-	x->val[1] = _mm256_quick_two_sum_pd(t0, s , &t0);
-	x->val[2] = _mm256_quick_two_sum_pd(t0, t1, &t0);
-	x->val[3] = t0;
-}
-
+#if 0
 /**
- * @brief Calls _mm256x4_quick_renorm_pdx4
  * @remarks This function has a lot of branching for SIMD
  */
-inline void _mm256x4_renorm_pdx4(__m256dx4* __M256DX4_RESTRICT const x) {
-	_mm256x4_quick_renorm_pdx4(x);
-	#if 0
+inline void _mm256x4_accurate_renorm_pdx4(__m256dx4* __M256DX4_RESTRICT const x) {
 	__m256d s0, s1, s2 = 0.0, s3 = 0.0;
 
 	// if (isinf(x->val[0])) {
@@ -1780,39 +1764,39 @@ inline void _mm256x4_renorm_pdx4(__m256dx4* __M256DX4_RESTRICT const x) {
 	x->val[1] = s1;
 	x->val[2] = s2;
 	x->val[3] = s3;
-	#endif
 }
+#endif
 
-inline void _mm256x4_quick_renorm_err_pdx4(
-	__m256dx4* __M256DX4_RESTRICT const x, __m256d* __M256DX4_RESTRICT const err
-) {
-	__m256d t0, t1, t2, t3;
+inline void _mm256x4_quick_renorm_pdx4(__m256dx4* __M256DX4_RESTRICT const x) {
+	__m256d t0, t1, t2;
 	__m256d s;
-	s         = _mm256_quick_two_sum_pd(x->val[3], *err, &t3);
-	s         = _mm256_quick_two_sum_pd(x->val[2], s   , &t2);
-	s         = _mm256_quick_two_sum_pd(x->val[1], s   , &t1);
-	x->val[0] = _mm256_quick_two_sum_pd(x->val[0], s   , &t0);
-
-	s         = _mm256_quick_two_sum_pd(t2, t3, &t2);
-	s         = _mm256_quick_two_sum_pd(t1, s , &t1);
-	x->val[1] = _mm256_quick_two_sum_pd(t0, s , &t0);
+	s         = x->val[3];
+	s         = _mm256_quick_two_sum_pd(x->val[2], s, &t2);
+	s         = _mm256_quick_two_sum_pd(x->val[1], s, &t1);
+	x->val[0] = _mm256_quick_two_sum_pd(x->val[0], s, &t0);
 
 	s         = _mm256_quick_two_sum_pd(t1, t2, &t1);
-	x->val[2] = _mm256_quick_two_sum_pd(t0, s , &t0);
-	
-	x->val[3] = _mm256_add_pd(t0, t1);
+	x->val[1] = _mm256_quick_two_sum_pd(t0, s , &t0);
+	x->val[2] = _mm256_quick_two_sum_pd(t0, t1, &t0);
+	x->val[3] = t0;
 }
 
+inline void _mm256x4_renorm_pdx4(__m256dx4* __M256DX4_RESTRICT const x) {
+	// #ifdef FLOAT64X4_IEEE_MODE
+	// 	_mm256x4_accurate_renorm_pdx4(x, err);
+	// #else
+		_mm256x4_quick_renorm_pdx4(x);
+	// #endif
+}
+
+#if 0
 /**
- * @brief Calls _mm256x4_quick_renorm_err_pdx4
  * @remarks This function has a lot of branching for SIMD
  */
-inline void _mm256x4_renorm_err_pdx4(
+inline void _mm256x4_accurate_renorm_err_pdx4(
 	__m256dx4* __M256DX4_RESTRICT const x,
 	__m256d* __M256DX4_RESTRICT const err
 ) {
-	_mm256x4_quick_renorm_err_pdx4(x, err);
-	#if 0
 	__m256d s0, s1, s2 = 0.0, s3 = 0.0;
 
 	if (isinf(x->val[0])) {
@@ -1867,7 +1851,37 @@ inline void _mm256x4_renorm_err_pdx4(
 	x->val[1] = s1;
 	x->val[2] = s2;
 	x->val[3] = s3;
-	#endif
+}
+#endif
+
+inline void _mm256x4_quick_renorm_err_pdx4(
+	__m256dx4* __M256DX4_RESTRICT const x, __m256d* __M256DX4_RESTRICT const err
+) {
+	__m256d t0, t1, t2, t3;
+	__m256d s;
+	s         = _mm256_quick_two_sum_pd(x->val[3], *err, &t3);
+	s         = _mm256_quick_two_sum_pd(x->val[2], s   , &t2);
+	s         = _mm256_quick_two_sum_pd(x->val[1], s   , &t1);
+	x->val[0] = _mm256_quick_two_sum_pd(x->val[0], s   , &t0);
+
+	s         = _mm256_quick_two_sum_pd(t2, t3, &t2);
+	s         = _mm256_quick_two_sum_pd(t1, s , &t1);
+	x->val[1] = _mm256_quick_two_sum_pd(t0, s , &t0);
+
+	s         = _mm256_quick_two_sum_pd(t1, t2, &t1);
+	x->val[2] = _mm256_quick_two_sum_pd(t0, s , &t0);
+	
+	x->val[3] = _mm256_add_pd(t0, t1);
+}
+
+inline void _mm256x4_renorm_err_pdx4(
+	__m256dx4* __M256DX4_RESTRICT const x, __m256d* __M256DX4_RESTRICT const err
+) {
+	// #ifdef FLOAT64X4_IEEE_MODE
+	// 	_mm256x4_accurate_renorm_err_pdx4(x, err);
+	// #else
+		_mm256x4_quick_renorm_err_pdx4(x, err);
+	// #endif
 }
 
 //------------------------------------------------------------------------------
@@ -3441,7 +3455,7 @@ inline __m256dx4 _mm256x4_max_pdx4(__m256dx4 x, __m256dx4 y) {
 	return ret;
 }
 
-inline __m256dx4 _mm256x2_min_pdx4(__m256dx4 x, __m256dx4 y) {
+inline __m256dx4 _mm256x4_min_pdx4(__m256dx4 x, __m256dx4 y) {
 	const __m256d cmp_min = _mm256_cmpgt_pdx4(x, y);
 	__m256dx4 ret;
 	ret.val[0] = _mm256_blendv_pd(x.val[0], y.val[0], cmp_min);

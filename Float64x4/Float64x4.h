@@ -588,8 +588,7 @@ inline void Float64x4_three_sum2(
 	*b = t2 + t3;
 }
 
-#if 1
-inline void Float64x4_renorm(Float64x4* FLOAT64X4_RESTRICT const x) {
+inline void Float64x4_accurate_renorm(Float64x4* FLOAT64X4_RESTRICT const x) {
 	fp64 s0, s1, s2 = 0.0, s3 = 0.0;
 
 	if (isinf(x->val[0])) {
@@ -638,7 +637,17 @@ inline void Float64x4_quick_renorm(Float64x4* FLOAT64X4_RESTRICT const x) {
 	x->val[3] = t0;
 }
 
-inline void Float64x4_renorm_err(
+inline void Float64x4_renorm(
+	Float64x4* FLOAT64X4_RESTRICT const x
+) {
+	#ifdef FLOAT64X4_IEEE_MODE
+		Float64x4_accurate_renorm(x);
+	#else
+		Float64x4_quick_renorm(x);
+	#endif
+}
+
+inline void Float64x4_accurate_renorm_err(
 	Float64x4* FLOAT64X4_RESTRICT const x, fp64* FLOAT64X4_RESTRICT const err
 ) {
 	fp64 s0, s1, s2 = 0.0, s3 = 0.0;
@@ -716,130 +725,16 @@ inline void Float64x4_quick_renorm_err(
 	
 	x->val[3] = t0 + t1;
 }
-#endif
-
-#if 0
-inline void Float64x4_renorm(
-	fp64* FLOAT64X4_RESTRICT const c0, fp64* FLOAT64X4_RESTRICT const c1,
-	fp64* FLOAT64X4_RESTRICT const c2, fp64* FLOAT64X4_RESTRICT const c3
-) {
-	fp64 s0, s1, s2 = 0.0, s3 = 0.0;
-
-	if (isinf(*c0)) {
-		return;
-	}
-
-	s0 = Float64_quick_two_sum(*c2, *c3, c3);
-	s0 = Float64_quick_two_sum(*c1, s0, c2);
-	*c0 = Float64_quick_two_sum(*c0, s0, c1);
-
-	s0 = *c0;
-	s1 = *c1;
-	if (s1 != 0.0) {
-		s1 = Float64_quick_two_sum(s1, *c2, &s2);
-		if (s2 != 0.0) {
-			s2 = Float64_quick_two_sum(s2, *c3, &s3);
-		} else {
-			s1 = Float64_quick_two_sum(s1, *c3, &s2);
-		}
-	} else {
-		s0 = Float64_quick_two_sum(s0, *c2, &s1);
-		if (s1 != 0.0) {
-			s1 = Float64_quick_two_sum(s1, *c3, &s2);
-		} else {
-			s0 = Float64_quick_two_sum(s0, *c3, &s1);
-		}
-	}
-
-	*c0 = s0;
-	*c1 = s1;
-	*c2 = s2;
-	*c3 = s3;
-}
 
 inline void Float64x4_renorm_err(
-	fp64* FLOAT64X4_RESTRICT const c0, fp64* FLOAT64X4_RESTRICT const c1,
-	fp64* FLOAT64X4_RESTRICT const c2, fp64* FLOAT64X4_RESTRICT const c3,
-	fp64* FLOAT64X4_RESTRICT const err
+	Float64x4* FLOAT64X4_RESTRICT const x, fp64* FLOAT64X4_RESTRICT const err
 ) {
-	fp64 s0, s1, s2 = 0.0, s3 = 0.0;
-
-	if (isinf(*c0)) {
-		return;
-	}
-
-	s0  = Float64_quick_two_sum(*c3, *err, err);
-	s0  = Float64_quick_two_sum(*c2, s0  , c3);
-	s0  = Float64_quick_two_sum(*c1, s0  , c2);
-	*c0 = Float64_quick_two_sum(*c0, s0  , c1);
-
-	s0 = *c0;
-	s1 = *c1;
-
-	if (s1 != 0.0) {
-		s1 = Float64_quick_two_sum(s1, *c2, &s2);
-		if (s2 != 0.0) {
-		s2 = Float64_quick_two_sum(s2, *c3, &s3);
-			if (s3 != 0.0) {
-				s3 += *err;
-			} else {
-				s2 = Float64_quick_two_sum(s2, *err, &s3);
-			}
-		} else {
-		s1 = Float64_quick_two_sum(s1, *c3, &s2);
-			if (s2 != 0.0) {
-				s2 = Float64_quick_two_sum(s2, *err, &s3);
-			} else {
-				s1 = Float64_quick_two_sum(s1, *err, &s2);
-			}
-		}
-	} else {
-		s0 = Float64_quick_two_sum(s0, *c2, &s1);
-		if (s1 != 0.0) {
-		s1 = Float64_quick_two_sum(s1, *c3, &s2);
-			if (s2 != 0.0) {
-				s2 = Float64_quick_two_sum(s2, *err, &s3);
-			} else {
-				s1 = Float64_quick_two_sum(s1, *err, &s2);
-			}
-		} else {
-		s0 = Float64_quick_two_sum(s0, *c3, &s1);
-			if (s1 != 0.0) {
-				s1 = Float64_quick_two_sum(s1, *err, &s2);
-			} else {
-				s0 = Float64_quick_two_sum(s0, *err, &s1);
-			}
-		}
-	}
-
-	*c0 = s0;
-	*c1 = s1;
-	*c2 = s2;
-	*c3 = s3;
+	#ifdef FLOAT64X4_IEEE_MODE
+		Float64x4_accurate_renorm_err(x, err);
+	#else
+		Float64x4_quick_renorm_err(x, err);
+	#endif
 }
-
-inline void Float64x4_quick_renorm_err(
-	fp64* FLOAT64X4_RESTRICT const c0, fp64* FLOAT64X4_RESTRICT const c1,
-	fp64* FLOAT64X4_RESTRICT const c2, fp64* FLOAT64X4_RESTRICT const c3,
-	fp64* FLOAT64X4_RESTRICT const err
-) {
-	fp64 t0, t1, t2, t3;
-	fp64 s;
-	s   = Float64_quick_two_sum(*c3, *err, &t3);
-	s   = Float64_quick_two_sum(*c2, s   , &t2);
-	s   = Float64_quick_two_sum(*c1, s   , &t1);
-	*c0 = Float64_quick_two_sum(*c0, s   , &t0);
-
-	s   = Float64_quick_two_sum(t2, t3, &t2);
-	s   = Float64_quick_two_sum(t1, s , &t1);
-	*c1 = Float64_quick_two_sum(t0, s , &t0);
-
-	s   = Float64_quick_two_sum(t1, t2, &t1);
-	*c2 = Float64_quick_two_sum(t0, s , &t0);
-	
-	*c3 = t0 + t1;
-}
-#endif
 
 //------------------------------------------------------------------------------
 // Float64x4 Arithmetic
