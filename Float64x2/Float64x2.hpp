@@ -717,25 +717,95 @@ namespace std {
 	constexpr Float64x2 Float64x2_tau32 = Float64x2_pi16; /**< ~0.196350 */
 	constexpr Float64x2 Float64x2_3tau8 = Float64x2_3pi4; /**< ~2.356194 */
 
-/* Math functions (Natively implemented) */
+/* Math functions */
 
-	/* Arithmetic */
+/* Floating Point Classify */
 
+	inline constexpr bool signbit(const Float64x2& x) {
+		return dekker_less_zero(x);
+	}
+	/** Returns true if both x.hi and x.lo are finite */
+	inline constexpr bool isfinite(const Float64x2& x) {
+		return (isfinite(x.hi) && isfinite(x.lo));
+	}
+	/** Returns true if either x.hi or x.lo are infinite */
+	inline constexpr bool isinf(const Float64x2& x) {
+		return (isinf(x.hi) || isinf(x.lo));
+	}
+	/** Returns true if either x.hi or x.lo are nan */
+	inline constexpr bool isnan(const Float64x2& x) {
+		return (isnan(x.hi) || isnan(x.lo));
+	}
+	/** Returns true if both x.hi and x.lo are normal */
+	inline constexpr bool isnormal(const Float64x2& x) {
+		return (isnormal(x.hi) && isnormal(x.lo));
+	}
+	/** Returns true if either {x.hi, y.hi} or {x.lo, y.lo} are unordered */
+	inline constexpr bool isunordered(const Float64x2& x, const Float64x2& y) {
+		return (isunordered(x.hi, y.hi) || isunordered(x.lo, y.lo));
+	}
+	inline constexpr int fpclassify(const Float64x2& x) {
+		return
+			isinf(x)             ? FP_INFINITE :
+			isnan(x)             ? FP_NAN      :
+			dekker_equal_zero(x) ? FP_ZERO     :
+			isnormal(x)          ? FP_NORMAL   :
+			FP_SUBNORMAL;
+	}
+
+/* Comparison */
+
+	inline constexpr bool isgreater(const Float64x2& x, const Float64x2& y) {
+		return (x > y);
+	}
+	inline constexpr bool isgreaterequal(const Float64x2& x, const Float64x2& y) {
+		return (x >= y);
+	}
+	inline constexpr bool isless(const Float64x2& x, const Float64x2& y) {
+		return (x < y);
+	}
+	inline constexpr bool islessequal(const Float64x2& x, const Float64x2& y) {
+		return (x <= y);
+	}
+	inline constexpr bool islessgreater(const Float64x2& x, const Float64x2& y) {
+		return (x < y) || (x > y);
+	}
+
+/* fmax and fmin */
+
+	/**
+	 * @brief Returns the fmax of x and y. Correctly handling NaN and signed zeros.
+	 * You may use std::max as a faster alternative.
+	 */
 	inline constexpr Float64x2 fmax(const Float64x2& x, const Float64x2& y) {
-		return (x > y) ? x : y;
+		return
+			(x < y) ? y :
+			(y < x) ? x :
+			isnan(x) ? y :
+			isnan(y) ? x :
+			signbit(x) ? y : x;
 	}
-	inline constexpr Float64x2 fmax(const Float64x2& x, const Float64x2& y, const Float64x2& z) {
-		return (x > y) ?
-		((x > z) ? x : z) :
-		((y > z) ? y : z);
-	}
+
+	/**
+	 * @brief Returns the fmin of x and y. Correctly handling NaN and signed zeros.
+	 * You may use std::min as a faster alternative.
+	 */
 	inline constexpr Float64x2 fmin(const Float64x2& x, const Float64x2& y) {
-		return (x < y) ? x : y;
+		return
+			(x > y) ? y :
+			(y > x) ? x :
+			isnan(x) ? y :
+			isnan(y) ? x :
+			signbit(x) ? x : y;
+	}
+
+/* Arithmetic */
+
+	inline constexpr Float64x2 fmax(const Float64x2& x, const Float64x2& y, const Float64x2& z) {
+		return fmax(fmax(x, y), z);
 	}
 	inline constexpr Float64x2 fmin(const Float64x2& x, const Float64x2& y, const Float64x2& z) {
-		return (x < y) ?
-		((x < z) ? x : z) :
-		((y < z) ? y : z);
+		return fmin(fmin(x, y), z);
 	}
 	inline constexpr Float64x2 fabs(const Float64x2& x) {
 		return (dekker_less_zero(x)) ? -x : x;
@@ -829,58 +899,6 @@ namespace std {
 	}
 	inline Float64x2 pow(const Float64x2 x, const fp64 y) {
 		return exp(y * log(x));
-	}
-
-/* Tests */
-
-	inline constexpr bool signbit(const Float64x2& x) {
-		return (x.hi < 0.0) ? true : false;
-	}
-	/** Returns true if both x.hi and x.lo are finite */
-	inline constexpr bool isfinite(const Float64x2& x) {
-		return (isfinite(x.hi) && isfinite(x.lo));
-	}
-	/** Returns true if either x.hi or x.lo are infinite */
-	inline constexpr bool isinf(const Float64x2& x) {
-		return (isinf(x.hi) || isinf(x.lo));
-	}
-	/** Returns true if either x.hi or x.lo are nan */
-	inline constexpr bool isnan(const Float64x2& x) {
-		return (isnan(x.hi) || isnan(x.lo));
-	}
-	/** Returns true if both x.hi and x.lo are normal */
-	inline constexpr bool isnormal(const Float64x2& x) {
-		return (isnormal(x.hi) && isnormal(x.lo));
-	}
-	/** Returns true if either {x.hi, y.hi} or {x.lo, y.lo} are unordered */
-	inline constexpr bool isunordered(const Float64x2& x, const Float64x2& y) {
-		return (isunordered(x.hi, y.hi) || isunordered(x.lo, y.lo));
-	}
-	inline constexpr int fpclassify(const Float64x2& x) {
-		return
-			isinf(x)             ? FP_INFINITE :
-			isnan(x)             ? FP_NAN      :
-			dekker_equal_zero(x) ? FP_ZERO     :
-			isnormal(x)          ? FP_NORMAL   :
-			FP_SUBNORMAL;
-	}
-
-/* Comparison */
-
-	inline constexpr bool isgreater(const Float64x2& x, const Float64x2& y) {
-		return (x > y);
-	}
-	inline constexpr bool isgreaterequal(const Float64x2& x, const Float64x2& y) {
-		return (x >= y);
-	}
-	inline constexpr bool isless(const Float64x2& x, const Float64x2& y) {
-		return (x < y);
-	}
-	inline constexpr bool islessequal(const Float64x2& x, const Float64x2& y) {
-		return (x <= y);
-	}
-	inline constexpr bool islessgreater(const Float64x2& x, const Float64x2& y) {
-		return (x < y) || (x > y);
 	}
 	
 /* Rounding */

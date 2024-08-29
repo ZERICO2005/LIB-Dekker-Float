@@ -2719,6 +2719,16 @@ inline Float64x4 Float64x4_log10(const Float64x4 x) {
 	return Float64x4_mul(Float64x4_log(x), mult_val);
 }
 
+inline Float64x4 Float64x4_pow(const Float64x4 x, const Float64x4 y) {
+	return Float64x4_exp(Float64x4_mul(Float64x4_log(x), y));
+}
+inline Float64x4 Float64x4_pow_dx4_dx2(const Float64x4 x, const Float64x2 y) {
+	return Float64x4_exp(Float64x4_mul_dx4_dx2(Float64x4_log(x), y));
+}
+inline Float64x4 Float64x4_pow_dx4_d(const Float64x4 x, const fp64 y) {
+	return Float64x4_exp(Float64x4_mul_dx4_d(Float64x4_log(x), y));
+}
+
 //------------------------------------------------------------------------------
 // Float64x4 trigonometry
 //------------------------------------------------------------------------------

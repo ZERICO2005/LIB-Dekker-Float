@@ -838,6 +838,11 @@ inline __m256dx2 _mm256x2_setr_epi64x(
  * @note mem_addr must be aligned on a 16-byte boundary or a general-protection
  * exception may be generated. However, this may change to be a 32-byte boundry
  * in future implementations.
+ *
+ * @author This code was provided by an answer from stackoverflow:
+ * https://stackoverflow.com/a/78839249/19507346
+ * Which can be found under a CC BY-SA 4.0 license:
+ * https://creativecommons.org/licenses/by-sa/4.0/
  */
 inline __m256dx2 _mm256x2_load_pd(const double* mem_addr) {
 	__m256d v0 = _mm256_castpd128_pd256(_mm_load_pd(mem_addr));
@@ -854,6 +859,12 @@ inline __m256dx2 _mm256x2_load_pd(const double* mem_addr) {
 	return val;
 }
 
+/**
+ * @author This code was provided by an answer from stackoverflow:
+ * https://stackoverflow.com/a/78839249/19507346
+ * Which can be found under a CC BY-SA 4.0 license:
+ * https://creativecommons.org/licenses/by-sa/4.0/
+ */
 inline __m256dx2 _mm256x2_loadu_pd(const double* mem_addr) {
 	__m256d v0 = _mm256_castpd128_pd256(_mm_loadu_pd(mem_addr));
 	__m256d v1 = _mm256_castpd128_pd256(_mm_loadu_pd(mem_addr + 2));
@@ -910,6 +921,11 @@ inline __m256dx2 _mm256x2_loadu_raw_pd(const double* mem_addr) {
 /**
  * @note mem_addr must be aligned on a 32-byte boundary or a general-protection
  * exception may be generated.
+ *
+ * @author This code was provided by an answer from stackoverflow:
+ * https://stackoverflow.com/a/78839249/19507346
+ * Which can be found under a CC BY-SA 4.0 license:
+ * https://creativecommons.org/licenses/by-sa/4.0/
  */
 inline void _mm256x2_store_pd(double* mem_addr, __m256dx2 val) {
 	// hi.x, lo.x, hi.z, lo.z
@@ -925,6 +941,12 @@ inline void _mm256x2_store_pd(double* mem_addr, __m256dx2 val) {
 	_mm256_store_pd(mem_addr, tmp);
 }
 
+/**
+ * @author This code was provided by an answer from stackoverflow:
+ * https://stackoverflow.com/a/78839249/19507346
+ * Which can be found under a CC BY-SA 4.0 license:
+ * https://creativecommons.org/licenses/by-sa/4.0/
+ */
 inline void _mm256x2_storeu_pd(double* mem_addr, __m256dx2 val) {
 	// hi.x, lo.x, hi.z, lo.z
 	__m256d v0 = _mm256_unpacklo_pd(val.hi, val.lo);
@@ -1173,10 +1195,190 @@ inline __m256d _mm256_cmpge_pdx2(__m256dx2 x, __m256dx2 y) {
 //------------------------------------------------------------------------------
 
 /**
+ * @note Deprecated.
  * @warning Only compares x.hi and y.hi, use dedicated cmp functions instead.
  */
 #define _mm256_cmp_pdx2(x, y, imm8)\
 	_mm256_cmp_pd(x.hi, y.hi, _CMP_EQ_OQ)
+
+//------------------------------------------------------------------------------
+// __m256dx2 compare to zero functions
+//------------------------------------------------------------------------------
+
+/* reduced comparison */
+
+	/**
+	 * @brief _CMP_EQ_UQ
+	 * @note Assumes that if x.hi is zero then x.lo is also zero.
+	 */
+	inline __m256d _mm256_cmpeq_zero_pdx2(__m256dx2 x) {
+		return _mm256_cmp_pd(x.hi, _mm256_setzero_pd(), _CMP_EQ_UQ);
+	}
+	/**
+	 * @brief _CMP_NEQ_UQ
+	 * @note Assumes that if x.hi is zero then x.lo is also zero.
+	 */
+	inline __m256d _mm256_cmpneq_zero_pdx2(__m256dx2 x) {
+		return _mm256_cmp_pd(x.hi, _mm256_setzero_pd(), _CMP_NEQ_UQ);
+	}
+	/**
+	 * @brief _CMP_LT_OQ
+	 * @note Assumes that if x.hi is zero then x.lo is also zero.
+	 */
+	inline __m256d _mm256_cmplt_zero_pdx2(__m256dx2 x) {
+		return _mm256_cmp_pd(x.hi, _mm256_setzero_pd(), _CMP_LT_OQ);
+	}
+	/**
+	 * @brief _CMP_LE_OQ
+	 * @note Assumes that if x.hi is zero then x.lo is also zero.
+	 */
+	inline __m256d _mm256_cmple_zero_pdx2(__m256dx2 x) {
+		return _mm256_cmp_pd(x.hi, _mm256_setzero_pd(), _CMP_LE_OQ);
+	}
+	/**
+	 * @brief _CMP_GT_OQ
+	 * @note Assumes that if x.hi is zero then x.lo is also zero.
+	 */
+	inline __m256d _mm256_cmpgt_zero_pdx2(__m256dx2 x) {
+		return _mm256_cmp_pd(x.hi, _mm256_setzero_pd(), _CMP_GT_OQ);
+	}
+	/**
+	 * @brief _CMP_GE_OQ
+	 * @note Assumes that if x.hi is zero then x.lo is also zero.
+	 */
+	inline __m256d _mm256_cmpge_zero_pdx2(__m256dx2 x) {
+		return _mm256_cmp_pd(x.hi, _mm256_setzero_pd(), _CMP_GE_OQ);
+	}
+
+/* full comparison */
+
+	/**
+	 * @brief _CMP_EQ_UQ
+	 * @note Assumes that if x.hi is zero then x.lo is also zero.
+	 */
+	inline __m256dx2 _mm256x2_cmpeq_zero_pdx2(__m256dx2 x) {
+		__m256dx2 ret;
+		ret.hi = _mm256_cmpeq_zero_pdx2(x);
+		ret.lo = ret.hi;
+		return ret;
+	}
+	/**
+	 * @brief _CMP_NEQ_UQ
+	 * @note Assumes that if x.hi is zero then x.lo is also zero.
+	 */
+	inline __m256dx2 _mm256x2_cmpneq_zero_pdx2(__m256dx2 x) {
+		__m256dx2 ret;
+		ret.hi = _mm256_cmpneq_zero_pdx2(x);
+		ret.lo = ret.hi;
+		return ret;
+	}
+	/**
+	 * @brief _CMP_LT_OQ
+	 * @note Assumes that if x.hi is zero then x.lo is also zero.
+	 */
+	inline __m256dx2 _mm256x2_cmplt_zero_pdx2(__m256dx2 x) {
+		__m256dx2 ret;
+		ret.hi = _mm256_cmplt_zero_pdx2(x);
+		ret.lo = ret.hi;
+		return ret;
+	}
+	/**
+	 * @brief _CMP_LE_OQ
+	 * @note Assumes that if x.hi is zero then x.lo is also zero.
+	 */
+	inline __m256dx2 _mm256x2_cmple_zero_pdx2(__m256dx2 x) {
+		__m256dx2 ret;
+		ret.hi = _mm256_cmple_zero_pdx2(x);
+		ret.lo = ret.hi;
+		return ret;
+	}
+	/**
+	 * @brief _CMP_GT_OQ
+	 * @note Assumes that if x.hi is zero then x.lo is also zero.
+	 */
+	inline __m256dx2 _mm256x2_cmpgt_zero_pdx2(__m256dx2 x) {
+		__m256dx2 ret;
+		ret.hi = _mm256_cmpgt_zero_pdx2(x);
+		ret.lo = ret.hi;
+		return ret;
+	}
+	/**
+	 * @brief _CMP_GE_OQ
+	 * @note Assumes that if x.hi is zero then x.lo is also zero.
+	 */
+	inline __m256dx2 _mm256x2_cmpge_zero_pdx2(__m256dx2 x) {
+		__m256dx2 ret;
+		ret.hi = _mm256_cmpge_zero_pdx2(x);
+		ret.lo = ret.hi;
+		return ret;
+	}
+
+//------------------------------------------------------------------------------
+// __m256dx2 floating point classify
+//------------------------------------------------------------------------------
+
+/* values */
+
+	/**
+	 * @brief Returns a __m256dx4 value set to positive infinity
+	 */
+	inline __m256dx2 _mm256x2_get_infinity_pdx2(void) {
+		__m256dx2 ret = {
+			_mm256_castsi256_pd(_mm256_set1_epi64x(0x7FF0000000000000)),
+			_mm256_castsi256_pd(_mm256_set1_epi64x(0x7FF0000000000000))
+		};
+		return ret;
+	}
+
+	/**
+	 * @brief Returns a __m256dx2 value set to signaling NaN
+	 */
+	inline __m256dx2 _mm256x2_get_sNaN_pdx2(void) {
+		__m256dx2 ret = {
+			_mm256_castsi256_pd(_mm256_set1_epi64x(0x7FF0000000000001)),
+			_mm256_castsi256_pd(_mm256_set1_epi64x(0x7FF0000000000001))
+		};
+		return ret;
+	}
+
+	/**
+	 * @brief Returns a __m256dx2 value set to quiet NaN
+	 */
+	inline __m256dx2 _mm256x2_get_qNaN_pdx2(void) {
+		__m256dx2 ret = {
+			_mm256_castsi256_pd(_mm256_set1_epi64x(0x7FF8000000000001)),
+			_mm256_castsi256_pd(_mm256_set1_epi64x(0x7FF8000000000001))
+		};
+		return ret;
+	}
+
+/* returns __m256d */
+
+	/** @brief Returns true if x is negative */
+	inline __m256d _mm256_signbit_pdx2(const __m256dx2 x) {
+		return _mm256_cmplt_zero_pdx2(x);
+	}
+	/** @brief Returns true if x is +-infinity */
+	inline __m256d _mm256_isinf_pdx2(const __m256dx2 x) {
+		return _mm256_cmp_pd(
+			_mm256_and_pd(x.hi, _mm256_castsi256_pd(_mm256_set1_epi64x(0x7FFFFFFFFFFFFFFF))),
+			_mm256_castsi256_pd(_mm256_set1_epi64x(0x7FF0000000000000))
+		, _CMP_EQ_UQ);
+	}
+
+/* returns __m256dx2 */
+
+	/** @brief Returns true if x is negative */
+	inline __m256dx2 _mm256x2_signbit_pdx2(const __m256dx2 x) {
+		return _mm256x2_cmplt_zero_pdx2(x);
+	}
+	/** @brief Returns true if x is +-infinity */
+	inline __m256dx2 _mm256x2_isinf_pdx2(const __m256dx2 x) {
+		__m256dx2 ret;
+		ret.hi = _mm256_isinf_pdx2(x);
+		ret.lo = ret.hi;
+		return ret;
+	}
 
 //------------------------------------------------------------------------------
 // __m256dx2 max/min functions
@@ -1325,8 +1527,8 @@ inline __m256dx2 _mm256x2_sqrt_pdx2(__m256dx2 x) {
 inline __m256dx2 _mm256x2_cbrt_pdx2(__m256dx2 x) {
 	__m256d guess = _mm256_cbrt_pd(x.hi);
 	return _mm256x2_div_pdx2_pd(
-		_mm256x2_add_pdx2(
-			_mm256x2_mul_power2_pd_pd(
+		_mm256x2_add_pd_pdx2(
+			_mm256_mul_pd(
 				_mm256_set1_pd(2.0), guess
 			),
 			_mm256x2_div_zero_pdx2(x, _mm256x2_square_pd(guess))
@@ -1396,6 +1598,16 @@ inline __m256dx2 _mm256x2_log10_pdx2(const __m256dx2 x) {
 		2.302585092994045901e+00, -2.170756223382249351e-16
 	);
 	return _mm256x2_div_pdx2(_mm256x2_log_pdx2(x), __m256dx2_log10);
+}
+
+/** @note This function doesn't use AVX for calculations */
+inline __m256dx2 _mm256x2_pow_pdx2(const __m256dx2 x, const __m256dx2 y) {
+	return _mm256x2_exp_pdx2(_mm256x2_mul_pdx2(_mm256x2_log_pdx2(x), y));
+}
+
+/** @note This function doesn't use AVX for calculations */
+inline __m256dx2 _mm256x2_pow_pdx2_pd(const __m256dx2 x, const __m256d y) {
+	return _mm256x2_exp_pdx2(_mm256x2_mul_pdx2_pd(_mm256x2_log_pdx2(x), y));
 }
 
 //------------------------------------------------------------------------------

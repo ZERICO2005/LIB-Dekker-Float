@@ -16,19 +16,6 @@
 **	LIB-Dekker-Float/libQD/LBNL-BSD-License.txt
 */
 
-/*
- * src/qd_real.cc
- *
- * This work was supported by the Director, Office of Science, Division
- * of Mathematical, Information, and Computational Sciences of the
- * U.S. Department of Energy under contract number DE-AC03-76SF00098.
- *
- * Copyright (c) 2000-2007
- *
- * Contains implementation of non-inlined functions of quad-double
- * package.  Inlined functions are found in qd_inline.h (in include directory).
- */
-
 #include "Float64x4.h"
 #include "Float64x4.hpp"
 
@@ -38,7 +25,6 @@
 
 #include <cmath>
 #include <limits>
-
 
 /** 
  * @author Taken from libQD qd_real.cpp which can be found under a

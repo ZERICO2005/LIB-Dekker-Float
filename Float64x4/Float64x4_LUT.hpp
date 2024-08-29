@@ -13,7 +13,7 @@
 
 /**
  * @brief Look up tables for Float64x4.cpp
- * Contains: 
+ * Contains:
  * inv_fact
  * inv_fact_even
  * inv_fact_odd
