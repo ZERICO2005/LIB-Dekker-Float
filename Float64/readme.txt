@@ -1,0 +1,1 @@
+The purpose of the Float64 folder is to provide helpful functions and macros, and to help with consistency.
