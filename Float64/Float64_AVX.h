@@ -509,6 +509,12 @@ static inline __m256d _mm256_atanh_pd(__m256d x) {
 //------------------------------------------------------------------------------
 
 /** @note This function doesn't use AVX for calculations */
+__m256d _mm256_tgamma_pd(__m256d x);
+
+/** @note This function doesn't use AVX for calculations */
+__m256d _mm256_lgamma_pd(__m256d x);
+
+/** @note This function doesn't use AVX for calculations */
 __m256d _mm256_erf_pd(__m256d x);
 
 /** @note This function doesn't use AVX for calculations */
