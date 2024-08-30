@@ -84,12 +84,12 @@ inline __m256d _mm256_trunc_pd(__m256d x) {
  */
 inline __m256d _mm256_cbrt_pd(__m256d x) {
 	double val[4];
-	_mm256_storeu_pd(val, x);
+	_mm256_store_pd(val, x);
 	val[0] = cbrt(val[0]);
 	val[1] = cbrt(val[1]);
 	val[2] = cbrt(val[2]);
 	val[3] = cbrt(val[3]);
-	return _mm256_loadu_pd(val);
+	return _mm256_load_pd(val);
 }
 #endif
 
@@ -1314,6 +1314,153 @@ inline __m256d _mm256_cmpge_pdx2(__m256dx2 x, __m256dx2 y) {
 	}
 
 //------------------------------------------------------------------------------
+// __m256dx2 Mathematical Constants
+//------------------------------------------------------------------------------
+
+/**
+ * @brief ~2.718281828 Returns the value of euler's number
+ */
+inline __m256dx2 _mm256x2_const_e_pdx2(void) {
+	const __m256dx2 ret = {
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x4005BF0A8B145769)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3CA4D57EE2B1013A))
+	};
+	return ret;
+}
+
+/**
+ * @brief ~1.442695041 Returns the value of log2(e)
+ */
+inline __m256dx2 _mm256x4_const_log2e_pdx2(void) {
+	const __m256dx2 ret = {
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FF71547652B82FE)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3C7777D0FFDA0D24))
+	};
+	return ret;
+}
+
+/**
+ * @brief ~0.434294482 Returns the value of log10(e)
+ */
+inline __m256dx2 _mm256x4_const_log10e_pdx2(void) {
+	const __m256dx2 ret = {
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FDBCB7B1526E50E)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3C695355BAAAFAD3))
+	};
+	return ret;
+}
+
+/**
+ * @brief ~3.141592654 Returns the value of pi
+ */
+inline __m256dx2 _mm256x4_const_pi_pdx2(void) {
+	const __m256dx2 ret = {
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x400921FB54442D18)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3CA1A62633145C07))
+	};
+	return ret;
+}
+
+/**
+ * @brief ~0.318309886 Returns the value of 1 / pi
+ */
+inline __m256dx2 _mm256x4_const_inv_pi_pdx2(void) {
+	const __m256dx2 ret = {
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FD45F306DC9C883)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xBC76B01EC5417056))
+	};
+	return ret;
+}
+
+/**
+ * @brief ~0.564189584 Returns the value of 1 / sqrt(pi)
+ */
+inline __m256dx2 _mm256x4_const_inv_sqrtpi_pdx2(void) {
+	const __m256dx2 ret = {
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FE20DD750429B6D)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3C61AE3A914FED80))
+	};
+	return ret;
+}
+
+/**
+ * @brief ~0.693147181 Returns the value of ln(2)
+ */
+inline __m256dx2 _mm256x4_const_ln2_pdx2(void) {
+	const __m256dx2 ret = {
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FE62E42FEFA39EF)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3C7ABC9E3B39803F))
+	};
+	return ret;
+}
+
+/**
+ * @brief ~2.302585093 Returns the value of ln(10)
+ */
+inline __m256dx2 _mm256x4_const_ln10_pdx2(void) {
+	const __m256dx2 ret = {
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x40026BB1BBB55516)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xBCAF48AD494EA3E9))
+	};
+	return ret;
+}
+
+/**
+ * @brief ~1.414213562 Returns the value of sqrt(2)
+ */
+inline __m256dx2 _mm256x4_const_sqrt2_pdx2(void) {
+	const __m256dx2 ret = {
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FF6A09E667F3BCD)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xBC9BDD3413B26456))
+	};
+	return ret;
+}
+
+/**
+ * @brief ~1.732050808 Returns the value of sqrt(3)
+ */
+inline __m256dx2 _mm256x4_const_sqrt3_pdx2(void) {
+	const __m256dx2 ret = {
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FFBB67AE8584CAA)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3C9CEC95D0B5C1E3))
+	};
+	return ret;
+}
+
+/**
+ * @brief ~0.577350269 Returns the value of 1 / sqrt(3)
+ */
+inline __m256dx2 _mm256x4_const_inv_sqrt3_pdx2(void) {
+	const __m256dx2 ret = {
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FE279A74590331C)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3C834863E0792BED))
+	};
+	return ret;
+}
+
+/**
+ * @brief ~0.577215665 Returns the value of gamma (The Euler–Mascheroni constant)
+ */
+inline __m256dx2 _mm256x4_const_egamma_pdx2(void) {
+	const __m256dx2 ret = {
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FE2788CFC6FB619)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xBC56CB90701FBFAB))
+	};
+	return ret;
+}
+
+/**
+ * @brief ~1.618033989 Returns the value of phi (The golden ratio)
+ */
+inline __m256dx2 _mm256x4_const_phi_pdx2(void) {
+	const __m256dx2 ret = {
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FF9E3779B97F4A8)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xBC8F506319FCFD19))
+	};
+	return ret;
+}
+
+//------------------------------------------------------------------------------
 // __m256dx2 floating point classify
 //------------------------------------------------------------------------------
 
@@ -1324,8 +1471,8 @@ inline __m256d _mm256_cmpge_pdx2(__m256dx2 x, __m256dx2 y) {
 	 */
 	inline __m256dx2 _mm256x2_get_infinity_pdx2(void) {
 		__m256dx2 ret = {
-			_mm256_castsi256_pd(_mm256_set1_epi64x(0x7FF0000000000000)),
-			_mm256_castsi256_pd(_mm256_set1_epi64x(0x7FF0000000000000))
+			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FF0000000000000)),
+			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FF0000000000000))
 		};
 		return ret;
 	}
@@ -1335,8 +1482,8 @@ inline __m256d _mm256_cmpge_pdx2(__m256dx2 x, __m256dx2 y) {
 	 */
 	inline __m256dx2 _mm256x2_get_sNaN_pdx2(void) {
 		__m256dx2 ret = {
-			_mm256_castsi256_pd(_mm256_set1_epi64x(0x7FF0000000000001)),
-			_mm256_castsi256_pd(_mm256_set1_epi64x(0x7FF0000000000001))
+			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FF0000000000001)),
+			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FF0000000000001))
 		};
 		return ret;
 	}
@@ -1346,8 +1493,8 @@ inline __m256d _mm256_cmpge_pdx2(__m256dx2 x, __m256dx2 y) {
 	 */
 	inline __m256dx2 _mm256x2_get_qNaN_pdx2(void) {
 		__m256dx2 ret = {
-			_mm256_castsi256_pd(_mm256_set1_epi64x(0x7FF8000000000001)),
-			_mm256_castsi256_pd(_mm256_set1_epi64x(0x7FF8000000000001))
+			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FF8000000000001)),
+			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FF8000000000001))
 		};
 		return ret;
 	}
@@ -1361,8 +1508,8 @@ inline __m256d _mm256_cmpge_pdx2(__m256dx2 x, __m256dx2 y) {
 	/** @brief Returns true if x is +-infinity */
 	inline __m256d _mm256_isinf_pdx2(const __m256dx2 x) {
 		return _mm256_cmp_pd(
-			_mm256_and_pd(x.hi, _mm256_castsi256_pd(_mm256_set1_epi64x(0x7FFFFFFFFFFFFFFF))),
-			_mm256_castsi256_pd(_mm256_set1_epi64x(0x7FF0000000000000))
+			_mm256_and_pd(x.hi, _mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FFFFFFFFFFFFFFF))),
+			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FF0000000000000))
 		, _CMP_EQ_UQ);
 	}
 
@@ -1601,14 +1748,24 @@ inline __m256dx2 _mm256x2_log10_pdx2(const __m256dx2 x) {
 }
 
 /** @note This function doesn't use AVX for calculations */
-inline __m256dx2 _mm256x2_pow_pdx2(const __m256dx2 x, const __m256dx2 y) {
-	return _mm256x2_exp_pdx2(_mm256x2_mul_pdx2(_mm256x2_log_pdx2(x), y));
-}
+__m256dx2 _mm256x2_pow_pdx2(__m256dx2 x, __m256dx2 y);
 
 /** @note This function doesn't use AVX for calculations */
-inline __m256dx2 _mm256x2_pow_pdx2_pd(const __m256dx2 x, const __m256d y) {
-	return _mm256x2_exp_pdx2(_mm256x2_mul_pdx2_pd(_mm256x2_log_pdx2(x), y));
-}
+__m256dx2 _mm256x2_pow_pdx2_pd(__m256dx2 x,  __m256d y);
+
+#if 0
+	// Avoiding multiple __m256dx4 to Float64x4 conversions
+
+	/** @note This function doesn't use AVX for calculations */
+	inline __m256dx2 _mm256x2_pow_pdx2(const __m256dx2 x, const __m256dx2 y) {
+		return _mm256x2_exp_pdx2(_mm256x2_mul_pdx2(_mm256x2_log_pdx2(x), y));
+	}
+
+	/** @note This function doesn't use AVX for calculations */
+	inline __m256dx2 _mm256x2_pow_pdx2_pd(const __m256dx2 x, const __m256d y) {
+		return _mm256x2_exp_pdx2(_mm256x2_mul_pdx2_pd(_mm256x2_log_pdx2(x), y));
+	}
+#endif
 
 //------------------------------------------------------------------------------
 // __m256dx2 trigonometry

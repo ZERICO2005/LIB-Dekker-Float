@@ -1,0 +1,348 @@
+
+// SIMD constants for types that aren't implemented yet.
+
+//------------------------------------------------------------------------------
+// __m128dx4 Float64x4 SSE2
+//------------------------------------------------------------------------------
+
+/**
+* @brief ~2.718281828 Returns the value of euler's number
+*/
+__m128dx4 _mm128x4_const_e_pdx4(void) {
+	const __m128dx4 ret = {{
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x4005BF0A8B145769)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x3CA4D57EE2B1013A)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0xB92618713A31D3E2)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x35CC5A6D2B53C26D))
+	}};
+	return ret;
+}
+
+/**
+* @brief ~1.442695041 Returns the value of log2(e)
+*/
+__m128dx4 _mm128x4_const_log2e_pdx4(void) {
+	const __m128dx4 ret = {{
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x3FF71547652B82FE)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x3C7777D0FFDA0D24)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0xB9160BB8A5442AB9)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0xB594B52D3BA6D74D))
+	}};
+	return ret;
+}
+
+/**
+* @brief ~0.434294482 Returns the value of log10(e)
+*/
+__m128dx4 _mm128x4_const_log10e_pdx4(void) {
+	const __m128dx4 ret = {{
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x3FDBCB7B1526E50E)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x3C695355BAAAFAD3)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x38FEE191F71A3012)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x3587268808E8FCB5))
+	}};
+	return ret;
+}
+
+/**
+* @brief ~3.141592654 Returns the value of pi
+*/
+__m128dx4 _mm128x4_const_pi_pdx4(void) {
+	const __m128dx4 ret = {{
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x400921FB54442D18)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x3CA1A62633145C07)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0xB92F1976B7ED8FBC)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x35C4CF98E804177D))
+	}};
+	return ret;
+}
+
+/**
+* @brief ~0.318309886 Returns the value of 1 / pi
+*/
+__m128dx4 _mm128x4_const_inv_pi_pdx4(void) {
+	const __m128dx4 ret = {{
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x3FD45F306DC9C883)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0xBC76B01EC5417056)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0xB916447E493AD4CE)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x35BE21C820FF28B2))
+	}};
+	return ret;
+}
+
+/**
+* @brief ~0.564189584 Returns the value of 1 / sqrt(pi)
+*/
+__m128dx4 _mm128x4_const_inv_sqrtpi_pdx4(void) {
+	const __m128dx4 ret = {{
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x3FE20DD750429B6D)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x3C61AE3A914FED80)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0xB8F3CBBEBF65F145)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0xB58E0C574632F53E))
+	}};
+	return ret;
+}
+
+/**
+* @brief ~0.693147181 Returns the value of ln(2)
+*/
+__m128dx4 _mm128x4_const_ln2_pdx4(void) {
+	const __m128dx4 ret = {{
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x3FE62E42FEFA39EF)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x3C7ABC9E3B39803F)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x3907B57A079A1934)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0xB5AACE93A4EBE5D1))
+	}};
+	return ret;
+}
+
+/**
+* @brief ~2.302585093 Returns the value of ln(10)
+*/
+__m128dx4 _mm128x4_const_ln10_pdx4(void) {
+	const __m128dx4 ret = {{
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x40026BB1BBB55516)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0xBCAF48AD494EA3E9)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0xB949EBAE3AE0260C)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0xB5E2D10378BE1CF1))
+	}};
+	return ret;
+}
+
+/**
+* @brief ~1.414213562 Returns the value of sqrt(2)
+*/
+__m128dx4 _mm128x4_const_sqrt2_pdx4(void) {
+	const __m128dx4 ret = {{
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x3FF6A09E667F3BCD)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0xBC9BDD3413B26456)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x39357D3E3ADEC175)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x35B2775099DA2F59))
+	}};
+	return ret;
+}
+
+/**
+* @brief ~1.732050808 Returns the value of sqrt(3)
+*/
+__m128dx4 _mm128x4_const_sqrt3_pdx4(void) {
+	const __m128dx4 ret = {{
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x3FFBB67AE8584CAA)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x3C9CEC95D0B5C1E3)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0xB91F11DB689F2CCF)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x35B3DA4798C720A6))
+	}};
+	return ret;
+}
+
+/**
+* @brief ~0.577350269 Returns the value of 1 / sqrt(3)
+*/
+__m128dx4 _mm128x4_const_inv_sqrt3_pdx4(void) {
+	const __m128dx4 ret = {{
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x3FE279A74590331C)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x3C834863E0792BED)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0xB92A82F9E6C53222)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0xB5CCB0F41134253A))
+	}};
+	return ret;
+}
+
+/**
+* @brief ~0.577215665 Returns the value of gamma (The Euler–Mascheroni constant)
+*/
+__m128dx4 _mm128x4_const_egamma_pdx4(void) {
+	const __m128dx4 ret = {{
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x3FE2788CFC6FB619)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0xBC56CB90701FBFAB)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0xB8F34A95E3133C51)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x3599730064300F7D))
+	}};
+	return ret;
+}
+
+/**
+* @brief ~1.618033989 Returns the value of phi (The golden ratio)
+*/
+__m128dx4 _mm128x4_const_phi_pdx4(void) {
+	const __m128dx4 ret = {{
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x3FF9E3779B97F4A8)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0xBC8F506319FCFD19)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x392B906821044ED8)),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0xB5A8BB1B5C0F272C))
+	}};
+	return ret;
+}
+
+//------------------------------------------------------------------------------
+// __m512dx4 Float64x4 AVX512F
+//------------------------------------------------------------------------------
+
+/**
+* @brief ~2.718281828 Returns the value of euler's number
+*/
+__m512dx4 _mm512x4_const_e_pdx4(void) {
+	const __m512dx4 ret = {{
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x4005BF0A8B145769)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x3CA4D57EE2B1013A)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0xB92618713A31D3E2)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x35CC5A6D2B53C26D))
+	}};
+	return ret;
+}
+
+/**
+* @brief ~1.442695041 Returns the value of log2(e)
+*/
+__m512dx4 _mm512x4_const_log2e_pdx4(void) {
+	const __m512dx4 ret = {{
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x3FF71547652B82FE)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x3C7777D0FFDA0D24)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0xB9160BB8A5442AB9)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0xB594B52D3BA6D74D))
+	}};
+	return ret;
+}
+
+/**
+* @brief ~0.434294482 Returns the value of log10(e)
+*/
+__m512dx4 _mm512x4_const_log10e_pdx4(void) {
+	const __m512dx4 ret = {{
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x3FDBCB7B1526E50E)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x3C695355BAAAFAD3)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x38FEE191F71A3012)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x3587268808E8FCB5))
+	}};
+	return ret;
+}
+
+/**
+* @brief ~3.141592654 Returns the value of pi
+*/
+__m512dx4 _mm512x4_const_pi_pdx4(void) {
+	const __m512dx4 ret = {{
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x400921FB54442D18)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x3CA1A62633145C07)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0xB92F1976B7ED8FBC)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x35C4CF98E804177D))
+	}};
+	return ret;
+}
+
+/**
+* @brief ~0.318309886 Returns the value of 1 / pi
+*/
+__m512dx4 _mm512x4_const_inv_pi_pdx4(void) {
+	const __m512dx4 ret = {{
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x3FD45F306DC9C883)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0xBC76B01EC5417056)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0xB916447E493AD4CE)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x35BE21C820FF28B2))
+	}};
+	return ret;
+}
+
+/**
+* @brief ~0.564189584 Returns the value of 1 / sqrt(pi)
+*/
+__m512dx4 _mm512x4_const_inv_sqrtpi_pdx4(void) {
+	const __m512dx4 ret = {{
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x3FE20DD750429B6D)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x3C61AE3A914FED80)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0xB8F3CBBEBF65F145)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0xB58E0C574632F53E))
+	}};
+	return ret;
+}
+
+/**
+* @brief ~0.693147181 Returns the value of ln(2)
+*/
+__m512dx4 _mm512x4_const_ln2_pdx4(void) {
+	const __m512dx4 ret = {{
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x3FE62E42FEFA39EF)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x3C7ABC9E3B39803F)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x3907B57A079A1934)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0xB5AACE93A4EBE5D1))
+	}};
+	return ret;
+}
+
+/**
+* @brief ~2.302585093 Returns the value of ln(10)
+*/
+__m512dx4 _mm512x4_const_ln10_pdx4(void) {
+	const __m512dx4 ret = {{
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x40026BB1BBB55516)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0xBCAF48AD494EA3E9)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0xB949EBAE3AE0260C)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0xB5E2D10378BE1CF1))
+	}};
+	return ret;
+}
+
+/**
+* @brief ~1.414213562 Returns the value of sqrt(2)
+*/
+__m512dx4 _mm512x4_const_sqrt2_pdx4(void) {
+	const __m512dx4 ret = {{
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x3FF6A09E667F3BCD)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0xBC9BDD3413B26456)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x39357D3E3ADEC175)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x35B2775099DA2F59))
+	}};
+	return ret;
+}
+
+/**
+* @brief ~1.732050808 Returns the value of sqrt(3)
+*/
+__m512dx4 _mm512x4_const_sqrt3_pdx4(void) {
+	const __m512dx4 ret = {{
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x3FFBB67AE8584CAA)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x3C9CEC95D0B5C1E3)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0xB91F11DB689F2CCF)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x35B3DA4798C720A6))
+	}};
+	return ret;
+}
+
+/**
+* @brief ~0.577350269 Returns the value of 1 / sqrt(3)
+*/
+__m512dx4 _mm512x4_const_inv_sqrt3_pdx4(void) {
+	const __m512dx4 ret = {{
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x3FE279A74590331C)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x3C834863E0792BED)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0xB92A82F9E6C53222)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0xB5CCB0F41134253A))
+	}};
+	return ret;
+}
+
+/**
+* @brief ~0.577215665 Returns the value of gamma (The Euler–Mascheroni constant)
+*/
+__m512dx4 _mm512x4_const_egamma_pdx4(void) {
+	const __m512dx4 ret = {{
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x3FE2788CFC6FB619)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0xBC56CB90701FBFAB)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0xB8F34A95E3133C51)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x3599730064300F7D))
+	}};
+	return ret;
+}
+
+/**
+* @brief ~1.618033989 Returns the value of phi (The golden ratio)
+*/
+__m512dx4 _mm512x4_const_phi_pdx4(void) {
+	const __m512dx4 ret = {{
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x3FF9E3779B97F4A8)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0xBC8F506319FCFD19)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0x392B906821044ED8)),
+		_mm512_castsi512_pd(_mm512_set1_epi64((int64_t)0xB5A8BB1B5C0F272C))
+	}};
+	return ret;
+}

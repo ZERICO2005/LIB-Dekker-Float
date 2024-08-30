@@ -9,6 +9,10 @@
 #include "Float64x2.h"
 #include "Float64x2_AVX.h"
 
+//------------------------------------------------------------------------------
+// __m256dx2 exponents and logarithms
+//------------------------------------------------------------------------------
+
 __m256dx2 _mm256x2_exp_pdx2(const __m256dx2 x) {
 	Float64x2 val[4];
 	_mm256x2_store_pdx2(val, x);
@@ -48,6 +52,34 @@ __m256dx2 _mm256x2_log1p_pdx2(const __m256dx2 x) {
 	val[3] = Float64x2_log1p(val[3]);
 	return _mm256x2_load_pdx2(val);
 }
+
+__m256dx2 _mm256x2_pow_pdx2(const __m256dx2 x, const __m256dx2 y) {
+	Float64x2 x_val[4];
+	Float64x2 y_val[4];
+	_mm256x2_store_pdx2(x_val, x);
+	_mm256x2_store_pdx2(y_val, y);
+	x_val[0] = Float64x2_pow(x_val[0], y_val[0]);
+	x_val[1] = Float64x2_pow(x_val[1], y_val[1]);
+	x_val[2] = Float64x2_pow(x_val[2], y_val[2]);
+	x_val[3] = Float64x2_pow(x_val[3], y_val[3]);
+	return _mm256x2_load_pdx2(x_val);
+}
+
+__m256dx2 _mm256x2_pow_pdx2_pd(const __m256dx2 x, const __m256d y) {
+	Float64x2 x_val[4];
+	fp64 y_val[4];
+	_mm256x2_store_pdx2(x_val, x);
+	_mm256_store_pd(y_val, y);
+	x_val[0] = Float64x2_pow_dx2_d(x_val[0], y_val[0]);
+	x_val[1] = Float64x2_pow_dx2_d(x_val[1], y_val[1]);
+	x_val[2] = Float64x2_pow_dx2_d(x_val[2], y_val[2]);
+	x_val[3] = Float64x2_pow_dx2_d(x_val[3], y_val[3]);
+	return _mm256x2_load_pdx2(x_val);
+}
+
+//------------------------------------------------------------------------------
+// __m256dx2 trigonometry
+//------------------------------------------------------------------------------
 
 __m256dx2 _mm256x2_sin_pdx2(const __m256dx2 x) {
 	Float64x2 val[4];

@@ -24,8 +24,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./bin")
 	set(FEATURE_ColorDiagnostics "")
 
 # Compiling
-	set(CMAKE_C_COMPILER "gcc")
-	set(CMAKE_CXX_COMPILER "g++")
+	set(CMAKE_C_COMPILER "clang")
+	set(CMAKE_CXX_COMPILER "clang++")
 
 # Set C and C++ standards
 	set(CMAKE_C_STANDARD 99)
@@ -37,8 +37,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./bin")
 
 # Source Files
 	file(GLOB_RECURSE SRC_FILES
-		"${SRC_DIR}/*.c" "${SRC_DIR}/*.cpp" "${SRC_DIR}/../../Float64x2/double_Float64.cpp"
+		"${SRC_DIR}/*.c" "${SRC_DIR}/*.cpp"
 		"${SRC_DIR}/../../Float64x2/*.c" "${SRC_DIR}/../../Float64x2/*.cpp"
+		"${SRC_DIR}/../../Float64x4/*.c" "${SRC_DIR}/../../Float64x4/*.cpp"
 	)
 
 	add_executable(${PROJECT_NAME} ${SRC_FILES})

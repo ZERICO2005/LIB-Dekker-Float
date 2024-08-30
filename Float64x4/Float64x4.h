@@ -59,27 +59,27 @@ typedef union Bitwise_Float64x4 {
 //------------------------------------------------------------------------------
 
 /* C++20 <numbers> */
-#define FLOAT64X4_E          {0x1.5bf0a8b145769p+1,+0x1.4d57ee2b1013ap-53,-0x1.618713a31d3e2p-109,+0x1.c5a6d2b53c26dp-163} /**< ~2.718281828 */
-#define FLOAT64X4_LOG2E      {0x1.71547652b82fep+0,+0x1.777d0ffda0d24p-56,-0x1.60bb8a5442ab9p-110,-0x1.4b52d3ba6d74dp-166} /**< ~1.442695041 */
-#define FLOAT64X4_LOG10E     {0x1.bcb7b1526e50ep-2,+0x1.95355baaafad3p-57,+0x1.ee191f71a3012p-112,+0x1.7268808e8fcb5p-167} /**< ~0.434294482 */
-#define FLOAT64X4_PI         {0x1.921fb54442d18p+1,+0x1.1a62633145c07p-53,-0x1.f1976b7ed8fbcp-109,+0x1.4cf98e804177dp-163} /**< ~3.141592654 */
-#define FLOAT64X4_INV_PI     {0x1.45f306dc9c883p-2,-0x1.6b01ec5417056p-56,-0x1.6447e493ad4cep-110,+0x1.e21c820ff28b2p-164} /**< ~0.318309886 */
-#define FLOAT64X4_INV_SQRTPI {0x1.20dd750429b6dp-1,+0x1.1ae3a914fed80p-57,-0x1.3cbbebf65f145p-112,-0x1.e0c574632f53ep-167} /**< ~0.564189584 */
-#define FLOAT64X4_LN2        {0x1.62e42fefa39efp-1,+0x1.abc9e3b39803fp-56,+0x1.7b57a079a1934p-111,-0x1.ace93a4ebe5d1p-165} /**< ~0.693147181 */
-#define FLOAT64X4_LN10       {0x1.26bb1bbb55516p+1,-0x1.f48ad494ea3e9p-53,-0x1.9ebae3ae0260cp-107,-0x1.2d10378be1cf1p-161} /**< ~2.302585093 */
-#define FLOAT64X4_SQRT2      {0x1.6a09e667f3bcdp+0,-0x1.bdd3413b26456p-54,+0x1.57d3e3adec175p-108,+0x1.2775099da2f59p-164} /**< ~1.414213562 */
-#define FLOAT64X4_SQRT3      {0x1.bb67ae8584caap+0,+0x1.cec95d0b5c1e3p-54,-0x1.f11db689f2ccfp-110,+0x1.3da4798c720a6p-164} /**< ~1.732050808 */
-#define FLOAT64X4_INV_SQRT3  {0x1.279a74590331cp-1,+0x1.34863e0792bedp-55,-0x1.a82f9e6c53222p-109,-0x1.cb0f41134253ap-163} /**< ~0.577350269 */
-#define FLOAT64X4_EGAMMA     {0x1.2788cfc6fb619p-1,-0x1.6cb90701fbfabp-58,-0x1.34a95e3133c51p-112,+0x1.9730064300f7dp-166} /**< ~0.577215665 */
-#define FLOAT64X4_PHI        {0x1.9e3779b97f4a8p+0,-0x1.f506319fcfd19p-55,+0x1.b906821044ed8p-109,-0x1.8bb1b5c0f272cp-165} /**< ~1.618033989 */
+#define FLOAT64X4_E          {{0x1.5bf0a8b145769p+1,+0x1.4d57ee2b1013ap-53,-0x1.618713a31d3e2p-109,+0x1.c5a6d2b53c26dp-163}} /**< ~2.718281828 */
+#define FLOAT64X4_LOG2E      {{0x1.71547652b82fep+0,+0x1.777d0ffda0d24p-56,-0x1.60bb8a5442ab9p-110,-0x1.4b52d3ba6d74dp-166}} /**< ~1.442695041 */
+#define FLOAT64X4_LOG10E     {{0x1.bcb7b1526e50ep-2,+0x1.95355baaafad3p-57,+0x1.ee191f71a3012p-112,+0x1.7268808e8fcb5p-167}} /**< ~0.434294482 */
+#define FLOAT64X4_PI         {{0x1.921fb54442d18p+1,+0x1.1a62633145c07p-53,-0x1.f1976b7ed8fbcp-109,+0x1.4cf98e804177dp-163}} /**< ~3.141592654 */
+#define FLOAT64X4_INV_PI     {{0x1.45f306dc9c883p-2,-0x1.6b01ec5417056p-56,-0x1.6447e493ad4cep-110,+0x1.e21c820ff28b2p-164}} /**< ~0.318309886 */
+#define FLOAT64X4_INV_SQRTPI {{0x1.20dd750429b6dp-1,+0x1.1ae3a914fed80p-57,-0x1.3cbbebf65f145p-112,-0x1.e0c574632f53ep-167}} /**< ~0.564189584 */
+#define FLOAT64X4_LN2        {{0x1.62e42fefa39efp-1,+0x1.abc9e3b39803fp-56,+0x1.7b57a079a1934p-111,-0x1.ace93a4ebe5d1p-165}} /**< ~0.693147181 */
+#define FLOAT64X4_LN10       {{0x1.26bb1bbb55516p+1,-0x1.f48ad494ea3e9p-53,-0x1.9ebae3ae0260cp-107,-0x1.2d10378be1cf1p-161}} /**< ~2.302585093 */
+#define FLOAT64X4_SQRT2      {{0x1.6a09e667f3bcdp+0,-0x1.bdd3413b26456p-54,+0x1.57d3e3adec175p-108,+0x1.2775099da2f59p-164}} /**< ~1.414213562 */
+#define FLOAT64X4_SQRT3      {{0x1.bb67ae8584caap+0,+0x1.cec95d0b5c1e3p-54,-0x1.f11db689f2ccfp-110,+0x1.3da4798c720a6p-164}} /**< ~1.732050808 */
+#define FLOAT64X4_INV_SQRT3  {{0x1.279a74590331cp-1,+0x1.34863e0792bedp-55,-0x1.a82f9e6c53222p-109,-0x1.cb0f41134253ap-163}} /**< ~0.577350269 */
+#define FLOAT64X4_EGAMMA     {{0x1.2788cfc6fb619p-1,-0x1.6cb90701fbfabp-58,-0x1.34a95e3133c51p-112,+0x1.9730064300f7dp-166}} /**< ~0.577215665 */
+#define FLOAT64X4_PHI        {{0x1.9e3779b97f4a8p+0,-0x1.f506319fcfd19p-55,+0x1.b906821044ed8p-109,-0x1.8bb1b5c0f272cp-165}} /**< ~1.618033989 */
 
 /* <math.h> constants */
 #define FLOAT64X4_1_PI       FLOAT64X4_INV_PI /**< ~0.318309886 */
-#define FLOAT64X4_PI_2       {0x1.921fb54442d18p+0,+0x1.1a62633145c07p-54,-0x1.f1976b7ed8fbcp-110,+0x1.4cf98e804177dp-164} /**< ~1.570796327 */
-#define FLOAT64X4_PI_4       {0x1.921fb54442d18p-1,+0x1.1a62633145c07p-55,-0x1.f1976b7ed8fbcp-111,+0x1.4cf98e804177dp-165} /**< ~0.785398163 */
-#define FLOAT64X4_2_PI       {0x1.45f306dc9c883p-1,-0x1.6b01ec5417056p-55,-0x1.6447e493ad4cep-109,+0x1.e21c820ff28b2p-163} /**< ~0.636619772 */
-#define FLOAT64X4_2_SQRTPI   {0x1.20dd750429b6dp+0,+0x1.1ae3a914fed80p-56,-0x1.3cbbebf65f145p-111,-0x1.e0c574632f53ep-166} /**< ~1.128379167 */
-#define FLOAT64X4_SQRT1_2    {0x1.6a09e667f3bcdp-1,-0x1.bdd3413b26456p-55,+0x1.57d3e3adec175p-109,+0x1.2775099da2f59p-165} /**< ~0.707106781 */
+#define FLOAT64X4_PI_2       {{0x1.921fb54442d18p+0,+0x1.1a62633145c07p-54,-0x1.f1976b7ed8fbcp-110,+0x1.4cf98e804177dp-164}} /**< ~1.570796327 */
+#define FLOAT64X4_PI_4       {{0x1.921fb54442d18p-1,+0x1.1a62633145c07p-55,-0x1.f1976b7ed8fbcp-111,+0x1.4cf98e804177dp-165}} /**< ~0.785398163 */
+#define FLOAT64X4_2_PI       {{0x1.45f306dc9c883p-1,-0x1.6b01ec5417056p-55,-0x1.6447e493ad4cep-109,+0x1.e21c820ff28b2p-163}} /**< ~0.636619772 */
+#define FLOAT64X4_2_SQRTPI   {{0x1.20dd750429b6dp+0,+0x1.1ae3a914fed80p-56,-0x1.3cbbebf65f145p-111,-0x1.e0c574632f53ep-166}} /**< ~1.128379167 */
+#define FLOAT64X4_SQRT1_2    {{0x1.6a09e667f3bcdp-1,-0x1.bdd3413b26456p-55,+0x1.57d3e3adec175p-109,+0x1.2775099da2f59p-165}} /**< ~0.707106781 */
 
 //------------------------------------------------------------------------------
 // Float64x4 <float.h>
@@ -136,17 +136,17 @@ typedef union Bitwise_Float64x4 {
 //------------------------------------------------------------------------------
 
 inline Float64x4 Float64x4_set_zero(void) {
-	Float64x4 ret = {0.0, 0.0, 0.0, 0.0};
+	Float64x4 ret = {{0.0, 0.0, 0.0, 0.0}};
 	return ret;
 }
 
 inline Float64x4 Float64x4_set_d(const fp64 x) {
-	Float64x4 ret = {x, 0.0, 0.0, 0.0};
+	Float64x4 ret = {{x, 0.0, 0.0, 0.0}};
 	return ret;
 }
 
 inline Float64x4 Float64x4_set_dx4(const fp64 values[4]) {
-	Float64x4 ret = {values[0], values[1], values[2], values[3]};
+	Float64x4 ret = {{values[0], values[1], values[2], values[3]}};
 	return ret;
 }
 
@@ -591,9 +591,9 @@ inline void Float64x4_three_sum2(
 inline void Float64x4_accurate_renorm(Float64x4* FLOAT64X4_RESTRICT const x) {
 	fp64 s0, s1, s2 = 0.0, s3 = 0.0;
 
-	if (isinf(x->val[0])) {
-		return;
-	}
+	// if (isinf(x->val[0])) {
+	// 	return;
+	// }
 
 	s0 = Float64_quick_two_sum(x->val[2], x->val[3], &x->val[3]);
 	s0 = Float64_quick_two_sum(x->val[1], s0, &x->val[2]);
@@ -652,9 +652,9 @@ inline void Float64x4_accurate_renorm_err(
 ) {
 	fp64 s0, s1, s2 = 0.0, s3 = 0.0;
 
-	if (isinf(x->val[0])) {
-		return;
-	}
+	// if (isinf(x->val[0])) {
+	// 	return;
+	// }
 
 	s0        = Float64_quick_two_sum(x->val[3], *err, err       );
 	s0        = Float64_quick_two_sum(x->val[2], s0  , &x->val[3]);
@@ -746,7 +746,7 @@ inline void Float64x4_renorm_err(
  * @brief Negates a Float64x4 value (multiplies by -1.0)
  */
 inline Float64x4 Float64x4_negate(const Float64x4 x) {
-	Float64x4 ret = {-x.val[0], -x.val[1], -x.val[2], -x.val[3]};
+	Float64x4 ret = {{-x.val[0], -x.val[1], -x.val[2], -x.val[3]}};
 	return ret;
 }
 
@@ -765,7 +765,7 @@ inline Float64x4 Float64x4_add_accurate(const Float64x4 x, const Float64x4 y) {
 	int i, j, k;
 	fp64 s, t;
 	fp64 u, v;   /* double-length accumulator */
-	Float64x4 ret = {0.0, 0.0, 0.0, 0.0};
+	Float64x4 ret = Float64x4_set_zero();
 	
 	i = j = k = 0;
 	if (fabs(x.val[i]) > fabs(y.val[j])) {
@@ -1048,7 +1048,7 @@ inline Float64x4 Float64x4_sub_accurate(const Float64x4 x, const Float64x4 y) {
 	int i, j, k;
 	fp64 s, t;
 	fp64 u, v;   /* double-length accumulator */
-	Float64x4 ret = {0.0, 0.0, 0.0, 0.0};
+	Float64x4 ret = Float64x4_set_zero();
 	
 	i = j = k = 0;
 	if (fabs(x.val[i]) > fabs(y.val[j])) {
@@ -1389,7 +1389,7 @@ inline Float64x4 Float64x4_mul_accurate(const Float64x4 x, const Float64x4 y) {
 
 	/* O(eps^4) terms -- Nine-One-Sum */
 	t1 += x.val[1] * y.val[3] + x.val[2] * y.val[2] + x.val[3] * y.val[1] + q6 + q7 + q8 + q9 + s2;
-	Float64x4 ret = {p0, p1, s0, t0};
+	Float64x4 ret = {{p0, p1, s0, t0}};
 	Float64x4_renorm_err(&ret, &t1);
 	return ret;
 }
@@ -1425,7 +1425,7 @@ inline Float64x4 Float64x4_mul_quick(const Float64x4 x, const Float64x4 y) {
 
 	/* O(eps^3) order terms */
 	s1 += x.val[0]*y.val[3] + x.val[1]*y.val[2] + x.val[2]*y.val[1] + x.val[3]*y.val[0] + q0 + q3 + q4 + q5;
-	Float64x4 ret = {p0, p1, s0, s1};
+	Float64x4 ret = {{p0, p1, s0, s1}};
 	Float64x4_renorm_err(&ret, &s2);
 	return ret;
 }
@@ -2487,9 +2487,7 @@ inline bool Float64x4_islessgreater(const Float64x4 x, const Float64x4 y) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 inline Float64x4 Float64x4_trunc(const Float64x4 x) {
-	Float64x4 ret = {
-		trunc(x.val[0]), 0.0, 0.0, 0.0
-	};
+	Float64x4 ret = {{trunc(x.val[0]), 0.0, 0.0, 0.0}};
 	if (ret.val[0] == x.val[0]) {
 		ret.val[1] = trunc(x.val[1]);
 		if (ret.val[1] == x.val[1]) {
@@ -2517,9 +2515,7 @@ inline Float64x4 Float64x4_aint(const Float64x4 x) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 inline Float64x4 Float64x4_floor(const Float64x4 x) {
-	Float64x4 ret = {
-		floor(x.val[0]), 0.0, 0.0, 0.0
-	};
+	Float64x4 ret = {{floor(x.val[0]), 0.0, 0.0, 0.0}};
 	if (ret.val[0] == x.val[0]) {
 		ret.val[1] = floor(x.val[1]);
 		
@@ -2536,9 +2532,7 @@ inline Float64x4 Float64x4_floor(const Float64x4 x) {
 	return ret;
 }
 inline Float64x4 Float64x4_ceil(const Float64x4 x) {
-	Float64x4 ret = {
-		ceil(x.val[0]), 0.0, 0.0, 0.0
-	};
+	Float64x4 ret = {{ceil(x.val[0]), 0.0, 0.0, 0.0}};
 	if (ret.val[0] == x.val[0]) {
 		ret.val[1] = ceil(x.val[1]);
 		
@@ -2560,9 +2554,7 @@ inline Float64x4 Float64x4_ceil(const Float64x4 x) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 inline Float64x4 Float64x4_round(const Float64x4 x) {
-	Float64x4 ret = {
-		round(x.val[0]), 0.0, 0.0, 0.0
-	};
+	Float64x4 ret = {{round(x.val[0]), 0.0, 0.0, 0.0}};
 	if (ret.val[0] == x.val[0]) {
 		/* First double is already an integer. */
 		ret.val[1] = round(x.val[1]);

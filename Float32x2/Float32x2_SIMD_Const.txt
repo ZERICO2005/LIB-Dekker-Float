@@ -1,0 +1,443 @@
+
+// SIMD constants for types that aren't implemented yet.
+
+//------------------------------------------------------------------------------
+// __m128x2 Float32x2 SSE2
+//------------------------------------------------------------------------------
+
+/**
+* @brief ~2.718281828 Returns the value of euler's number
+*/
+__m128x2 _mm128x2_const_e_psx2(void) {
+	const __m128x2 ret = {
+		_mm_castsi128_ps(_mm_set1_epi32(0x402DF854)),
+		_mm_castsi128_ps(_mm_set1_epi32(0x33B14577))
+	};
+	return ret;
+}
+
+/**
+* @brief ~1.442695041 Returns the value of log2(e)
+*/
+__m128x2 _mm128x2_const_log2e_psx2(void) {
+	const __m128x2 ret = {
+		_mm_castsi128_ps(_mm_set1_epi32(0x3FB8AA3B)),
+		_mm_castsi128_ps(_mm_set1_epi32(0x32A57060))
+	};
+	return ret;
+}
+
+/**
+* @brief ~0.434294482 Returns the value of log10(e)
+*/
+__m128x2 _mm128x2_const_log10e_psx2(void) {
+	const __m128x2 ret = {
+		_mm_castsi128_ps(_mm_set1_epi32(0x3EDE5BD9)),
+		_mm_castsi128_ps(_mm_set1_epi32(0xB22D91AF))
+	};
+	return ret;
+}
+
+/**
+* @brief ~3.141592654 Returns the value of pi
+*/
+__m128x2 _mm128x2_const_pi_psx2(void) {
+	const __m128x2 ret = {
+		_mm_castsi128_ps(_mm_set1_epi32(0x40490FDB)),
+		_mm_castsi128_ps(_mm_set1_epi32(0xB3BBBD2E))
+	};
+	return ret;
+}
+
+/**
+* @brief ~0.318309886 Returns the value of 1 / pi
+*/
+__m128x2 _mm128x2_const_inv_pi_psx2(void) {
+	const __m128x2 ret = {
+		_mm_castsi128_ps(_mm_set1_epi32(0x3EA2F983)),
+		_mm_castsi128_ps(_mm_set1_epi32(0x325C9C88))
+	};
+	return ret;
+}
+
+/**
+* @brief ~0.564189584 Returns the value of 1 / sqrt(pi)
+*/
+__m128x2 _mm128x2_const_inv_sqrtpi_psx2(void) {
+	const __m128x2 ret = {
+		_mm_castsi128_ps(_mm_set1_epi32(0x3F106EBB)),
+		_mm_castsi128_ps(_mm_set1_epi32(0xB2FBD649))
+	};
+	return ret;
+}
+
+/**
+* @brief ~0.693147181 Returns the value of ln(2)
+*/
+__m128x2 _mm128x2_const_ln2_psx2(void) {
+	const __m128x2 ret = {
+		_mm_castsi128_ps(_mm_set1_epi32(0x3F317218)),
+		_mm_castsi128_ps(_mm_set1_epi32(0xB102E308))
+	};
+	return ret;
+}
+
+/**
+* @brief ~2.302585093 Returns the value of ln(10)
+*/
+__m128x2 _mm128x2_const_ln10_psx2(void) {
+	const __m128x2 ret = {
+		_mm_castsi128_ps(_mm_set1_epi32(0x40135D8E)),
+		_mm_castsi128_ps(_mm_set1_epi32(0xB309555D))
+	};
+	return ret;
+}
+
+/**
+* @brief ~1.414213562 Returns the value of sqrt(2)
+*/
+__m128x2 _mm128x2_const_sqrt2_psx2(void) {
+	const __m128x2 ret = {
+		_mm_castsi128_ps(_mm_set1_epi32(0x3FB504F3)),
+		_mm_castsi128_ps(_mm_set1_epi32(0x32CFE77A))
+	};
+	return ret;
+}
+
+/**
+* @brief ~1.732050808 Returns the value of sqrt(3)
+*/
+__m128x2 _mm128x2_const_sqrt3_psx2(void) {
+	const __m128x2 ret = {
+		_mm_castsi128_ps(_mm_set1_epi32(0x3FDDB3D7)),
+		_mm_castsi128_ps(_mm_set1_epi32(0x330584CB))
+	};
+	return ret;
+}
+
+/**
+* @brief ~0.577350269 Returns the value of 1 / sqrt(3)
+*/
+__m128x2 _mm128x2_const_inv_sqrt3_psx2(void) {
+	const __m128x2 ret = {
+		_mm_castsi128_ps(_mm_set1_epi32(0x3F13CD3A)),
+		_mm_castsi128_ps(_mm_set1_epi32(0x32320664))
+	};
+	return ret;
+}
+
+/**
+* @brief ~0.577215665 Returns the value of gamma (The Euler–Mascheroni constant)
+*/
+__m128x2 _mm128x2_const_egamma_psx2(void) {
+	const __m128x2 ret = {
+		_mm_castsi128_ps(_mm_set1_epi32(0x3F13C468)),
+		_mm_castsi128_ps(_mm_set1_epi32(0xB1E4127A))
+	};
+	return ret;
+}
+
+/**
+* @brief ~1.618033989 Returns the value of phi (The golden ratio)
+*/
+__m128x2 _mm128x2_const_phi_psx2(void) {
+	const __m128x2 ret = {
+		_mm_castsi128_ps(_mm_set1_epi32(0x3FCF1BBD)),
+		_mm_castsi128_ps(_mm_set1_epi32(0xB28D016B))
+	};
+	return ret;
+}
+
+//------------------------------------------------------------------------------
+// __m256x2 Float32x2 AVX
+//------------------------------------------------------------------------------
+
+/**
+* @brief ~2.718281828 Returns the value of euler's number
+*/
+__m256x2 _mm256x2_const_e_psx2(void) {
+	const __m256x2 ret = {
+		_mm256_castsi256_ps(_mm256_set1_epi32(0x402DF854)),
+		_mm256_castsi256_ps(_mm256_set1_epi32(0x33B14577))
+	};
+	return ret;
+}
+
+/**
+* @brief ~1.442695041 Returns the value of log2(e)
+*/
+__m256x2 _mm256x2_const_log2e_psx2(void) {
+	const __m256x2 ret = {
+		_mm256_castsi256_ps(_mm256_set1_epi32(0x3FB8AA3B)),
+		_mm256_castsi256_ps(_mm256_set1_epi32(0x32A57060))
+	};
+	return ret;
+}
+
+/**
+* @brief ~0.434294482 Returns the value of log10(e)
+*/
+__m256x2 _mm256x2_const_log10e_psx2(void) {
+	const __m256x2 ret = {
+		_mm256_castsi256_ps(_mm256_set1_epi32(0x3EDE5BD9)),
+		_mm256_castsi256_ps(_mm256_set1_epi32(0xB22D91AF))
+	};
+	return ret;
+}
+
+/**
+* @brief ~3.141592654 Returns the value of pi
+*/
+__m256x2 _mm256x2_const_pi_psx2(void) {
+	const __m256x2 ret = {
+		_mm256_castsi256_ps(_mm256_set1_epi32(0x40490FDB)),
+		_mm256_castsi256_ps(_mm256_set1_epi32(0xB3BBBD2E))
+	};
+	return ret;
+}
+
+/**
+* @brief ~0.318309886 Returns the value of 1 / pi
+*/
+__m256x2 _mm256x2_const_inv_pi_psx2(void) {
+	const __m256x2 ret = {
+		_mm256_castsi256_ps(_mm256_set1_epi32(0x3EA2F983)),
+		_mm256_castsi256_ps(_mm256_set1_epi32(0x325C9C88))
+	};
+	return ret;
+}
+
+/**
+* @brief ~0.564189584 Returns the value of 1 / sqrt(pi)
+*/
+__m256x2 _mm256x2_const_inv_sqrtpi_psx2(void) {
+	const __m256x2 ret = {
+		_mm256_castsi256_ps(_mm256_set1_epi32(0x3F106EBB)),
+		_mm256_castsi256_ps(_mm256_set1_epi32(0xB2FBD649))
+	};
+	return ret;
+}
+
+/**
+* @brief ~0.693147181 Returns the value of ln(2)
+*/
+__m256x2 _mm256x2_const_ln2_psx2(void) {
+	const __m256x2 ret = {
+		_mm256_castsi256_ps(_mm256_set1_epi32(0x3F317218)),
+		_mm256_castsi256_ps(_mm256_set1_epi32(0xB102E308))
+	};
+	return ret;
+}
+
+/**
+* @brief ~2.302585093 Returns the value of ln(10)
+*/
+__m256x2 _mm256x2_const_ln10_psx2(void) {
+	const __m256x2 ret = {
+		_mm256_castsi256_ps(_mm256_set1_epi32(0x40135D8E)),
+		_mm256_castsi256_ps(_mm256_set1_epi32(0xB309555D))
+	};
+	return ret;
+}
+
+/**
+* @brief ~1.414213562 Returns the value of sqrt(2)
+*/
+__m256x2 _mm256x2_const_sqrt2_psx2(void) {
+	const __m256x2 ret = {
+		_mm256_castsi256_ps(_mm256_set1_epi32(0x3FB504F3)),
+		_mm256_castsi256_ps(_mm256_set1_epi32(0x32CFE77A))
+	};
+	return ret;
+}
+
+/**
+* @brief ~1.732050808 Returns the value of sqrt(3)
+*/
+__m256x2 _mm256x2_const_sqrt3_psx2(void) {
+	const __m256x2 ret = {
+		_mm256_castsi256_ps(_mm256_set1_epi32(0x3FDDB3D7)),
+		_mm256_castsi256_ps(_mm256_set1_epi32(0x330584CB))
+	};
+	return ret;
+}
+
+/**
+* @brief ~0.577350269 Returns the value of 1 / sqrt(3)
+*/
+__m256x2 _mm256x2_const_inv_sqrt3_psx2(void) {
+	const __m256x2 ret = {
+		_mm256_castsi256_ps(_mm256_set1_epi32(0x3F13CD3A)),
+		_mm256_castsi256_ps(_mm256_set1_epi32(0x32320664))
+	};
+	return ret;
+}
+
+/**
+* @brief ~0.577215665 Returns the value of gamma (The Euler–Mascheroni constant)
+*/
+__m256x2 _mm256x2_const_egamma_psx2(void) {
+	const __m256x2 ret = {
+		_mm256_castsi256_ps(_mm256_set1_epi32(0x3F13C468)),
+		_mm256_castsi256_ps(_mm256_set1_epi32(0xB1E4127A))
+	};
+	return ret;
+}
+
+/**
+* @brief ~1.618033989 Returns the value of phi (The golden ratio)
+*/
+__m256x2 _mm256x2_const_phi_psx2(void) {
+	const __m256x2 ret = {
+		_mm256_castsi256_ps(_mm256_set1_epi32(0x3FCF1BBD)),
+		_mm256_castsi256_ps(_mm256_set1_epi32(0xB28D016B))
+	};
+	return ret;
+}
+
+//------------------------------------------------------------------------------
+// __m128x2 Float32x2 AVX512F
+//------------------------------------------------------------------------------
+
+/**
+* @brief ~2.718281828 Returns the value of euler's number
+*/
+__m512x2 _mm512x2_const_e_psx2(void) {
+	const __m512x2 ret = {
+		_mm512_castsi512_ps(_mm512_set1_epi32(0x402DF854)),
+		_mm512_castsi512_ps(_mm512_set1_epi32(0x33B14577))
+	};
+	return ret;
+}
+
+/**
+* @brief ~1.442695041 Returns the value of log2(e)
+*/
+__m512x2 _mm512x2_const_log2e_psx2(void) {
+	const __m512x2 ret = {
+		_mm512_castsi512_ps(_mm512_set1_epi32(0x3FB8AA3B)),
+		_mm512_castsi512_ps(_mm512_set1_epi32(0x32A57060))
+	};
+	return ret;
+}
+
+/**
+* @brief ~0.434294482 Returns the value of log10(e)
+*/
+__m512x2 _mm512x2_const_log10e_psx2(void) {
+	const __m512x2 ret = {
+		_mm512_castsi512_ps(_mm512_set1_epi32(0x3EDE5BD9)),
+		_mm512_castsi512_ps(_mm512_set1_epi32(0xB22D91AF))
+	};
+	return ret;
+}
+
+/**
+* @brief ~3.141592654 Returns the value of pi
+*/
+__m512x2 _mm512x2_const_pi_psx2(void) {
+	const __m512x2 ret = {
+		_mm512_castsi512_ps(_mm512_set1_epi32(0x40490FDB)),
+		_mm512_castsi512_ps(_mm512_set1_epi32(0xB3BBBD2E))
+	};
+	return ret;
+}
+
+/**
+* @brief ~0.318309886 Returns the value of 1 / pi
+*/
+__m512x2 _mm512x2_const_inv_pi_psx2(void) {
+	const __m512x2 ret = {
+		_mm512_castsi512_ps(_mm512_set1_epi32(0x3EA2F983)),
+		_mm512_castsi512_ps(_mm512_set1_epi32(0x325C9C88))
+	};
+	return ret;
+}
+
+/**
+* @brief ~0.564189584 Returns the value of 1 / sqrt(pi)
+*/
+__m512x2 _mm512x2_const_inv_sqrtpi_psx2(void) {
+	const __m512x2 ret = {
+		_mm512_castsi512_ps(_mm512_set1_epi32(0x3F106EBB)),
+		_mm512_castsi512_ps(_mm512_set1_epi32(0xB2FBD649))
+	};
+	return ret;
+}
+
+/**
+* @brief ~0.693147181 Returns the value of ln(2)
+*/
+__m512x2 _mm512x2_const_ln2_psx2(void) {
+	const __m512x2 ret = {
+		_mm512_castsi512_ps(_mm512_set1_epi32(0x3F317218)),
+		_mm512_castsi512_ps(_mm512_set1_epi32(0xB102E308))
+	};
+	return ret;
+}
+
+/**
+* @brief ~2.302585093 Returns the value of ln(10)
+*/
+__m512x2 _mm512x2_const_ln10_psx2(void) {
+	const __m512x2 ret = {
+		_mm512_castsi512_ps(_mm512_set1_epi32(0x40135D8E)),
+		_mm512_castsi512_ps(_mm512_set1_epi32(0xB309555D))
+	};
+	return ret;
+}
+
+/**
+* @brief ~1.414213562 Returns the value of sqrt(2)
+*/
+__m512x2 _mm512x2_const_sqrt2_psx2(void) {
+	const __m512x2 ret = {
+		_mm512_castsi512_ps(_mm512_set1_epi32(0x3FB504F3)),
+		_mm512_castsi512_ps(_mm512_set1_epi32(0x32CFE77A))
+	};
+	return ret;
+}
+
+/**
+* @brief ~1.732050808 Returns the value of sqrt(3)
+*/
+__m512x2 _mm512x2_const_sqrt3_psx2(void) {
+	const __m512x2 ret = {
+		_mm512_castsi512_ps(_mm512_set1_epi32(0x3FDDB3D7)),
+		_mm512_castsi512_ps(_mm512_set1_epi32(0x330584CB))
+	};
+	return ret;
+}
+
+/**
+* @brief ~0.577350269 Returns the value of 1 / sqrt(3)
+*/
+__m512x2 _mm512x2_const_inv_sqrt3_psx2(void) {
+	const __m512x2 ret = {
+		_mm512_castsi512_ps(_mm512_set1_epi32(0x3F13CD3A)),
+		_mm512_castsi512_ps(_mm512_set1_epi32(0x32320664))
+	};
+	return ret;
+}
+
+/**
+* @brief ~0.577215665 Returns the value of gamma (The Euler–Mascheroni constant)
+*/
+__m512x2 _mm512x2_const_egamma_psx2(void) {
+	const __m512x2 ret = {
+		_mm512_castsi512_ps(_mm512_set1_epi32(0x3F13C468)),
+		_mm512_castsi512_ps(_mm512_set1_epi32(0xB1E4127A))
+	};
+	return ret;
+}
+
+/**
+* @brief ~1.618033989 Returns the value of phi (The golden ratio)
+*/
+__m512x2 _mm512x2_const_phi_psx2(void) {
+	const __m512x2 ret = {
+		_mm512_castsi512_ps(_mm512_set1_epi32(0x3FCF1BBD)),
+		_mm512_castsi512_ps(_mm512_set1_epi32(0xB28D016B))
+	};
+	return ret;
+}

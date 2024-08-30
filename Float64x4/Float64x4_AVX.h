@@ -217,6 +217,26 @@ inline __m256dx4 _mm256x4_setr_epi64x(
 }
 
 //------------------------------------------------------------------------------
+// __m256dx4 transpose
+//------------------------------------------------------------------------------
+
+/**
+ * @brief Converts between Float64x4 and __m256dx4
+ */
+inline __m256dx4 _mm256x4_transpose_pdx4(__m256dx4 x) {
+	__m256dx4 temp;
+	temp.val[1] = _mm256_unpacklo_pd(x.val[0], x.val[1]);
+	temp.val[2] = _mm256_unpackhi_pd(x.val[0], x.val[1]);
+	temp.val[3] = _mm256_unpacklo_pd(x.val[2], x.val[3]);
+	temp.val[4] = _mm256_unpackhi_pd(x.val[2], x.val[3]);
+	x.val[1] = _mm256_permute2f128_pd(temp.val[1], temp.val[3], 0x20);
+	x.val[2] = _mm256_permute2f128_pd(temp.val[2], temp.val[4], 0x20);
+	x.val[3] = _mm256_permute2f128_pd(temp.val[1], temp.val[3], 0x31);
+	x.val[4] = _mm256_permute2f128_pd(temp.val[2], temp.val[4], 0x31);
+	return x;
+}
+
+//------------------------------------------------------------------------------
 // __m256dx4 load operations
 //------------------------------------------------------------------------------
 
@@ -224,27 +244,55 @@ inline __m256dx4 _mm256x4_setr_epi64x(
  * @note mem_addr must be aligned on a 32-byte boundary or a general-protection
  * exception may be generated.
  */
+inline __m256dx4 _mm256x4_load_pd(const double* mem_addr) {
+	__m256dx4 ret;
+	ret.val[0] = _mm256_load_pd(mem_addr +  0);
+	ret.val[1] = _mm256_load_pd(mem_addr +  4);
+	ret.val[2] = _mm256_load_pd(mem_addr +  8);
+	ret.val[3] = _mm256_load_pd(mem_addr + 12);
+	return _mm256x4_transpose_pdx4(ret);
+}
+
+inline __m256dx4 _mm256x4_loadu_pd(const double* mem_addr) {
+	__m256dx4 ret;
+	ret.val[0] = _mm256_loadu_pd(mem_addr +  0);
+	ret.val[1] = _mm256_loadu_pd(mem_addr +  4);
+	ret.val[2] = _mm256_loadu_pd(mem_addr +  8);
+	ret.val[3] = _mm256_loadu_pd(mem_addr + 12);
+	return _mm256x4_transpose_pdx4(ret);
+}
+
+/**
+ * @note mem_addr must be aligned on a 32-byte boundary or a general-protection
+ * exception may be generated.
+ */
+inline __m256dx4 _mm256x4_load_pdx4(const Float64x4* mem_addr) {
+	return _mm256x4_load_pd((const double*)((const void*)mem_addr));
+}
+
+inline __m256dx4 _mm256x4_loadu_pdx4(const Float64x4* mem_addr) {
+	return _mm256x4_loadu_pd((const double*)((const void*)mem_addr));
+}
+
+/**
+ * @note mem_addr must be aligned on a 32-byte boundary or a general-protection
+ * exception may be generated.
+ */
 inline __m256dx4 _mm256x4_load_raw_pd(const double* mem_addr) {
 	__m256dx4 ret;
-	ret.val[0] = _mm256_load_pd(mem_addr);
-	mem_addr += sizeof(__m256d) / sizeof(double);
-	ret.val[1] = _mm256_load_pd(mem_addr);
-	mem_addr += sizeof(__m256d) / sizeof(double);
-	ret.val[2] = _mm256_load_pd(mem_addr);
-	mem_addr += sizeof(__m256d) / sizeof(double);
-	ret.val[3] = _mm256_load_pd(mem_addr);
+	ret.val[0] = _mm256_load_pd(mem_addr +  0);
+	ret.val[1] = _mm256_load_pd(mem_addr +  4);
+	ret.val[2] = _mm256_load_pd(mem_addr +  8);
+	ret.val[3] = _mm256_load_pd(mem_addr + 12);
 	return ret;
 }
 
 inline __m256dx4 _mm256x4_loadu_raw_pd(const double* mem_addr) {
 	__m256dx4 ret;
-	ret.val[0] = _mm256_loadu_pd(mem_addr);
-	mem_addr += sizeof(__m256d) / sizeof(double);
-	ret.val[1] = _mm256_loadu_pd(mem_addr);
-	mem_addr += sizeof(__m256d) / sizeof(double);
-	ret.val[2] = _mm256_loadu_pd(mem_addr);
-	mem_addr += sizeof(__m256d) / sizeof(double);
-	ret.val[3] = _mm256_loadu_pd(mem_addr);
+	ret.val[0] = _mm256_loadu_pd(mem_addr +  0);
+	ret.val[1] = _mm256_loadu_pd(mem_addr +  4);
+	ret.val[2] = _mm256_loadu_pd(mem_addr +  8);
+	ret.val[3] = _mm256_loadu_pd(mem_addr + 12);
 	return ret;
 }
 
@@ -252,28 +300,55 @@ inline __m256dx4 _mm256x4_loadu_raw_pd(const double* mem_addr) {
 // __m256dx4 store operations
 //------------------------------------------------------------------------------
 
+
 /**
  * @note mem_addr must be aligned on a 32-byte boundary or a general-protection
  * exception may be generated.
  */
-inline void _mm256_store_raw_pdx4(double* mem_addr, __m256dx4 x) {
-	_mm256_store_pd(mem_addr, x.val[0]);
-	mem_addr += sizeof(__m256d) / sizeof(double);
-	_mm256_store_pd(mem_addr, x.val[1]);
-	mem_addr += sizeof(__m256d) / sizeof(double);
-	_mm256_store_pd(mem_addr, x.val[2]);
-	mem_addr += sizeof(__m256d) / sizeof(double);
-	_mm256_store_pd(mem_addr, x.val[3]);
+inline void _mm256x4_store_pd(double* mem_addr, __m256dx4 src) {
+	src = _mm256x4_transpose_pdx4(src);
+	_mm256_store_pd(mem_addr +  0, src.val[0]);
+	_mm256_store_pd(mem_addr +  4, src.val[1]);
+	_mm256_store_pd(mem_addr +  8, src.val[2]);
+	_mm256_store_pd(mem_addr + 12, src.val[3]);
 }
 
-inline void _mm256_storeu_raw_pdx4(double* mem_addr, __m256dx4 x) {
-	_mm256_storeu_pd(mem_addr, x.val[0]);
-	mem_addr += sizeof(__m256d) / sizeof(double);
-	_mm256_storeu_pd(mem_addr, x.val[1]);
-	mem_addr += sizeof(__m256d) / sizeof(double);
-	_mm256_storeu_pd(mem_addr, x.val[2]);
-	mem_addr += sizeof(__m256d) / sizeof(double);
-	_mm256_storeu_pd(mem_addr, x.val[3]);
+inline void _mm256x4_storeu_pd(double* mem_addr, __m256dx4 src) {
+	src = _mm256x4_transpose_pdx4(src);
+	_mm256_storeu_pd(mem_addr +  0, src.val[0]);
+	_mm256_storeu_pd(mem_addr +  4, src.val[1]);
+	_mm256_storeu_pd(mem_addr +  8, src.val[2]);
+	_mm256_storeu_pd(mem_addr + 12, src.val[3]);
+}
+
+/**
+ * @note mem_addr must be aligned on a 32-byte boundary or a general-protection
+ * exception may be generated.
+ */
+inline void _mm256x4_store_pdx4(Float64x4* mem_addr, __m256dx4 src) {
+	_mm256x4_store_pd((double*)((void*)mem_addr), src);
+}
+
+inline void _mm256x4_storeu_pdx4(Float64x4* mem_addr, __m256dx4 src) {
+	_mm256x4_storeu_pd((double*)((void*)mem_addr), src);
+}
+
+/**
+ * @note mem_addr must be aligned on a 32-byte boundary or a general-protection
+ * exception may be generated.
+ */
+inline void _mm256_store_raw_pdx4(double* mem_addr, __m256dx4 src) {
+	_mm256_store_pd(mem_addr +  0, src.val[0]);
+	_mm256_store_pd(mem_addr +  4, src.val[1]);
+	_mm256_store_pd(mem_addr +  8, src.val[2]);
+	_mm256_store_pd(mem_addr + 12, src.val[3]);
+}
+
+inline void _mm256_storeu_raw_pdx4(double* mem_addr, __m256dx4 src) {
+	_mm256_storeu_pd(mem_addr +  0, src.val[0]);
+	_mm256_storeu_pd(mem_addr +  4, src.val[1]);
+	_mm256_storeu_pd(mem_addr +  8, src.val[2]);
+	_mm256_storeu_pd(mem_addr + 12, src.val[3]);
 }
 
 //------------------------------------------------------------------------------
@@ -343,7 +418,7 @@ inline __m256dx4 _mm256x4_xor_pdx4(__m256dx4 x, const __m256dx4 y) {
  * @brief Copies cmp to val[0 - 3]. Used for extending comparison results.
  */
 inline __m256dx4 _mm256x4_cmp_extend_pd(__m256d cmp) {
-	__m256dx4 ret = {cmp, cmp, cmp, cmp};
+	__m256dx4 ret = {{cmp, cmp, cmp, cmp}};
 	return ret;
 }
 
@@ -2217,7 +2292,7 @@ inline __m256dx4 _mm256x4_mul_accurate_pdx4(const __m256dx4 x, const __m256dx4 y
 		), _mm256_mul_pd(x.val[3], y.val[1])
 	), q6), q7), q8), q9), s2));
 	
-	__m256dx4 ret = {p0, p1, s0, t0};
+	__m256dx4 ret = {{p0, p1, s0, t0}};
 	_mm256x4_renorm_err_pdx4(&ret, &t1);
 	return ret;
 }
@@ -2261,7 +2336,7 @@ inline __m256dx4 _mm256x4_mul_quick_pdx4(const __m256dx4 x, const __m256dx4 y) {
 			), _mm256_mul_pd(x.val[2], y.val[1])
 		), _mm256_mul_pd(x.val[3], y.val[0])
 	), q0), q3), q4), q5));
-	__m256dx4 ret = {p0, p1, s0, s1};
+	__m256dx4 ret = {{p0, p1, s0, s1}};
 	_mm256x4_renorm_err_pdx4(&ret, &s2);
 	return ret;
 }
@@ -3223,7 +3298,180 @@ inline __m256dx4 _mm256x4_mul_power2_pd_pd(const __m256d x, const __m256d y) {
 }
 
 //------------------------------------------------------------------------------
-// __m256dx2 floating point classify
+// __m256dx4 Mathematical Constants
+//------------------------------------------------------------------------------
+
+/**
+ * @brief ~2.718281828 Returns the value of euler's number
+ */
+inline __m256dx4 _mm256x4_const_e_pdx4(void) {
+	const __m256dx4 ret = {{
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x4005BF0A8B145769)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3CA4D57EE2B1013A)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xB92618713A31D3E2)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x35CC5A6D2B53C26D))
+	}};
+	return ret;
+}
+
+/**
+ * @brief ~1.442695041 Returns the value of log2(e)
+ */
+inline __m256dx4 _mm256x4_const_log2e_pdx4(void) {
+	const __m256dx4 ret = {{
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FF71547652B82FE)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3C7777D0FFDA0D24)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xB9160BB8A5442AB9)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xB594B52D3BA6D74D))
+	}};
+	return ret;
+}
+
+/**
+ * @brief ~0.434294482 Returns the value of log10(e)
+ */
+inline __m256dx4 _mm256x4_const_log10e_pdx4(void) {
+	const __m256dx4 ret = {{
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FDBCB7B1526E50E)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3C695355BAAAFAD3)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x38FEE191F71A3012)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3587268808E8FCB5))
+	}};
+	return ret;
+}
+
+/**
+ * @brief ~3.141592654 Returns the value of pi
+ */
+inline __m256dx4 _mm256x4_const_pi_pdx4(void) {
+	const __m256dx4 ret = {{
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x400921FB54442D18)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3CA1A62633145C07)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xB92F1976B7ED8FBC)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x35C4CF98E804177D))
+	}};
+	return ret;
+}
+
+/**
+ * @brief ~0.318309886 Returns the value of 1 / pi
+ */
+inline __m256dx4 _mm256x4_const_inv_pi_pdx4(void) {
+	const __m256dx4 ret = {{
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FD45F306DC9C883)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xBC76B01EC5417056)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xB916447E493AD4CE)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x35BE21C820FF28B2))
+	}};
+	return ret;
+}
+
+/**
+ * @brief ~0.564189584 Returns the value of 1 / sqrt(pi)
+ */
+inline __m256dx4 _mm256x4_const_inv_sqrtpi_pdx4(void) {
+	const __m256dx4 ret = {{
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FE20DD750429B6D)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3C61AE3A914FED80)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xB8F3CBBEBF65F145)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xB58E0C574632F53E))
+	}};
+	return ret;
+}
+
+/**
+ * @brief ~0.693147181 Returns the value of ln(2)
+ */
+inline __m256dx4 _mm256x4_const_ln2_pdx4(void) {
+	const __m256dx4 ret = {{
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FE62E42FEFA39EF)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3C7ABC9E3B39803F)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3907B57A079A1934)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xB5AACE93A4EBE5D1))
+	}};
+	return ret;
+}
+
+/**
+ * @brief ~2.302585093 Returns the value of ln(10)
+ */
+inline __m256dx4 _mm256x4_const_ln10_pdx4(void) {
+	const __m256dx4 ret = {{
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x40026BB1BBB55516)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xBCAF48AD494EA3E9)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xB949EBAE3AE0260C)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xB5E2D10378BE1CF1))
+	}};
+	return ret;
+}
+
+/**
+ * @brief ~1.414213562 Returns the value of sqrt(2)
+ */
+inline __m256dx4 _mm256x4_const_sqrt2_pdx4(void) {
+	const __m256dx4 ret = {{
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FF6A09E667F3BCD)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xBC9BDD3413B26456)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x39357D3E3ADEC175)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x35B2775099DA2F59))
+	}};
+	return ret;
+}
+
+/**
+ * @brief ~1.732050808 Returns the value of sqrt(3)
+ */
+inline __m256dx4 _mm256x4_const_sqrt3_pdx4(void) {
+	const __m256dx4 ret = {{
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FFBB67AE8584CAA)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3C9CEC95D0B5C1E3)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xB91F11DB689F2CCF)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x35B3DA4798C720A6))
+	}};
+	return ret;
+}
+
+/**
+ * @brief ~0.577350269 Returns the value of 1 / sqrt(3)
+ */
+inline __m256dx4 _mm256x4_const_inv_sqrt3_pdx4(void) {
+	const __m256dx4 ret = {{
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FE279A74590331C)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3C834863E0792BED)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xB92A82F9E6C53222)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xB5CCB0F41134253A))
+	}};
+	return ret;
+}
+
+/**
+ * @brief ~0.577215665 Returns the value of gamma (The Euler–Mascheroni constant)
+ */
+inline __m256dx4 _mm256x4_const_egamma_pdx4(void) {
+	const __m256dx4 ret = {{
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FE2788CFC6FB619)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xBC56CB90701FBFAB)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xB8F34A95E3133C51)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3599730064300F7D))
+	}};
+	return ret;
+}
+
+/**
+ * @brief ~1.618033989 Returns the value of phi (The golden ratio)
+ */
+inline __m256dx4 _mm256x4_const_phi_pdx4(void) {
+	const __m256dx4 ret = {{
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FF9E3779B97F4A8)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xBC8F506319FCFD19)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x392B906821044ED8)),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xB5A8BB1B5C0F272C))
+	}};
+	return ret;
+}
+
+//------------------------------------------------------------------------------
+// __m256dx4 floating point classify
 //------------------------------------------------------------------------------
 
 /* values */
@@ -3232,10 +3480,10 @@ inline __m256dx4 _mm256x4_mul_power2_pd_pd(const __m256d x, const __m256d y) {
 	 * @brief Returns a __m256dx4 value set to positive infinity
 	 */
 	inline __m256dx4 _mm256x4_get_infinity_pdx4(void) {
-		__m256dx4 ret = {
-			_mm256_castsi256_pd(_mm256_set1_epi64x(0x7FF0000000000000)),
-			_mm256_castsi256_pd(_mm256_set1_epi64x(0x7FF0000000000000))
-		};
+		__m256dx4 ret = {{
+			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FF0000000000000)),
+			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FF0000000000000))
+		}};
 		return ret;
 	}
 
@@ -3243,10 +3491,10 @@ inline __m256dx4 _mm256x4_mul_power2_pd_pd(const __m256d x, const __m256d y) {
 	 * @brief Returns a __m256dx4 value set to signaling NaN
 	 */
 	inline __m256dx4 _mm256x4_get_sNaN_pdx4(void) {
-		__m256dx4 ret = {
-			_mm256_castsi256_pd(_mm256_set1_epi64x(0x7FF0000000000001)),
-			_mm256_castsi256_pd(_mm256_set1_epi64x(0x7FF0000000000001)),
-		};
+		__m256dx4 ret = {{
+			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FF0000000000001)),
+			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FF0000000000001)),
+		}};
 		return ret;
 	}
 
@@ -3254,10 +3502,10 @@ inline __m256dx4 _mm256x4_mul_power2_pd_pd(const __m256d x, const __m256d y) {
 	 * @brief Returns a __m256dx4 value set to quiet NaN
 	 */
 	inline __m256dx4 _mm256x4_get_qNaN_pdx4(void) {
-		__m256dx4 ret = {
-			_mm256_castsi256_pd(_mm256_set1_epi64x(0x7FF8000000000001)),
-			_mm256_castsi256_pd(_mm256_set1_epi64x(0x7FF8000000000001))
-		};
+		__m256dx4 ret = {{
+			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FF8000000000001)),
+			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FF8000000000001))
+		}};
 		return ret;
 	}
 
@@ -3270,8 +3518,8 @@ inline __m256dx4 _mm256x4_mul_power2_pd_pd(const __m256d x, const __m256d y) {
 	/** @brief Returns true if x is +-infinity */
 	inline __m256d _mm256_isinf_pdx4(const __m256dx4 x) {
 		return _mm256_cmp_pd(
-			_mm256_and_pd(x.val[0], _mm256_castsi256_pd(_mm256_set1_epi64x(0x7FFFFFFFFFFFFFFF))),
-			_mm256_castsi256_pd(_mm256_set1_epi64x(0x7FF0000000000000))
+			_mm256_and_pd(x.val[0], _mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FFFFFFFFFFFFFFF))),
+			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FF0000000000000))
 		, _CMP_EQ_UQ);
 	}
 
@@ -3307,6 +3555,43 @@ inline __m256dx4 _mm256x4_min_pdx4(__m256dx4 x, __m256dx4 y) {
 	ret.val[1] = _mm256_blendv_pd(x.val[1], y.val[1], cmp_min);
 	ret.val[2] = _mm256_blendv_pd(x.val[2], y.val[2], cmp_min);
 	ret.val[3] = _mm256_blendv_pd(x.val[3], y.val[3], cmp_min);
+	return ret;
+}
+
+//------------------------------------------------------------------------------
+// __m256dx2 rounding functions
+//------------------------------------------------------------------------------
+
+inline __m256dx4 _mm256x4_trunc_pdx4(__m256dx4 x) {
+	__m256dx4 ret = {{
+		_mm256_trunc_pd(x.val[0]),
+		_mm256_trunc_pd(x.val[1]),
+		_mm256_trunc_pd(x.val[2]),
+		_mm256_trunc_pd(x.val[3]),
+	}};
+	_mm256x4_renorm_pdx4(&ret);
+	return ret;
+}
+
+inline __m256dx4 _mm256x4_floor_pdx4(__m256dx4 x) {
+	__m256dx4 ret = {{
+		_mm256_floor_pd(x.val[0]),
+		_mm256_floor_pd(x.val[1]),
+		_mm256_floor_pd(x.val[2]),
+		_mm256_floor_pd(x.val[3]),
+	}};
+	_mm256x4_renorm_pdx4(&ret);
+	return ret;
+}
+
+inline __m256dx4 _mm256x4_ceil_pdx4(__m256dx4 x) {
+	__m256dx4 ret = {{
+		_mm256_ceil_pd(x.val[0]),
+		_mm256_ceil_pd(x.val[1]),
+		_mm256_ceil_pd(x.val[2]),
+		_mm256_ceil_pd(x.val[3]),
+	}};
+	_mm256x4_renorm_pdx4(&ret);
 	return ret;
 }
 
@@ -3380,6 +3665,174 @@ inline __m256dx4 _mm256x4_cbrt_pdx4(__m256dx4 x) {
 		), _mm256x4_cmp_extend_pd(_mm256_cmpneq_zero_pdx2(guess))
 	);
 }
+
+/**
+* @brief returns the fraction part of a Float64x4 value. int_part may be NULL
+*/
+inline __m256dx4 _mm256x4_modf_pdx4(const __m256dx4 x, __m256dx4* const int_part) {
+	__m256dx4 trunc_part = _mm256x4_trunc_pdx4(x);
+	if (int_part != NULL) {
+		*int_part = trunc_part;
+	}
+	return _mm256x4_sub_pdx4(x, trunc_part);
+}
+
+inline __m256dx4 _mm256x4_fmod_pdx4(const __m256dx4 x, const __m256dx4 y) {
+	__m256dx4 trunc_part = _mm256x4_trunc_pdx4(_mm256x4_div_pdx4(x, y));
+	return _mm256x4_sub_pdx4(x, _mm256x4_mul_pdx4(y, trunc_part));
+}
+
+//------------------------------------------------------------------------------
+// __m256dx4 exponents and logarithms
+//------------------------------------------------------------------------------
+
+/** @note This function doesn't use AVX for calculations */
+__m256dx4 _mm256x4_exp_pdx4(__m256dx4 x);
+
+/** @note This function doesn't use AVX for calculations */
+__m256dx4 _mm256x4_expm1_pdx4(__m256dx4 x);
+
+/** @note This function doesn't use AVX for calculations */
+inline __m256dx4 _mm256x4_exp2_pdx4(const __m256dx4 a) {
+	return _mm256x4_exp_pdx4(_mm256x4_mul_pdx4(a, _mm256x4_const_ln2_pdx4()));
+}
+
+/** @note This function doesn't use AVX for calculations */
+inline __m256dx4 _mm256x4_exp10_pdx4(const __m256dx4 a) {
+	return _mm256x4_exp_pdx4(_mm256x4_mul_pdx4(a, _mm256x4_const_ln10_pdx4()));
+}
+
+/** @note This function doesn't use AVX for calculations */
+__m256dx4 _mm256x4_log_pdx4(__m256dx4 x);
+
+/** @note This function doesn't use AVX for calculations */
+__m256dx4 _mm256x4_log1p_pdx4(__m256dx4 x);
+
+/** @note This function doesn't use AVX for calculations */
+inline __m256dx4 _mm256x4_log2_pdx4(const __m256dx4 x) {
+	return _mm256x4_mul_pdx4(_mm256x4_log_pdx4(x), _mm256x4_const_log2e_pdx4());
+}
+
+/** @note This function doesn't use AVX for calculations */
+inline __m256dx4 _mm256x4_log10_pdx4(const __m256dx4 x) {
+	return _mm256x4_mul_pdx4(_mm256x4_log_pdx4(x), _mm256x4_const_log10e_pdx4());
+}
+
+/** @note This function doesn't use AVX for calculations */
+__m256dx4 _mm256x4_pow_pdx4(__m256dx4 x, __m256dx4 y);
+
+/** @note This function doesn't use AVX for calculations */
+__m256dx4 _mm256x4_pow_pdx4_pdx2(__m256dx4 x, __m256dx2 y);
+
+/** @note This function doesn't use AVX for calculations */
+__m256dx4 _mm256x4_pow_pdx4_pd(__m256dx4 x,  __m256d y);
+
+#if 0
+	// Avoiding multiple __m256dx4 to Float64x4 conversions
+
+	/** @note This function doesn't use AVX for calculations */
+	inline __m256dx4 _mm256x4_pow_pdx4(const __m256dx4 x, const __m256dx4 y) {
+		return _mm256x4_exp_pdx4(_mm256x4_mul_pdx4(_mm256x4_log_pdx4(x), y));
+	}
+
+	/** @note This function doesn't use AVX for calculations */
+	inline __m256dx4 _mm256x4_pow_pdx4_pdx2(const __m256dx4 x, const __m256dx2 y) {
+		return _mm256x4_exp_pdx4(_mm256x4_mul_pdx4_pdx2(_mm256x4_log_pdx4(x), y));
+	}
+
+	/** @note This function doesn't use AVX for calculations */
+	inline __m256dx4 _mm256x4_pow_pdx4_pd(const __m256dx4 x, const __m256d y) {
+		return _mm256x4_exp_pdx4(_mm256x4_mul_pdx4_pd(_mm256x4_log_pdx4(x), y));
+	}
+#endif
+
+//------------------------------------------------------------------------------
+// __m256dx4 trigonometry
+//------------------------------------------------------------------------------
+
+/** @note This function doesn't use AVX for calculations */
+__m256dx4 _mm256x4_sin_pdx4(__m256dx4 x);
+
+/** @note This function doesn't use AVX for calculations */
+__m256dx4 _mm256x4_cos_pdx4(__m256dx4 x);
+
+/**
+ * @note This function doesn't use AVX for calculations
+ * @warning p_sin and p_cos must be aligned on a 32-byte boundary or a
+ * general-protection exception may be generated.
+ */
+void _mm256x4_sincos_pdx4(
+	__m256dx4 theta, __m256dx4* p_sin, __m256dx4* p_cos
+);
+
+/** @note This function doesn't use AVX for calculations */
+inline __m256dx4 _mm256x4_tan_pdx4(__m256dx4 x) {
+	__m256dx4 t_sin, t_cos;
+	_mm256x4_sincos_pdx4(x, &t_sin, &t_cos);
+	return _mm256x4_div_pdx4(t_sin, t_cos);
+}
+
+/** @note This function doesn't use AVX for calculations */
+__m256dx4 _mm256x4_asin_pdx4(__m256dx4 x);
+
+/** @note This function doesn't use AVX for calculations */
+__m256dx4 _mm256x4_acos_pdx4(__m256dx4 x);
+
+/** @note This function doesn't use AVX for calculations */
+__m256dx4 _mm256x4_atan_pdx4(__m256dx4 x);
+
+/** @note This function doesn't use AVX for calculations */
+__m256dx4 _mm256x4_atan2_pdx4(__m256dx4 y, __m256dx4 x);
+
+/** @note sinh is inaccurate when x is close to 0, which is why it isn't inlined */
+__m256dx4 _mm256x4_sinh_pdx4(__m256dx4 x);
+
+/** @note This function doesn't use AVX for calculations */
+inline __m256dx4 _mm256x4_cosh_pdx4(__m256dx4 x) {
+	__m256dx4 exp_x = _mm256x4_exp_pdx4(x);
+	return _mm256x4_mul_power2_pdx4_pd(
+		_mm256x4_add_pdx4(exp_x, _mm256x4_recip_pdx4(exp_x)),
+	_mm256_set1_pd(0.5));
+}
+
+/** @note This function doesn't use AVX for calculations */
+__m256dx4 _mm256x4_tanh_pdx4(__m256dx4 x);
+
+/**
+ * @note This function doesn't use AVX for calculations
+ * @warning p_sin and p_cos must be aligned on a 32-byte boundary or a
+ * general-protection exception may be generated.
+ */
+void _mm256x4_sinhcosh_pdx4(
+	__m256dx4 theta, __m256dx4* p_sinh, __m256dx4* p_cosh
+);
+
+/** @note This function doesn't use AVX for calculations */
+inline __m256dx4 _mm256x4_asinh_pdx4(__m256dx4 x) {
+	return _mm256x4_log_pdx4(_mm256x4_add_pdx4(x,
+		_mm256x4_sqrt_pdx4(
+			_mm256x4_sub_pdx4_pd(_mm256x4_square_pdx4(x), _mm256_set1_pd(1.0))
+		)
+	));
+}
+
+/** @note This function doesn't use AVX for calculations */
+inline __m256dx4 _mm256x4_acosh_pdx4(__m256dx4 x) {
+	return _mm256x4_log_pdx4(_mm256x4_add_pdx4(x,
+		_mm256x4_sqrt_pdx4(
+			_mm256x4_add_pdx4_pd(_mm256x4_square_pdx4(x), _mm256_set1_pd(1.0))
+		)
+	));
+}
+
+/** @note This function doesn't use AVX for calculations */
+inline __m256dx4 _mm256x4_atanh_pdx4(__m256dx4 x) {
+	return _mm256x4_mul_power2_pdx4_pd(_mm256x4_log_pdx4(_mm256x4_div_pdx4(
+			_mm256x4_add_pd_pdx4(_mm256_set1_pd(1.0), x),
+			_mm256x4_sub_pd_pdx4(_mm256_set1_pd(1.0), x)
+	)), _mm256_set1_pd(0.5));
+}
+
 
 #ifdef __cplusplus
 	}

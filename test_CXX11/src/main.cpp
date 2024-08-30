@@ -30,6 +30,9 @@
 #include "Float64x4/Float64x4.h"
 #include "Float64x4/Float64x4.hpp"
 
+// Deprecated since it runs slower than mpfr_t. It could be faster than the overhead from C++ wrappers for mpfr_t
+// #include "Float80x4/Float80x4.h"
+
 #include "Float64x4/Float64x4_AVX.h"
 #include "Float64x2/Float64x2_AVX.h"
 
@@ -105,7 +108,7 @@ void run_math_demo(unsigned int seed) {
 }
 
 void run_generate_constants(void) {
-	generate_constants<Float32x4>("Float32x4");
+	generate_constants<Float64x4>("Float64x4");
 }
 // void get_fact(void) {
 // 	// for (unsigned long i = 0; i <= 99; i += 1) {
@@ -139,7 +142,7 @@ int main(void) {
 	// run_math_demo(123456);
 	// test_function();
 
-	// run_generate_constants();
+	run_generate_constants();
 	
 	__attribute__((unused)) char buf[999];
 	Float64x2 x = {1.0, DBL_MIN};
