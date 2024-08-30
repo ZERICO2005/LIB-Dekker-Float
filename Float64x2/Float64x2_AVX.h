@@ -50,7 +50,7 @@
  * @remarks _mm256_andnot_pd cannot be used because 0x8000000000000000 gets
  * converted from -0.0 to 0.0 on -Ofast
  */
-inline __m256d _mm256_fabs_pd(__m256d x) {
+static inline __m256d _mm256_fabs_pd(__m256d x) {
 	return _mm256_and_pd(
 		x,
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FFFFFFFFFFFFFFF))
@@ -59,7 +59,7 @@ inline __m256d _mm256_fabs_pd(__m256d x) {
 #endif
 
 #ifndef _mm256_negate_pd
-inline __m256d _mm256_negate_pd(__m256d x) {
+static inline __m256d _mm256_negate_pd(__m256d x) {
 	// return _mm256_xor_pd(
 	// 	x,
 	// 	_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x8000000000000000))
@@ -72,7 +72,7 @@ inline __m256d _mm256_negate_pd(__m256d x) {
 /**
  * @brief _mm256_trunc_pd replacement function.
  */
-inline __m256d _mm256_trunc_pd(__m256d x) {
+static inline __m256d _mm256_trunc_pd(__m256d x) {
 	return _mm256_round_pd(x, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
 }
 #endif
@@ -82,7 +82,7 @@ inline __m256d _mm256_trunc_pd(__m256d x) {
 /**
  * @brief _mm256_cbrt_pd replacement function. May be slow/inefficient.
  */
-inline __m256d _mm256_cbrt_pd(__m256d x) {
+static inline __m256d _mm256_cbrt_pd(__m256d x) {
 	double val[4];
 	_mm256_store_pd(val, x);
 	val[0] = cbrt(val[0]);
@@ -109,7 +109,7 @@ typedef struct __m256dx2 {
 // __m256dx2 basic arithmetic
 //------------------------------------------------------------------------------
 
-inline __m256dx2 _mm256x2_negate_pdx2(__m256dx2 x) {
+static inline __m256dx2 _mm256x2_negate_pdx2(__m256dx2 x) {
 	x.hi = _mm256_xor_pd(
 		x.hi,
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x8000000000000000))
@@ -122,7 +122,7 @@ inline __m256dx2 _mm256x2_negate_pdx2(__m256dx2 x) {
 }
 
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_add_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_add_pdx2(__m256dx2 x, __m256dx2 y) {
 	// __m256d r_hi = _mm256_add_pd(x.hi, y.hi);
 	// /* if (fabs(x.hi) < fabs(y.hi)) */ {
 	// 	const __m256d cmp_result = _mm256_cmp_pd(
@@ -162,7 +162,7 @@ inline __m256dx2 _mm256x2_add_pdx2(__m256dx2 x, __m256dx2 y) {
 }
 
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_sub_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_sub_pdx2(__m256dx2 x, __m256dx2 y) {
 	// y.hi = _mm256_negate_pd(y.hi);
 	// y.lo = _mm256_negate_pd(y.lo);
 	// return _mm256x2_add_pdx2(x, y);
@@ -208,7 +208,7 @@ inline __m256dx2 _mm256x2_sub_pdx2(__m256dx2 x, __m256dx2 y) {
 }
 
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_dekker_split_pd(__m256d x) {
+static inline __m256dx2 _mm256x2_dekker_split_pd(__m256d x) {
 	// (2^ceil(53 / 2) + 1)
 	const __m256d dekker_scale = _mm256_set1_pd(134217729.0); 
 	__m256d p = _mm256_mul_pd(x, dekker_scale);
@@ -219,7 +219,7 @@ inline __m256dx2 _mm256x2_dekker_split_pd(__m256d x) {
 }
 
 // DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-// inline __m256dx2 _mm256x2_dekker_split_pd(__m256d x) {
+// static inline __m256dx2 _mm256x2_dekker_split_pd(__m256d x) {
 // 	__m256dx2 r;
 // 	r.hi = _mm256_andnot_pd(
 // 		x,
@@ -230,7 +230,7 @@ inline __m256dx2 _mm256x2_dekker_split_pd(__m256d x) {
 // }
 
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_dekker_mul12_pd(__m256d x, __m256d y) {
+static inline __m256dx2 _mm256x2_dekker_mul12_pd(__m256d x, __m256d y) {
 	__m256dx2 a = _mm256x2_dekker_split_pd(x);
 	__m256dx2 b = _mm256x2_dekker_split_pd(y);
 	__m256d p = _mm256_mul_pd(a.hi, b.hi);
@@ -248,7 +248,7 @@ inline __m256dx2 _mm256x2_dekker_mul12_pd(__m256d x, __m256d y) {
 }
 
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_mul_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_mul_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256dx2 t = _mm256x2_dekker_mul12_pd(x.hi, y.hi);
 	__m256d c = _mm256_add_pd(_mm256_add_pd(
 		_mm256_mul_pd(x.hi, y.lo), _mm256_mul_pd(x.lo, y.hi)
@@ -261,7 +261,7 @@ inline __m256dx2 _mm256x2_mul_pdx2(__m256dx2 x, __m256dx2 y) {
 }
 
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_div_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_div_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256d u = _mm256_div_pd(x.hi, y.hi);
 	__m256dx2 t = _mm256x2_dekker_mul12_pd(u, y.hi);
 	__m256d l = _mm256_div_pd(_mm256_sub_pd(
@@ -279,7 +279,7 @@ inline __m256dx2 _mm256x2_div_pdx2(__m256dx2 x, __m256dx2 y) {
  * @brief returns 0 on division by 0
  */
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_div_zero_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_div_zero_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256d u = _mm256_div_pd(x.hi, y.hi);
 	__m256dx2 t = _mm256x2_dekker_mul12_pd(u, y.hi);
 	__m256d l = _mm256_div_pd(_mm256_sub_pd(
@@ -298,7 +298,7 @@ inline __m256dx2 _mm256x2_div_zero_pdx2(__m256dx2 x, __m256dx2 y) {
 }
 
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_dekker_square12_pd(__m256d x) {
+static inline __m256dx2 _mm256x2_dekker_square12_pd(__m256d x) {
 	__m256dx2 a = _mm256x2_dekker_split_pd(x);
 	__m256d p = _mm256_mul_pd(a.hi, a.hi);
 	__m256d q = _mm256_mul_pd(
@@ -315,7 +315,7 @@ inline __m256dx2 _mm256x2_dekker_square12_pd(__m256d x) {
 }
 
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_square_pdx2(__m256dx2 x) {
+static inline __m256dx2 _mm256x2_square_pdx2(__m256dx2 x) {
 	__m256dx2 t = _mm256x2_dekker_square12_pd(x.hi);
 	__m256d c = _mm256_add_pd(
 		_mm256_mul_pd(_mm256_set1_pd(2.0), _mm256_mul_pd(x.hi, x.lo)), t.lo
@@ -328,7 +328,7 @@ inline __m256dx2 _mm256x2_square_pdx2(__m256dx2 x) {
 }
 
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_recip_pdx2(__m256dx2 y) {
+static inline __m256dx2 _mm256x2_recip_pdx2(__m256dx2 y) {
 	__m256d u = _mm256_div_pd(_mm256_set1_pd(1.0), y.hi);
 	__m256dx2 t = _mm256x2_dekker_mul12_pd(u, y.hi);
 	__m256d l = _mm256_div_pd(_mm256_sub_pd(
@@ -347,7 +347,7 @@ inline __m256dx2 _mm256x2_recip_pdx2(__m256dx2 y) {
 //------------------------------------------------------------------------------
 
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_add_pdx2_pd(__m256dx2 x, __m256d y) {
+static inline __m256dx2 _mm256x2_add_pdx2_pd(__m256dx2 x, __m256d y) {
 	__m256d r_hi = _mm256_add_pd(x.hi, y);
 
 	__m256d rx_lo = _mm256_add_pd(
@@ -369,7 +369,7 @@ inline __m256dx2 _mm256x2_add_pdx2_pd(__m256dx2 x, __m256d y) {
 }
 
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_add_pd_pdx2(__m256d x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_add_pd_pdx2(__m256d x, __m256dx2 y) {
 	__m256d r_hi = _mm256_add_pd(x, y.hi);
 
 	__m256d rx_lo = _mm256_add_pd(
@@ -394,7 +394,7 @@ inline __m256dx2 _mm256x2_add_pd_pdx2(__m256d x, __m256dx2 y) {
  * @brief Adds two __m256d values with the result stored as a __m256dx2
  */
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_add_pd_pd(__m256d x, __m256d y) {
+static inline __m256dx2 _mm256x2_add_pd_pd(__m256d x, __m256d y) {
 	__m256d r_hi = _mm256_add_pd(x, y);
 
 	__m256d rx_lo = _mm256_add_pd(_mm256_sub_pd(x, r_hi), y);
@@ -412,7 +412,7 @@ inline __m256dx2 _mm256x2_add_pd_pd(__m256d x, __m256d y) {
 }
 
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_sub_pdx2_pd(__m256dx2 x, __m256d y) {
+static inline __m256dx2 _mm256x2_sub_pdx2_pd(__m256dx2 x, __m256d y) {
 	__m256d r_hi = _mm256_sub_pd(x.hi, y);
 
 	__m256d rx_lo = _mm256_add_pd(
@@ -436,7 +436,7 @@ inline __m256dx2 _mm256x2_sub_pdx2_pd(__m256dx2 x, __m256d y) {
 }
 
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_sub_pd_pdx2(__m256d x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_sub_pd_pdx2(__m256d x, __m256dx2 y) {
 	__m256d r_hi = _mm256_sub_pd(x, y.hi);
 
 	__m256d rx_lo = _mm256_sub_pd(
@@ -463,7 +463,7 @@ inline __m256dx2 _mm256x2_sub_pd_pdx2(__m256d x, __m256dx2 y) {
  * @brief Subtracts two __m256d values with the result stored as a __m256dx2
  */
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_sub_pd_pd(__m256d x, __m256d y) {
+static inline __m256dx2 _mm256x2_sub_pd_pd(__m256d x, __m256d y) {
 	__m256d r_hi = _mm256_sub_pd(x, y);
 
 	__m256d rx_lo = _mm256_sub_pd(_mm256_sub_pd(x, r_hi), y);
@@ -483,7 +483,7 @@ inline __m256dx2 _mm256x2_sub_pd_pd(__m256d x, __m256d y) {
 }
 
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_mul_pdx2_pd(__m256dx2 x, __m256d y) {
+static inline __m256dx2 _mm256x2_mul_pdx2_pd(__m256dx2 x, __m256d y) {
 	__m256dx2 t = _mm256x2_dekker_mul12_pd(x.hi, y);
 	__m256d c = _mm256_add_pd(_mm256_mul_pd(x.lo, y), t.lo);
 
@@ -494,7 +494,7 @@ inline __m256dx2 _mm256x2_mul_pdx2_pd(__m256dx2 x, __m256d y) {
 }
 
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_mul_pd_pdx2(__m256d x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_mul_pd_pdx2(__m256d x, __m256dx2 y) {
 	__m256dx2 t = _mm256x2_dekker_mul12_pd(x, y.hi);
 	__m256d c = _mm256_add_pd(_mm256_mul_pd(x, y.lo), t.lo);
 
@@ -508,12 +508,12 @@ inline __m256dx2 _mm256x2_mul_pd_pdx2(__m256d x, __m256dx2 y) {
  * @brief Multiplies two __m256d values with the result stored as a __m256dx2
  */
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_mul_pd_pd(__m256d x, __m256d y) {
+static inline __m256dx2 _mm256x2_mul_pd_pd(__m256d x, __m256d y) {
 	return _mm256x2_dekker_mul12_pd(x, y);
 }
 
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_div_pdx2_pd(__m256dx2 x, __m256d y) {
+static inline __m256dx2 _mm256x2_div_pdx2_pd(__m256dx2 x, __m256d y) {
 	__m256d u = _mm256_div_pd(x.hi, y);
 	__m256dx2 t = _mm256x2_dekker_mul12_pd(u, y);
 	__m256d l = _mm256_div_pd(
@@ -527,7 +527,7 @@ inline __m256dx2 _mm256x2_div_pdx2_pd(__m256dx2 x, __m256d y) {
 }
 
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_div_pd_pdx2(__m256d x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_div_pd_pdx2(__m256d x, __m256dx2 y) {
 	__m256d u = _mm256_div_pd(x, y.hi);
 	__m256dx2 t = _mm256x2_dekker_mul12_pd(u, y.hi);
 	__m256d l = _mm256_div_pd(_mm256_sub_pd(
@@ -545,7 +545,7 @@ inline __m256dx2 _mm256x2_div_pd_pdx2(__m256d x, __m256dx2 y) {
  * @brief Divides two __m256d values with the result stored as a __m256dx2
  */
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_div_pd_pd(__m256d x, __m256d y) {
+static inline __m256dx2 _mm256x2_div_pd_pd(__m256d x, __m256d y) {
 	__m256d u = _mm256_div_pd(x, y);
 	__m256dx2 t = _mm256x2_dekker_mul12_pd(u, y);
 	__m256d l = _mm256_div_pd(
@@ -562,7 +562,7 @@ inline __m256dx2 _mm256x2_div_pd_pd(__m256d x, __m256d y) {
  * @brief Returns 0 on division by 0
  */
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_div_zero_pdx2_pd(__m256dx2 x, __m256d y) {
+static inline __m256dx2 _mm256x2_div_zero_pdx2_pd(__m256dx2 x, __m256d y) {
 	__m256d u = _mm256_div_pd(x.hi, y);
 	__m256dx2 t = _mm256x2_dekker_mul12_pd(u, y);
 	__m256d l = _mm256_div_pd(
@@ -583,7 +583,7 @@ inline __m256dx2 _mm256x2_div_zero_pdx2_pd(__m256dx2 x, __m256d y) {
  * @brief Returns 0 on division by 0
  */
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_div_zero_pd_pdx2(__m256d x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_div_zero_pd_pdx2(__m256d x, __m256dx2 y) {
 	__m256d u = _mm256_div_pd(x, y.hi);
 	__m256dx2 t = _mm256x2_dekker_mul12_pd(u, y.hi);
 	__m256d l = _mm256_div_pd(_mm256_sub_pd(
@@ -607,7 +607,7 @@ inline __m256dx2 _mm256x2_div_zero_pd_pdx2(__m256d x, __m256dx2 y) {
  * result stored as a __m256dx2
  */
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_div_zero_pd_pd(__m256d x, __m256d y) {
+static inline __m256dx2 _mm256x2_div_zero_pd_pd(__m256d x, __m256d y) {
 	__m256d u = _mm256_div_pd(x, y);
 	__m256dx2 t = _mm256x2_dekker_mul12_pd(u, y);
 	__m256d l = _mm256_div_pd(
@@ -628,7 +628,7 @@ inline __m256dx2 _mm256x2_div_zero_pd_pd(__m256d x, __m256d y) {
  * @brief Squares a __m256d value with the result stored as a __m256dx2
  */
  
-inline __m256dx2 _mm256x2_square_pd(__m256d x) {
+static inline __m256dx2 _mm256x2_square_pd(__m256d x) {
 	return _mm256x2_dekker_square12_pd(x);
 }
 
@@ -637,7 +637,7 @@ inline __m256dx2 _mm256x2_square_pd(__m256d x) {
  * as a __m256dx2
  */
 DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
-inline __m256dx2 _mm256x2_recip_pd(__m256d y) {
+static inline __m256dx2 _mm256x2_recip_pd(__m256d y) {
 	__m256d u = _mm256_div_pd(_mm256_set1_pd(1.0), y);
 	__m256dx2 t = _mm256x2_dekker_mul12_pd(u, y);
 	__m256d l = _mm256_div_pd(
@@ -657,7 +657,7 @@ inline __m256dx2 _mm256x2_recip_pd(__m256d y) {
 /**
  * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero
  */
-inline __m256dx2 _mm256x2_mul_power2_pdx2_pd(__m256dx2 x, __m256d y) {
+static inline __m256dx2 _mm256x2_mul_power2_pdx2_pd(__m256dx2 x, __m256d y) {
 	x.hi = _mm256_mul_pd(x.hi, y);
 	x.lo = _mm256_mul_pd(x.lo, y);
 	return x;
@@ -666,7 +666,7 @@ inline __m256dx2 _mm256x2_mul_power2_pdx2_pd(__m256dx2 x, __m256d y) {
 /**
  * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero
  */
-inline __m256dx2 _mm256x2_mul_power2_pd_pdx2(__m256d x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_mul_power2_pd_pdx2(__m256d x, __m256dx2 y) {
 	y.hi = _mm256_mul_pd(x, y.hi);
 	y.lo = _mm256_mul_pd(x, y.lo);
 	return y;
@@ -676,7 +676,7 @@ inline __m256dx2 _mm256x2_mul_power2_pd_pdx2(__m256d x, __m256dx2 y) {
  * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero.
  * The result is stored as a __m256dx2
  */
-inline __m256dx2 _mm256x2_mul_power2_pd_pd(__m256d x, __m256d y) {
+static inline __m256dx2 _mm256x2_mul_power2_pd_pd(__m256d x, __m256d y) {
 	__m256dx2 ret;
 	ret.hi = _mm256_mul_pd(x, y);
 	ret.lo = _mm256_setzero_pd();
@@ -690,7 +690,7 @@ inline __m256dx2 _mm256x2_mul_power2_pd_pd(__m256d x, __m256d y) {
 /**
  * @brief bitwise not `~x`
  */
-inline __m256dx2 _mm256x2_not_pdx2(__m256dx2 x) {
+static inline __m256dx2 _mm256x2_not_pdx2(__m256dx2 x) {
 	x.hi = _mm256_andnot_pd(x.hi, _mm256_setzero_pd());
 	x.lo = _mm256_andnot_pd(x.lo, _mm256_setzero_pd());
 	return x;
@@ -699,7 +699,7 @@ inline __m256dx2 _mm256x2_not_pdx2(__m256dx2 x) {
 /**
  * @brief bitwise and `x & y`
  */
-inline __m256dx2 _mm256x2_and_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_and_pdx2(__m256dx2 x, __m256dx2 y) {
 	x.hi = _mm256_and_pd(x.hi, y.hi);
 	x.lo = _mm256_and_pd(x.lo, y.lo);
 	return x;
@@ -708,7 +708,7 @@ inline __m256dx2 _mm256x2_and_pdx2(__m256dx2 x, __m256dx2 y) {
 /**
  * @brief bitwise andnot `x & ~y`
  */
-inline __m256dx2 _mm256x2_andnot_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_andnot_pdx2(__m256dx2 x, __m256dx2 y) {
 	x.hi = _mm256_andnot_pd(x.hi, y.hi);
 	x.lo = _mm256_andnot_pd(x.lo, y.lo);
 	return x;
@@ -717,7 +717,7 @@ inline __m256dx2 _mm256x2_andnot_pdx2(__m256dx2 x, __m256dx2 y) {
 /**
  * @brief bitwise or `x | y`
  */
-inline __m256dx2 _mm256x2_or_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_or_pdx2(__m256dx2 x, __m256dx2 y) {
 	x.hi = _mm256_or_pd(x.hi, y.hi);
 	x.lo = _mm256_or_pd(x.lo, y.lo);
 	return x;
@@ -726,7 +726,7 @@ inline __m256dx2 _mm256x2_or_pdx2(__m256dx2 x, __m256dx2 y) {
 /**
  * @brief bitwise xor `x ^ y`
  */
-inline __m256dx2 _mm256x2_xor_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_xor_pdx2(__m256dx2 x, __m256dx2 y) {
 	x.hi = _mm256_xor_pd(x.hi, y.hi);
 	x.lo = _mm256_xor_pd(x.lo, y.lo);
 	return x;
@@ -736,28 +736,36 @@ inline __m256dx2 _mm256x2_xor_pdx2(__m256dx2 x, __m256dx2 y) {
 // __m256dx2 set1 functions
 //------------------------------------------------------------------------------
 
-inline __m256dx2 _mm256x2_setzero_pdx2(void) {
+static inline __m256dx2 _mm256x2_setzero_pdx2(void) {
 	__m256dx2 ret;
 	ret.hi = _mm256_setzero_pd();
 	ret.lo = _mm256_setzero_pd();
 	return ret;
 }
 
-inline __m256dx2 _mm256x2_set1_pd_pd(double hi, double lo) {
+static inline __m256dx2 _mm256x2_set1_pdx2(fp64 values[2]) {
+	__m256dx2 ret;
+	ret.hi = _mm256_set1_pd(values[0]);
+	ret.lo = _mm256_set1_pd(values[1]);
+	return ret;
+}
+
+/** deprecated */
+static inline __m256dx2 _mm256x2_set1_pd_pd(double hi, double lo) {
 	__m256dx2 ret;
 	ret.hi = _mm256_set1_pd(hi);
 	ret.lo = _mm256_set1_pd(lo);
 	return ret;
 }
 
-inline __m256dx2 _mm256x2_set1_pd(double x) {
+static inline __m256dx2 _mm256x2_set1_pd(double x) {
 	__m256dx2 ret;
 	ret.hi = _mm256_set1_pd(x);
 	ret.lo = _mm256_setzero_pd();
 	return ret;
 }
 
-inline __m256dx2 _mm256x2_set1_epi64x(long long x) {
+static inline __m256dx2 _mm256x2_set1_epi64x(long long x) {
 	__m256dx2 ret;
 	ret.hi = _mm256_castsi256_pd(_mm256_set1_epi64x(x));
 	ret.lo = _mm256_castsi256_pd(_mm256_set1_epi64x(x));
@@ -768,7 +776,8 @@ inline __m256dx2 _mm256x2_set1_epi64x(long long x) {
 // __m256dx2 set functions
 //------------------------------------------------------------------------------
 
-inline __m256dx2 _mm256x2_set_pd_pd(
+/** deprecated */
+static inline __m256dx2 _mm256x2_set_pd_pd(
 	double hi_3, double lo_3, double hi_2, double lo_2,
 	double hi_1, double lo_1, double hi_0, double lo_0
 ) {
@@ -778,7 +787,7 @@ inline __m256dx2 _mm256x2_set_pd_pd(
 	return ret;
 }
 
-inline __m256dx2 _mm256x2_set_pd(
+static inline __m256dx2 _mm256x2_set_pd(
 	double e3, double e2, double e1, double e0
 ) {
 	__m256dx2 ret;
@@ -787,7 +796,7 @@ inline __m256dx2 _mm256x2_set_pd(
 	return ret;
 }
 
-inline __m256dx2 _mm256x2_set_epi64x(
+static inline __m256dx2 _mm256x2_set_epi64x(
 	long long hi_3, long long lo_3, long long hi_2, long long lo_2,
 	long long hi_1, long long lo_1, long long hi_0, long long lo_0
 ) {
@@ -801,7 +810,8 @@ inline __m256dx2 _mm256x2_set_epi64x(
 // __m256dx2 setr (set reverse) functions
 //------------------------------------------------------------------------------
 
-inline __m256dx2 _mm256x2_setr_pd_pd(
+/** deprecated */
+static inline __m256dx2 _mm256x2_setr_pd_pd(
 	double hi_3, double lo_3, double hi_2, double lo_2,
 	double hi_1, double lo_1, double hi_0, double lo_0
 ) {
@@ -811,7 +821,7 @@ inline __m256dx2 _mm256x2_setr_pd_pd(
 	return ret;
 }
 
-inline __m256dx2 _mm256x2_setr_pd(
+static inline __m256dx2 _mm256x2_setr_pd(
 	double x3, double x2, double x1, double x0
 ) {
 	__m256dx2 ret;
@@ -820,7 +830,7 @@ inline __m256dx2 _mm256x2_setr_pd(
 	return ret;
 }
 
-inline __m256dx2 _mm256x2_setr_epi64x(
+static inline __m256dx2 _mm256x2_setr_epi64x(
 	long long hi_3, long long lo_3, long long hi_2, long long lo_2,
 	long long hi_1, long long lo_1, long long hi_0, long long lo_0
 ) {
@@ -844,7 +854,7 @@ inline __m256dx2 _mm256x2_setr_epi64x(
  * Which can be found under a CC BY-SA 4.0 license:
  * https://creativecommons.org/licenses/by-sa/4.0/
  */
-inline __m256dx2 _mm256x2_load_pd(const double* mem_addr) {
+static inline __m256dx2 _mm256x2_load_pd(const double* mem_addr) {
 	__m256d v0 = _mm256_castpd128_pd256(_mm_load_pd(mem_addr));
 	__m256d v1 = _mm256_castpd128_pd256(_mm_load_pd(mem_addr + 2));
 	__m128d temp;
@@ -865,7 +875,7 @@ inline __m256dx2 _mm256x2_load_pd(const double* mem_addr) {
  * Which can be found under a CC BY-SA 4.0 license:
  * https://creativecommons.org/licenses/by-sa/4.0/
  */
-inline __m256dx2 _mm256x2_loadu_pd(const double* mem_addr) {
+static inline __m256dx2 _mm256x2_loadu_pd(const double* mem_addr) {
 	__m256d v0 = _mm256_castpd128_pd256(_mm_loadu_pd(mem_addr));
 	__m256d v1 = _mm256_castpd128_pd256(_mm_loadu_pd(mem_addr + 2));
 	__m128d temp;
@@ -885,11 +895,11 @@ inline __m256dx2 _mm256x2_loadu_pd(const double* mem_addr) {
  * exception may be generated. However, this may change to be a 32-byte boundry
  * in future implementations.
  */
-inline __m256dx2 _mm256x2_load_pdx2(const Float64x2* mem_addr) {
+static inline __m256dx2 _mm256x2_load_pdx2(const Float64x2* mem_addr) {
 	return _mm256x2_load_pd((const double*)((const void*)mem_addr));
 }
 
-inline __m256dx2 _mm256x2_loadu_pdx2(const Float64x2* mem_addr) {
+static inline __m256dx2 _mm256x2_loadu_pdx2(const Float64x2* mem_addr) {
 	return _mm256x2_loadu_pd((const double*)((const void*)mem_addr));
 }
 
@@ -898,7 +908,7 @@ inline __m256dx2 _mm256x2_loadu_pdx2(const Float64x2* mem_addr) {
  * @note mem_addr must be aligned on a 32-byte boundary or a general-protection
  * exception may be generated.
  */
-inline __m256dx2 _mm256x2_load_raw_pd(const double* mem_addr) {
+static inline __m256dx2 _mm256x2_load_raw_pd(const double* mem_addr) {
 	__m256dx2 val;
 	val.hi = _mm256_load_pd(mem_addr);
 	mem_addr += sizeof(__m256d) / sizeof(double);
@@ -906,7 +916,7 @@ inline __m256dx2 _mm256x2_load_raw_pd(const double* mem_addr) {
 	return val;
 }
 
-inline __m256dx2 _mm256x2_loadu_raw_pd(const double* mem_addr) {
+static inline __m256dx2 _mm256x2_loadu_raw_pd(const double* mem_addr) {
 	__m256dx2 val;
 	val.hi = _mm256_loadu_pd(mem_addr);
 	mem_addr += sizeof(__m256d) / sizeof(double);
@@ -927,7 +937,7 @@ inline __m256dx2 _mm256x2_loadu_raw_pd(const double* mem_addr) {
  * Which can be found under a CC BY-SA 4.0 license:
  * https://creativecommons.org/licenses/by-sa/4.0/
  */
-inline void _mm256x2_store_pd(double* mem_addr, __m256dx2 val) {
+static inline void _mm256x2_store_pd(double* mem_addr, __m256dx2 val) {
 	// hi.x, lo.x, hi.z, lo.z
 	__m256d v0 = _mm256_unpacklo_pd(val.hi, val.lo);
 	// hi.y, lo.y, hi.w, lo.w
@@ -947,7 +957,7 @@ inline void _mm256x2_store_pd(double* mem_addr, __m256dx2 val) {
  * Which can be found under a CC BY-SA 4.0 license:
  * https://creativecommons.org/licenses/by-sa/4.0/
  */
-inline void _mm256x2_storeu_pd(double* mem_addr, __m256dx2 val) {
+static inline void _mm256x2_storeu_pd(double* mem_addr, __m256dx2 val) {
 	// hi.x, lo.x, hi.z, lo.z
 	__m256d v0 = _mm256_unpacklo_pd(val.hi, val.lo);
 	// hi.y, lo.y, hi.w, lo.w
@@ -965,11 +975,11 @@ inline void _mm256x2_storeu_pd(double* mem_addr, __m256dx2 val) {
  * @note mem_addr must be aligned on a 32-byte boundary or a general-protection
  * exception may be generated.
  */
-inline void _mm256x2_store_pdx2(Float64x2* mem_addr, __m256dx2 val) {
+static inline void _mm256x2_store_pdx2(Float64x2* mem_addr, __m256dx2 val) {
 	_mm256x2_store_pd((double*)((void*)mem_addr), val);
 }
 
-inline void _mm256x2_storeu_pdx2(Float64x2* mem_addr, __m256dx2 val) {
+static inline void _mm256x2_storeu_pdx2(Float64x2* mem_addr, __m256dx2 val) {
 	_mm256x2_storeu_pd((double*)((void*)mem_addr), val);
 }
 
@@ -977,13 +987,13 @@ inline void _mm256x2_storeu_pdx2(Float64x2* mem_addr, __m256dx2 val) {
  * @note mem_addr must be aligned on a 32-byte boundary or a general-protection
  * exception may be generated.
  */
-inline void _mm256_store_raw_pdx2(double* mem_addr, __m256dx2 x) {
+static inline void _mm256_store_raw_pdx2(double* mem_addr, __m256dx2 x) {
 	_mm256_store_pd(mem_addr, x.hi);
 	mem_addr += sizeof(__m256d) / sizeof(double);
 	_mm256_store_pd(mem_addr, x.lo);
 }
 
-inline void _mm256_storeu_raw_pdx2(double* mem_addr, __m256dx2 x) {
+static inline void _mm256_storeu_raw_pdx2(double* mem_addr, __m256dx2 x) {
 	_mm256_storeu_pd(mem_addr, x.hi);
 	mem_addr += sizeof(__m256d) / sizeof(double);
 	_mm256_storeu_pd(mem_addr, x.lo);
@@ -997,7 +1007,7 @@ inline void _mm256_storeu_raw_pdx2(double* mem_addr, __m256dx2 x) {
  * @note Assumes x.hi == x.lo
  * @returns 4bit movemask
  */
-inline int _mm256x2_movemask_pdx2(__m256dx2 x) {
+static inline int _mm256x2_movemask_pdx2(__m256dx2 x) {
 	return _mm256_movemask_pd(x.hi);
 }
 
@@ -1008,7 +1018,7 @@ inline int _mm256x2_movemask_pdx2(__m256dx2 x) {
 /**
  * @brief _CMP_EQ_UQ
  */
-inline __m256dx2 _mm256x2_cmpeq_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_cmpeq_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256dx2 cmp_result;
 	cmp_result.hi = _mm256_cmp_pd(x.hi, y.hi, _CMP_EQ_UQ);
 	cmp_result.lo = _mm256_cmp_pd(x.lo, y.lo, _CMP_EQ_UQ);
@@ -1021,7 +1031,7 @@ inline __m256dx2 _mm256x2_cmpeq_pdx2(__m256dx2 x, __m256dx2 y) {
 /**
  * @brief _CMP_NEQ_UQ
  */
-inline __m256dx2 _mm256x2_cmpneq_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_cmpneq_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256dx2 cmp_result;
 	cmp_result.hi = _mm256_cmp_pd(x.hi, y.hi, _CMP_NEQ_UQ);
 	cmp_result.lo = _mm256_cmp_pd(x.lo, y.lo, _CMP_NEQ_UQ);
@@ -1034,7 +1044,7 @@ inline __m256dx2 _mm256x2_cmpneq_pdx2(__m256dx2 x, __m256dx2 y) {
 /**
  * @brief _CMP_ORD_Q
  */
-inline __m256dx2 _mm256x2_cmpord_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_cmpord_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256dx2 cmp_result;
 	cmp_result.hi = _mm256_cmp_pd(x.hi, y.hi, _CMP_ORD_Q);
 	cmp_result.lo = _mm256_cmp_pd(x.lo, y.lo, _CMP_ORD_Q);
@@ -1047,7 +1057,7 @@ inline __m256dx2 _mm256x2_cmpord_pdx2(__m256dx2 x, __m256dx2 y) {
 /**
  * @brief _CMP_UNORD_Q
  */
-inline __m256dx2 _mm256x2_cmpunord_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_cmpunord_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256dx2 cmp_result;
 	cmp_result.hi = _mm256_cmp_pd(x.hi, y.hi, _CMP_UNORD_Q);
 	cmp_result.lo = _mm256_cmp_pd(x.lo, y.lo, _CMP_UNORD_Q);
@@ -1061,7 +1071,7 @@ inline __m256dx2 _mm256x2_cmpunord_pdx2(__m256dx2 x, __m256dx2 y) {
 /**
  * @brief _CMP_LT_OQ
  */
-inline __m256dx2 _mm256x2_cmplt_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_cmplt_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256d cmp_eq = _mm256_cmp_pd(x.hi, y.hi, _CMP_EQ_OQ);
 	__m256d cmp_hi = _mm256_cmp_pd(x.hi, y.hi, _CMP_LT_OQ);
 	__m256d cmp_lo = _mm256_cmp_pd(x.lo, y.lo, _CMP_LT_OQ);
@@ -1074,7 +1084,7 @@ inline __m256dx2 _mm256x2_cmplt_pdx2(__m256dx2 x, __m256dx2 y) {
 /**
  * @brief _CMP_LE_OQ
  */
-inline __m256dx2 _mm256x2_cmple_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_cmple_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256d cmp_eq = _mm256_cmp_pd(x.hi, y.hi, _CMP_EQ_OQ);
 	__m256d cmp_hi = _mm256_cmp_pd(x.hi, y.hi, _CMP_LE_OQ);
 	__m256d cmp_lo = _mm256_cmp_pd(x.lo, y.lo, _CMP_LE_OQ);
@@ -1087,7 +1097,7 @@ inline __m256dx2 _mm256x2_cmple_pdx2(__m256dx2 x, __m256dx2 y) {
 /**
  * @brief _CMP_GT_OQ
  */
-inline __m256dx2 _mm256x2_cmpgt_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_cmpgt_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256d cmp_eq = _mm256_cmp_pd(x.hi, y.hi, _CMP_EQ_OQ);
 	__m256d cmp_hi = _mm256_cmp_pd(x.hi, y.hi, _CMP_GT_OQ);
 	__m256d cmp_lo = _mm256_cmp_pd(x.lo, y.lo, _CMP_GT_OQ);
@@ -1100,7 +1110,7 @@ inline __m256dx2 _mm256x2_cmpgt_pdx2(__m256dx2 x, __m256dx2 y) {
 /**
  * @brief _CMP_GE_OQ
  */
-inline __m256dx2 _mm256x2_cmpge_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_cmpge_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256d cmp_eq = _mm256_cmp_pd(x.hi, y.hi, _CMP_EQ_OQ);
 	__m256d cmp_hi = _mm256_cmp_pd(x.hi, y.hi, _CMP_GE_OQ);
 	__m256d cmp_lo = _mm256_cmp_pd(x.lo, y.lo, _CMP_GE_OQ);
@@ -1117,7 +1127,7 @@ inline __m256dx2 _mm256x2_cmpge_pdx2(__m256dx2 x, __m256dx2 y) {
 /**
  * @brief _CMP_EQ_UQ
  */
-inline __m256d _mm256_cmpeq_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256d _mm256_cmpeq_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256d cmp_hi = _mm256_cmp_pd(x.hi, y.hi, _CMP_EQ_UQ);
 	__m256d cmp_lo = _mm256_cmp_pd(x.lo, y.lo, _CMP_EQ_UQ);
 	return _mm256_and_pd(cmp_hi, cmp_lo);
@@ -1126,7 +1136,7 @@ inline __m256d _mm256_cmpeq_pdx2(__m256dx2 x, __m256dx2 y) {
 /**
  * @brief _CMP_NEQ_UQ
  */
-inline __m256d _mm256_cmpneq_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256d _mm256_cmpneq_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256d cmp_hi = _mm256_cmp_pd(x.hi, y.hi, _CMP_NEQ_UQ);
 	__m256d cmp_lo = _mm256_cmp_pd(x.lo, y.lo, _CMP_NEQ_UQ);
 	return _mm256_or_pd(cmp_hi, cmp_lo);
@@ -1135,7 +1145,7 @@ inline __m256d _mm256_cmpneq_pdx2(__m256dx2 x, __m256dx2 y) {
 /**
  * @brief _CMP_ORD_Q
  */
-inline __m256d _mm256_cmpord_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256d _mm256_cmpord_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256d cmp_hi = _mm256_cmp_pd(x.hi, y.hi, _CMP_ORD_Q);
 	__m256d cmp_lo = _mm256_cmp_pd(x.lo, y.lo, _CMP_ORD_Q);
 	return _mm256_and_pd(cmp_hi, cmp_lo);
@@ -1144,7 +1154,7 @@ inline __m256d _mm256_cmpord_pdx2(__m256dx2 x, __m256dx2 y) {
 /**
  * @brief _CMP_UNORD_Q
  */
-inline __m256d _mm256_cmpunord_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256d _mm256_cmpunord_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256d cmp_hi = _mm256_cmp_pd(x.hi, y.hi, _CMP_UNORD_Q);
 	__m256d cmp_lo = _mm256_cmp_pd(x.lo, y.lo, _CMP_UNORD_Q);
 	return _mm256_or_pd(cmp_hi, cmp_lo);
@@ -1153,7 +1163,7 @@ inline __m256d _mm256_cmpunord_pdx2(__m256dx2 x, __m256dx2 y) {
 /**
  * @brief _CMP_LT_OQ
  */
-inline __m256d _mm256_cmplt_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256d _mm256_cmplt_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256d cmp_eq = _mm256_cmp_pd(x.hi, y.hi, _CMP_EQ_OQ);
 	__m256d cmp_hi = _mm256_cmp_pd(x.hi, y.hi, _CMP_LT_OQ);
 	__m256d cmp_lo = _mm256_cmp_pd(x.lo, y.lo, _CMP_LT_OQ);
@@ -1163,7 +1173,7 @@ inline __m256d _mm256_cmplt_pdx2(__m256dx2 x, __m256dx2 y) {
 /**
  * @brief _CMP_LE_OQ
  */
-inline __m256d _mm256_cmple_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256d _mm256_cmple_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256d cmp_eq = _mm256_cmp_pd(x.hi, y.hi, _CMP_EQ_OQ);
 	__m256d cmp_hi = _mm256_cmp_pd(x.hi, y.hi, _CMP_LE_OQ);
 	__m256d cmp_lo = _mm256_cmp_pd(x.lo, y.lo, _CMP_LE_OQ);
@@ -1173,7 +1183,7 @@ inline __m256d _mm256_cmple_pdx2(__m256dx2 x, __m256dx2 y) {
 /**
  * @brief _CMP_GT_OQ
  */
-inline __m256d _mm256_cmpgt_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256d _mm256_cmpgt_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256d cmp_eq = _mm256_cmp_pd(x.hi, y.hi, _CMP_EQ_OQ);
 	__m256d cmp_hi = _mm256_cmp_pd(x.hi, y.hi, _CMP_GT_OQ);
 	__m256d cmp_lo = _mm256_cmp_pd(x.lo, y.lo, _CMP_GT_OQ);
@@ -1183,7 +1193,7 @@ inline __m256d _mm256_cmpgt_pdx2(__m256dx2 x, __m256dx2 y) {
 /**
  * @brief _CMP_GE_OQ
  */
-inline __m256d _mm256_cmpge_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256d _mm256_cmpge_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256d cmp_eq = _mm256_cmp_pd(x.hi, y.hi, _CMP_EQ_OQ);
 	__m256d cmp_hi = _mm256_cmp_pd(x.hi, y.hi, _CMP_GE_OQ);
 	__m256d cmp_lo = _mm256_cmp_pd(x.lo, y.lo, _CMP_GE_OQ);
@@ -1211,42 +1221,42 @@ inline __m256d _mm256_cmpge_pdx2(__m256dx2 x, __m256dx2 y) {
 	 * @brief _CMP_EQ_UQ
 	 * @note Assumes that if x.hi is zero then x.lo is also zero.
 	 */
-	inline __m256d _mm256_cmpeq_zero_pdx2(__m256dx2 x) {
+	static inline __m256d _mm256_cmpeq_zero_pdx2(__m256dx2 x) {
 		return _mm256_cmp_pd(x.hi, _mm256_setzero_pd(), _CMP_EQ_UQ);
 	}
 	/**
 	 * @brief _CMP_NEQ_UQ
 	 * @note Assumes that if x.hi is zero then x.lo is also zero.
 	 */
-	inline __m256d _mm256_cmpneq_zero_pdx2(__m256dx2 x) {
+	static inline __m256d _mm256_cmpneq_zero_pdx2(__m256dx2 x) {
 		return _mm256_cmp_pd(x.hi, _mm256_setzero_pd(), _CMP_NEQ_UQ);
 	}
 	/**
 	 * @brief _CMP_LT_OQ
 	 * @note Assumes that if x.hi is zero then x.lo is also zero.
 	 */
-	inline __m256d _mm256_cmplt_zero_pdx2(__m256dx2 x) {
+	static inline __m256d _mm256_cmplt_zero_pdx2(__m256dx2 x) {
 		return _mm256_cmp_pd(x.hi, _mm256_setzero_pd(), _CMP_LT_OQ);
 	}
 	/**
 	 * @brief _CMP_LE_OQ
 	 * @note Assumes that if x.hi is zero then x.lo is also zero.
 	 */
-	inline __m256d _mm256_cmple_zero_pdx2(__m256dx2 x) {
+	static inline __m256d _mm256_cmple_zero_pdx2(__m256dx2 x) {
 		return _mm256_cmp_pd(x.hi, _mm256_setzero_pd(), _CMP_LE_OQ);
 	}
 	/**
 	 * @brief _CMP_GT_OQ
 	 * @note Assumes that if x.hi is zero then x.lo is also zero.
 	 */
-	inline __m256d _mm256_cmpgt_zero_pdx2(__m256dx2 x) {
+	static inline __m256d _mm256_cmpgt_zero_pdx2(__m256dx2 x) {
 		return _mm256_cmp_pd(x.hi, _mm256_setzero_pd(), _CMP_GT_OQ);
 	}
 	/**
 	 * @brief _CMP_GE_OQ
 	 * @note Assumes that if x.hi is zero then x.lo is also zero.
 	 */
-	inline __m256d _mm256_cmpge_zero_pdx2(__m256dx2 x) {
+	static inline __m256d _mm256_cmpge_zero_pdx2(__m256dx2 x) {
 		return _mm256_cmp_pd(x.hi, _mm256_setzero_pd(), _CMP_GE_OQ);
 	}
 
@@ -1256,7 +1266,7 @@ inline __m256d _mm256_cmpge_pdx2(__m256dx2 x, __m256dx2 y) {
 	 * @brief _CMP_EQ_UQ
 	 * @note Assumes that if x.hi is zero then x.lo is also zero.
 	 */
-	inline __m256dx2 _mm256x2_cmpeq_zero_pdx2(__m256dx2 x) {
+	static inline __m256dx2 _mm256x2_cmpeq_zero_pdx2(__m256dx2 x) {
 		__m256dx2 ret;
 		ret.hi = _mm256_cmpeq_zero_pdx2(x);
 		ret.lo = ret.hi;
@@ -1266,7 +1276,7 @@ inline __m256d _mm256_cmpge_pdx2(__m256dx2 x, __m256dx2 y) {
 	 * @brief _CMP_NEQ_UQ
 	 * @note Assumes that if x.hi is zero then x.lo is also zero.
 	 */
-	inline __m256dx2 _mm256x2_cmpneq_zero_pdx2(__m256dx2 x) {
+	static inline __m256dx2 _mm256x2_cmpneq_zero_pdx2(__m256dx2 x) {
 		__m256dx2 ret;
 		ret.hi = _mm256_cmpneq_zero_pdx2(x);
 		ret.lo = ret.hi;
@@ -1276,7 +1286,7 @@ inline __m256d _mm256_cmpge_pdx2(__m256dx2 x, __m256dx2 y) {
 	 * @brief _CMP_LT_OQ
 	 * @note Assumes that if x.hi is zero then x.lo is also zero.
 	 */
-	inline __m256dx2 _mm256x2_cmplt_zero_pdx2(__m256dx2 x) {
+	static inline __m256dx2 _mm256x2_cmplt_zero_pdx2(__m256dx2 x) {
 		__m256dx2 ret;
 		ret.hi = _mm256_cmplt_zero_pdx2(x);
 		ret.lo = ret.hi;
@@ -1286,7 +1296,7 @@ inline __m256d _mm256_cmpge_pdx2(__m256dx2 x, __m256dx2 y) {
 	 * @brief _CMP_LE_OQ
 	 * @note Assumes that if x.hi is zero then x.lo is also zero.
 	 */
-	inline __m256dx2 _mm256x2_cmple_zero_pdx2(__m256dx2 x) {
+	static inline __m256dx2 _mm256x2_cmple_zero_pdx2(__m256dx2 x) {
 		__m256dx2 ret;
 		ret.hi = _mm256_cmple_zero_pdx2(x);
 		ret.lo = ret.hi;
@@ -1296,7 +1306,7 @@ inline __m256d _mm256_cmpge_pdx2(__m256dx2 x, __m256dx2 y) {
 	 * @brief _CMP_GT_OQ
 	 * @note Assumes that if x.hi is zero then x.lo is also zero.
 	 */
-	inline __m256dx2 _mm256x2_cmpgt_zero_pdx2(__m256dx2 x) {
+	static inline __m256dx2 _mm256x2_cmpgt_zero_pdx2(__m256dx2 x) {
 		__m256dx2 ret;
 		ret.hi = _mm256_cmpgt_zero_pdx2(x);
 		ret.lo = ret.hi;
@@ -1306,7 +1316,7 @@ inline __m256d _mm256_cmpge_pdx2(__m256dx2 x, __m256dx2 y) {
 	 * @brief _CMP_GE_OQ
 	 * @note Assumes that if x.hi is zero then x.lo is also zero.
 	 */
-	inline __m256dx2 _mm256x2_cmpge_zero_pdx2(__m256dx2 x) {
+	static inline __m256dx2 _mm256x2_cmpge_zero_pdx2(__m256dx2 x) {
 		__m256dx2 ret;
 		ret.hi = _mm256_cmpge_zero_pdx2(x);
 		ret.lo = ret.hi;
@@ -1320,7 +1330,7 @@ inline __m256d _mm256_cmpge_pdx2(__m256dx2 x, __m256dx2 y) {
 /**
  * @brief ~2.718281828 Returns the value of euler's number
  */
-inline __m256dx2 _mm256x2_const_e_pdx2(void) {
+static inline __m256dx2 _mm256x2_const_e_pdx2(void) {
 	const __m256dx2 ret = {
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x4005BF0A8B145769)),
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3CA4D57EE2B1013A))
@@ -1331,7 +1341,7 @@ inline __m256dx2 _mm256x2_const_e_pdx2(void) {
 /**
  * @brief ~1.442695041 Returns the value of log2(e)
  */
-inline __m256dx2 _mm256x4_const_log2e_pdx2(void) {
+static inline __m256dx2 _mm256x2_const_log2e_pdx2(void) {
 	const __m256dx2 ret = {
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FF71547652B82FE)),
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3C7777D0FFDA0D24))
@@ -1342,7 +1352,7 @@ inline __m256dx2 _mm256x4_const_log2e_pdx2(void) {
 /**
  * @brief ~0.434294482 Returns the value of log10(e)
  */
-inline __m256dx2 _mm256x4_const_log10e_pdx2(void) {
+static inline __m256dx2 _mm256x2_const_log10e_pdx2(void) {
 	const __m256dx2 ret = {
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FDBCB7B1526E50E)),
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3C695355BAAAFAD3))
@@ -1353,7 +1363,7 @@ inline __m256dx2 _mm256x4_const_log10e_pdx2(void) {
 /**
  * @brief ~3.141592654 Returns the value of pi
  */
-inline __m256dx2 _mm256x4_const_pi_pdx2(void) {
+static inline __m256dx2 _mm256x2_const_pi_pdx2(void) {
 	const __m256dx2 ret = {
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x400921FB54442D18)),
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3CA1A62633145C07))
@@ -1364,7 +1374,7 @@ inline __m256dx2 _mm256x4_const_pi_pdx2(void) {
 /**
  * @brief ~0.318309886 Returns the value of 1 / pi
  */
-inline __m256dx2 _mm256x4_const_inv_pi_pdx2(void) {
+static inline __m256dx2 _mm256x2_const_inv_pi_pdx2(void) {
 	const __m256dx2 ret = {
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FD45F306DC9C883)),
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xBC76B01EC5417056))
@@ -1375,7 +1385,7 @@ inline __m256dx2 _mm256x4_const_inv_pi_pdx2(void) {
 /**
  * @brief ~0.564189584 Returns the value of 1 / sqrt(pi)
  */
-inline __m256dx2 _mm256x4_const_inv_sqrtpi_pdx2(void) {
+static inline __m256dx2 _mm256x2_const_inv_sqrtpi_pdx2(void) {
 	const __m256dx2 ret = {
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FE20DD750429B6D)),
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3C61AE3A914FED80))
@@ -1386,7 +1396,7 @@ inline __m256dx2 _mm256x4_const_inv_sqrtpi_pdx2(void) {
 /**
  * @brief ~0.693147181 Returns the value of ln(2)
  */
-inline __m256dx2 _mm256x4_const_ln2_pdx2(void) {
+static inline __m256dx2 _mm256x2_const_ln2_pdx2(void) {
 	const __m256dx2 ret = {
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FE62E42FEFA39EF)),
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3C7ABC9E3B39803F))
@@ -1397,7 +1407,7 @@ inline __m256dx2 _mm256x4_const_ln2_pdx2(void) {
 /**
  * @brief ~2.302585093 Returns the value of ln(10)
  */
-inline __m256dx2 _mm256x4_const_ln10_pdx2(void) {
+static inline __m256dx2 _mm256x2_const_ln10_pdx2(void) {
 	const __m256dx2 ret = {
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x40026BB1BBB55516)),
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xBCAF48AD494EA3E9))
@@ -1408,7 +1418,7 @@ inline __m256dx2 _mm256x4_const_ln10_pdx2(void) {
 /**
  * @brief ~1.414213562 Returns the value of sqrt(2)
  */
-inline __m256dx2 _mm256x4_const_sqrt2_pdx2(void) {
+static inline __m256dx2 _mm256x2_const_sqrt2_pdx2(void) {
 	const __m256dx2 ret = {
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FF6A09E667F3BCD)),
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xBC9BDD3413B26456))
@@ -1419,7 +1429,7 @@ inline __m256dx2 _mm256x4_const_sqrt2_pdx2(void) {
 /**
  * @brief ~1.732050808 Returns the value of sqrt(3)
  */
-inline __m256dx2 _mm256x4_const_sqrt3_pdx2(void) {
+static inline __m256dx2 _mm256x2_const_sqrt3_pdx2(void) {
 	const __m256dx2 ret = {
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FFBB67AE8584CAA)),
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3C9CEC95D0B5C1E3))
@@ -1430,7 +1440,7 @@ inline __m256dx2 _mm256x4_const_sqrt3_pdx2(void) {
 /**
  * @brief ~0.577350269 Returns the value of 1 / sqrt(3)
  */
-inline __m256dx2 _mm256x4_const_inv_sqrt3_pdx2(void) {
+static inline __m256dx2 _mm256x2_const_inv_sqrt3_pdx2(void) {
 	const __m256dx2 ret = {
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FE279A74590331C)),
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3C834863E0792BED))
@@ -1441,7 +1451,7 @@ inline __m256dx2 _mm256x4_const_inv_sqrt3_pdx2(void) {
 /**
  * @brief ~0.577215665 Returns the value of gamma (The Euler–Mascheroni constant)
  */
-inline __m256dx2 _mm256x4_const_egamma_pdx2(void) {
+static inline __m256dx2 _mm256x2_const_egamma_pdx2(void) {
 	const __m256dx2 ret = {
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FE2788CFC6FB619)),
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xBC56CB90701FBFAB))
@@ -1452,7 +1462,7 @@ inline __m256dx2 _mm256x4_const_egamma_pdx2(void) {
 /**
  * @brief ~1.618033989 Returns the value of phi (The golden ratio)
  */
-inline __m256dx2 _mm256x4_const_phi_pdx2(void) {
+static inline __m256dx2 _mm256x2_const_phi_pdx2(void) {
 	const __m256dx2 ret = {
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x3FF9E3779B97F4A8)),
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xBC8F506319FCFD19))
@@ -1469,7 +1479,7 @@ inline __m256dx2 _mm256x4_const_phi_pdx2(void) {
 	/**
 	 * @brief Returns a __m256dx4 value set to positive infinity
 	 */
-	inline __m256dx2 _mm256x2_get_infinity_pdx2(void) {
+	static inline __m256dx2 _mm256x2_get_infinity_pdx2(void) {
 		__m256dx2 ret = {
 			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FF0000000000000)),
 			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FF0000000000000))
@@ -1480,7 +1490,7 @@ inline __m256dx2 _mm256x4_const_phi_pdx2(void) {
 	/**
 	 * @brief Returns a __m256dx2 value set to signaling NaN
 	 */
-	inline __m256dx2 _mm256x2_get_sNaN_pdx2(void) {
+	static inline __m256dx2 _mm256x2_get_sNaN_pdx2(void) {
 		__m256dx2 ret = {
 			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FF0000000000001)),
 			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FF0000000000001))
@@ -1491,7 +1501,7 @@ inline __m256dx2 _mm256x4_const_phi_pdx2(void) {
 	/**
 	 * @brief Returns a __m256dx2 value set to quiet NaN
 	 */
-	inline __m256dx2 _mm256x2_get_qNaN_pdx2(void) {
+	static inline __m256dx2 _mm256x2_get_qNaN_pdx2(void) {
 		__m256dx2 ret = {
 			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FF8000000000001)),
 			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FF8000000000001))
@@ -1502,11 +1512,11 @@ inline __m256dx2 _mm256x4_const_phi_pdx2(void) {
 /* returns __m256d */
 
 	/** @brief Returns true if x is negative */
-	inline __m256d _mm256_signbit_pdx2(const __m256dx2 x) {
+	static inline __m256d _mm256_signbit_pdx2(const __m256dx2 x) {
 		return _mm256_cmplt_zero_pdx2(x);
 	}
 	/** @brief Returns true if x is +-infinity */
-	inline __m256d _mm256_isinf_pdx2(const __m256dx2 x) {
+	static inline __m256d _mm256_isinf_pdx2(const __m256dx2 x) {
 		return _mm256_cmp_pd(
 			_mm256_and_pd(x.hi, _mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FFFFFFFFFFFFFFF))),
 			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FF0000000000000))
@@ -1516,11 +1526,11 @@ inline __m256dx2 _mm256x4_const_phi_pdx2(void) {
 /* returns __m256dx2 */
 
 	/** @brief Returns true if x is negative */
-	inline __m256dx2 _mm256x2_signbit_pdx2(const __m256dx2 x) {
+	static inline __m256dx2 _mm256x2_signbit_pdx2(const __m256dx2 x) {
 		return _mm256x2_cmplt_zero_pdx2(x);
 	}
 	/** @brief Returns true if x is +-infinity */
-	inline __m256dx2 _mm256x2_isinf_pdx2(const __m256dx2 x) {
+	static inline __m256dx2 _mm256x2_isinf_pdx2(const __m256dx2 x) {
 		__m256dx2 ret;
 		ret.hi = _mm256_isinf_pdx2(x);
 		ret.lo = ret.hi;
@@ -1531,7 +1541,7 @@ inline __m256dx2 _mm256x4_const_phi_pdx2(void) {
 // __m256dx2 max/min functions
 //------------------------------------------------------------------------------
 
-inline __m256dx2 _mm256x2_max_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_max_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256dx2 ret;
 	ret.hi = _mm256_max_pd(x.hi, y.hi);
 	
@@ -1549,7 +1559,7 @@ inline __m256dx2 _mm256x2_max_pdx2(__m256dx2 x, __m256dx2 y) {
 	return ret;
 }
 
-inline __m256dx2 _mm256x2_min_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_min_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256dx2 ret;
 	ret.hi = _mm256_min_pd(x.hi, y.hi);
 	
@@ -1572,7 +1582,7 @@ inline __m256dx2 _mm256x2_min_pdx2(__m256dx2 x, __m256dx2 y) {
 //------------------------------------------------------------------------------
 
 /** same as aint(x) */
-inline __m256dx2 _mm256x2_trunc_pdx2(__m256dx2 x) {
+static inline __m256dx2 _mm256x2_trunc_pdx2(__m256dx2 x) {
 	__m256d int_hi = _mm256_trunc_pd(x.hi);
 	__m256d int_lo = _mm256_trunc_pd(x.lo);
 	__m256d frac_hi = _mm256_sub_pd(x.hi, int_hi);
@@ -1587,7 +1597,7 @@ inline __m256dx2 _mm256x2_trunc_pdx2(__m256dx2 x) {
 	return trunc_all;
 }
 
-inline __m256dx2 _mm256x2_floor_pdx2(__m256dx2 x) {
+static inline __m256dx2 _mm256x2_floor_pdx2(__m256dx2 x) {
 	__m256dx2 int_part = _mm256x2_trunc_pdx2(x);
 	
 	__m256d cmp_floor;
@@ -1601,7 +1611,7 @@ inline __m256dx2 _mm256x2_floor_pdx2(__m256dx2 x) {
 	return _mm256x2_sub_pdx2_pd(int_part, floor_part);
 }
 
-inline __m256dx2 _mm256x2_ceil_pdx2(__m256dx2 x) {
+static inline __m256dx2 _mm256x2_ceil_pdx2(__m256dx2 x) {
 	__m256dx2 int_part = _mm256x2_trunc_pdx2(x);
 	
 	__m256d cmp_ceil = _mm256_and_pd(
@@ -1615,7 +1625,7 @@ inline __m256dx2 _mm256x2_ceil_pdx2(__m256dx2 x) {
 }
 
 /** same as nint(x) */
-inline __m256dx2 _mm256x2_round_pdx2(__m256dx2 x) {
+static inline __m256dx2 _mm256x2_round_pdx2(__m256dx2 x) {
 	__m256dx2 round_up = _mm256x2_add_pdx2_pd(_mm256x2_floor_pdx2(x), _mm256_set1_pd(0.5));
 	__m256dx2 round_dn = _mm256x2_sub_pdx2_pd(_mm256x2_ceil_pdx2 (x), _mm256_set1_pd(0.5));
 	__m256d cmp_mask = _mm256_cmplt_pdx2(x, _mm256x2_setzero_pdx2());
@@ -1629,7 +1639,7 @@ inline __m256dx2 _mm256x2_round_pdx2(__m256dx2 x) {
 // __m256dx2 math.h functions
 //------------------------------------------------------------------------------
 
-inline __m256dx2 _mm256x2_fabs_pdx2(__m256dx2 x) {
+static inline __m256dx2 _mm256x2_fabs_pdx2(__m256dx2 x) {
 	__m256d cmp_lt = _mm256_cmp_pd(x.hi, _mm256_setzero_pd(), _CMP_LT_OQ);
 	
 	__m256d fabs_mask = _mm256_blendv_pd(
@@ -1640,7 +1650,7 @@ inline __m256dx2 _mm256x2_fabs_pdx2(__m256dx2 x) {
 	return x;
 }
 
-inline __m256dx2 _mm256x2_fdim_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_fdim_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256dx2 ret;
 	ret = _mm256x2_sub_pdx2(x, y);
 	__m256d cmp_gt = _mm256_cmpgt_pdx2(x, y);
@@ -1649,7 +1659,7 @@ inline __m256dx2 _mm256x2_fdim_pdx2(__m256dx2 x, __m256dx2 y) {
 	return ret;
 }
 
-inline __m256dx2 _mm256x2_copysign_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_copysign_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256d negate_mask = _mm256_xor_pd(
 		_mm256_cmp_pd(x.hi, _mm256_setzero_pd(), _CMP_LT_OQ),
 		_mm256_cmp_pd(y.hi, _mm256_setzero_pd(), _CMP_LT_OQ)
@@ -1662,7 +1672,7 @@ inline __m256dx2 _mm256x2_copysign_pdx2(__m256dx2 x, __m256dx2 y) {
 	return x;
 }
 
-inline __m256dx2 _mm256x2_sqrt_pdx2(__m256dx2 x) {
+static inline __m256dx2 _mm256x2_sqrt_pdx2(__m256dx2 x) {
 	__m256d guess = _mm256_sqrt_pd(x.hi);
 	return _mm256x2_mul_power2_pdx2_pd(
 		_mm256x2_add_pd_pdx2(guess, _mm256x2_div_zero_pdx2_pd(x, guess)),
@@ -1671,7 +1681,7 @@ inline __m256dx2 _mm256x2_sqrt_pdx2(__m256dx2 x) {
 }
 
 /** @note This function may or may not use AVX for calculations */
-inline __m256dx2 _mm256x2_cbrt_pdx2(__m256dx2 x) {
+static inline __m256dx2 _mm256x2_cbrt_pdx2(__m256dx2 x) {
 	__m256d guess = _mm256_cbrt_pd(x.hi);
 	return _mm256x2_div_pdx2_pd(
 		_mm256x2_add_pd_pdx2(
@@ -1688,13 +1698,13 @@ inline __m256dx2 _mm256x2_cbrt_pdx2(__m256dx2 x) {
  * @brief returns the fractional part of a __m256dx2 value.
  * @note int_part cannot not be NULL
  */
-inline __m256dx2 _mm256x2_modf_pdx2(__m256dx2 x, __m256dx2* int_part) {
+static inline __m256dx2 _mm256x2_modf_pdx2(__m256dx2 x, __m256dx2* int_part) {
 	__m256dx2 trunc_part = _mm256x2_trunc_pdx2(x);
 	*int_part = trunc_part;
 	return _mm256x2_sub_pdx2(x, trunc_part);
 }
 
-inline __m256dx2 _mm256x2_fmod_pdx2(__m256dx2 x, __m256dx2 y) {
+static inline __m256dx2 _mm256x2_fmod_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256dx2 trunc_part = _mm256x2_trunc_pdx2(_mm256x2_div_pdx2(x, y));
 	return _mm256x2_sub_pdx2(x, _mm256x2_mul_pdx2(y, trunc_part));
 }
@@ -1710,7 +1720,7 @@ __m256dx2 _mm256x2_exp_pdx2(__m256dx2 x);
 __m256dx2 _mm256x2_expm1_pdx2(__m256dx2 x);
 
 /** @note This function doesn't use AVX for calculations */
-inline __m256dx2 _mm256x2_exp2_pdx2(const __m256dx2 a) {
+static inline __m256dx2 _mm256x2_exp2_pdx2(const __m256dx2 a) {
 	const __m256dx2 __m256dx2_log2 = _mm256x2_set1_pd_pd(
 		6.931471805599452862e-01, 2.319046813846299558e-17
 	);
@@ -1718,7 +1728,7 @@ inline __m256dx2 _mm256x2_exp2_pdx2(const __m256dx2 a) {
 }
 
 /** @note This function doesn't use AVX for calculations */
-inline __m256dx2 _mm256x2_exp10_pdx2(const __m256dx2 a) {
+static inline __m256dx2 _mm256x2_exp10_pdx2(const __m256dx2 a) {
 	const __m256dx2 __m256dx2_log10 = _mm256x2_set1_pd_pd(
 		2.302585092994045901e+00, -2.170756223382249351e-16
 	);
@@ -1732,7 +1742,7 @@ __m256dx2 _mm256x2_log_pdx2(__m256dx2 x);
 __m256dx2 _mm256x2_log1p_pdx2(__m256dx2 x);
 
 /** @note This function doesn't use AVX for calculations */
-inline __m256dx2 _mm256x2_log2_pdx2(const __m256dx2 x) {
+static inline __m256dx2 _mm256x2_log2_pdx2(const __m256dx2 x) {
 	const __m256dx2 __m256dx2_log2 = _mm256x2_set1_pd_pd(
 		6.931471805599452862e-01, 2.319046813846299558e-17
 	);
@@ -1740,7 +1750,7 @@ inline __m256dx2 _mm256x2_log2_pdx2(const __m256dx2 x) {
 }
 
 /** @note This function doesn't use AVX for calculations */
-inline __m256dx2 _mm256x2_log10_pdx2(const __m256dx2 x) {
+static inline __m256dx2 _mm256x2_log10_pdx2(const __m256dx2 x) {
 	const __m256dx2 __m256dx2_log10 = _mm256x2_set1_pd_pd(
 		2.302585092994045901e+00, -2.170756223382249351e-16
 	);
@@ -1757,12 +1767,12 @@ __m256dx2 _mm256x2_pow_pdx2_pd(__m256dx2 x,  __m256d y);
 	// Avoiding multiple __m256dx4 to Float64x4 conversions
 
 	/** @note This function doesn't use AVX for calculations */
-	inline __m256dx2 _mm256x2_pow_pdx2(const __m256dx2 x, const __m256dx2 y) {
+	static inline __m256dx2 _mm256x2_pow_pdx2(const __m256dx2 x, const __m256dx2 y) {
 		return _mm256x2_exp_pdx2(_mm256x2_mul_pdx2(_mm256x2_log_pdx2(x), y));
 	}
 
 	/** @note This function doesn't use AVX for calculations */
-	inline __m256dx2 _mm256x2_pow_pdx2_pd(const __m256dx2 x, const __m256d y) {
+	static inline __m256dx2 _mm256x2_pow_pdx2_pd(const __m256dx2 x, const __m256d y) {
 		return _mm256x2_exp_pdx2(_mm256x2_mul_pdx2_pd(_mm256x2_log_pdx2(x), y));
 	}
 #endif
@@ -1787,7 +1797,7 @@ void _mm256x2_sincos_pdx2(
 );
 
 /** @note This function doesn't use AVX for calculations */
-inline __m256dx2 _mm256x2_tan_pdx2(__m256dx2 x) {
+static inline __m256dx2 _mm256x2_tan_pdx2(__m256dx2 x) {
 	__m256dx2 t_sin, t_cos;
 	_mm256x2_sincos_pdx2(x, &t_sin, &t_cos);
 	return _mm256x2_div_pdx2(t_sin, t_cos);
@@ -1809,7 +1819,7 @@ __m256dx2 _mm256x2_atan2_pdx2(__m256dx2 y, __m256dx2 x);
 __m256dx2 _mm256x2_sinh_pdx2(__m256dx2 x);
 
 /** @note This function doesn't use AVX for calculations */
-inline __m256dx2 _mm256x2_cosh_pdx2(__m256dx2 x) {
+static inline __m256dx2 _mm256x2_cosh_pdx2(__m256dx2 x) {
 	__m256dx2 exp_x = _mm256x2_exp_pdx2(x);
 	return _mm256x2_mul_power2_pdx2_pd(
 		_mm256x2_add_pdx2(exp_x, _mm256x2_recip_pdx2(exp_x)),
@@ -1829,7 +1839,7 @@ void _mm256x2_sinhcosh_pdx2(
 );
 
 /** @note This function doesn't use AVX for calculations */
-inline __m256dx2 _mm256x2_asinh_pdx2(__m256dx2 x) {
+static inline __m256dx2 _mm256x2_asinh_pdx2(__m256dx2 x) {
 	return _mm256x2_log_pdx2(_mm256x2_add_pdx2(x,
 		_mm256x2_sqrt_pdx2(
 			_mm256x2_sub_pdx2_pd(_mm256x2_square_pdx2(x), _mm256_set1_pd(1.0))
@@ -1838,7 +1848,7 @@ inline __m256dx2 _mm256x2_asinh_pdx2(__m256dx2 x) {
 }
 
 /** @note This function doesn't use AVX for calculations */
-inline __m256dx2 _mm256x2_acosh_pdx2(__m256dx2 x) {
+static inline __m256dx2 _mm256x2_acosh_pdx2(__m256dx2 x) {
 	return _mm256x2_log_pdx2(_mm256x2_add_pdx2(x,
 		_mm256x2_sqrt_pdx2(
 			_mm256x2_add_pdx2_pd(_mm256x2_square_pdx2(x), _mm256_set1_pd(1.0))
@@ -1847,7 +1857,7 @@ inline __m256dx2 _mm256x2_acosh_pdx2(__m256dx2 x) {
 }
 
 /** @note This function doesn't use AVX for calculations */
-inline __m256dx2 _mm256x2_atanh_pdx2(__m256dx2 x) {
+static inline __m256dx2 _mm256x2_atanh_pdx2(__m256dx2 x) {
 	return _mm256x2_mul_power2_pdx2_pd(_mm256x2_log_pdx2(_mm256x2_div_pdx2(
 			_mm256x2_add_pd_pdx2(_mm256_set1_pd(1.0), x),
 			_mm256x2_sub_pd_pdx2(_mm256_set1_pd(1.0), x)

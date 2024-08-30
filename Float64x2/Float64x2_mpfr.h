@@ -24,7 +24,7 @@ extern "C" {
  * @brief Sets a mpfr_t to a Float64x2 value.
  * @returns 0 if exact, >0 if rounded up, <0 if rounded down
  */
-inline int mpfr_set_float64x2(mpfr_t rop, const Float64x2 op, const mpfr_rnd_t rnd) {
+static inline int mpfr_set_float64x2(mpfr_t rop, const Float64x2 op, const mpfr_rnd_t rnd) {
 	// Adds smallest to largest
 	mpfr_set_d(rop, op.lo, rnd);
 	return mpfr_add_d(rop, rop, op.hi, rnd);
@@ -33,7 +33,7 @@ inline int mpfr_set_float64x2(mpfr_t rop, const Float64x2 op, const mpfr_rnd_t r
 /**
  * @brief Returns a Float64x2 value from a mpfr_t
  */
-inline Float64x2 mpfr_get_float64x2(mpfr_srcptr op, const mpfr_rnd_t rnd) {
+static inline Float64x2 mpfr_get_float64x2(mpfr_srcptr op, const mpfr_rnd_t rnd) {
 	mpfr_t src;
 	mpfr_init2(src, mpfr_get_prec(op));
 	mpfr_set(src, op, rnd);

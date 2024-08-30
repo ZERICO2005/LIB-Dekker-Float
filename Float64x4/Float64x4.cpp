@@ -30,7 +30,7 @@
  * @author Taken from libQD qd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x4 taylor_expm1(const Float64x4& a, fp64& m) {
+static inline Float64x4 taylor_expm1(const Float64x4& a, fp64& m) {
 	/* Strategy:  We first reduce the size of x by noting that
 		 
 					exp(kr + m * log(2)) = 2^m * exp(r)^k
@@ -40,8 +40,8 @@ Float64x4 taylor_expm1(const Float64x4& a, fp64& m) {
 		 evaluated using the familiar Taylor series.  Reducing the 
 		 argument substantially speeds up the convergence.       */
 
-	const fp64 k = 65536.0;
-	const fp64 recip_k = 1.0 / k;
+	constexpr fp64 k = 65536.0;
+	constexpr fp64 recip_k = 1.0 / k;
 
 	if (a.val[0] <= -709.0) {
 		return 0.0;
@@ -51,11 +51,11 @@ Float64x4 taylor_expm1(const Float64x4& a, fp64& m) {
 		return std::numeric_limits<Float64x4>::infinity();
 	}
 
-	if (dekker_equal_zero(a)) {
+	if (a == -1.0) {
 		return 1.0;
 	}
 
-	if (a == 1.0) {
+	if (dekker_equal_zero(a)) {
 		return Float64x4_e;
 	}
 

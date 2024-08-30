@@ -135,22 +135,22 @@ typedef union Bitwise_Float64x4 {
 // Float64x4 set functions
 //------------------------------------------------------------------------------
 
-inline Float64x4 Float64x4_set_zero(void) {
+static inline Float64x4 Float64x4_set_zero(void) {
 	Float64x4 ret = {{0.0, 0.0, 0.0, 0.0}};
 	return ret;
 }
 
-inline Float64x4 Float64x4_set_d(const fp64 x) {
+static inline Float64x4 Float64x4_set_d(const fp64 x) {
 	Float64x4 ret = {{x, 0.0, 0.0, 0.0}};
 	return ret;
 }
 
-inline Float64x4 Float64x4_set_dx4(const fp64 values[4]) {
+static inline Float64x4 Float64x4_set_dx4(const fp64 values[4]) {
 	Float64x4 ret = {{values[0], values[1], values[2], values[3]}};
 	return ret;
 }
 
-inline Float64x4 Float64x4_set_u64(const uint64_t values[4]) {
+static inline Float64x4 Float64x4_set_u64(const uint64_t values[4]) {
 	Bitwise_Float64x4 ret;
 	ret.binary_part.val[0] = values[0];
 	ret.binary_part.val[1] = values[1];
@@ -159,7 +159,7 @@ inline Float64x4 Float64x4_set_u64(const uint64_t values[4]) {
 	return ret.float_part;
 }
 
-inline Float64x4 Float64x4_set_i64(const int64_t values[4]) {
+static inline Float64x4 Float64x4_set_i64(const int64_t values[4]) {
 	Bitwise_Float64x4 ret;
 	ret.binary_part.val[0] = (uint64_t)values[0];
 	ret.binary_part.val[1] = (uint64_t)values[1];
@@ -172,18 +172,18 @@ inline Float64x4 Float64x4_set_i64(const int64_t values[4]) {
 // Float64x4 get functions
 //------------------------------------------------------------------------------
 
-inline fp64 Float64x4_get_d(const Float64x4 x) {
+static inline fp64 Float64x4_get_d(const Float64x4 x) {
 	return x.val[0];
 }
 
-inline void Float64x4_get_dx4(const Float64x4 src, fp64 dst[4]) {
+static inline void Float64x4_get_dx4(const Float64x4 src, fp64 dst[4]) {
 	dst[0] = src.val[0];
 	dst[1] = src.val[1];
 	dst[2] = src.val[2];
 	dst[3] = src.val[3];
 }
 
-inline void Float64x4_get_u64(const Float64x4 src, uint64_t dst[4]) {
+static inline void Float64x4_get_u64(const Float64x4 src, uint64_t dst[4]) {
 	Bitwise_Float64x4 bitwise_src;
 	bitwise_src.float_part = src;
 	dst[0] = bitwise_src.binary_part.val[0];
@@ -192,7 +192,7 @@ inline void Float64x4_get_u64(const Float64x4 src, uint64_t dst[4]) {
 	dst[3] = bitwise_src.binary_part.val[3];
 }
 
-inline void Float64x4_get_i64(const Float64x4 src, int64_t dst[4]) {
+static inline void Float64x4_get_i64(const Float64x4 src, int64_t dst[4]) {
 	Bitwise_Float64x4 bitwise_src;
 	bitwise_src.float_part = src;
 	dst[0] = (int64_t)bitwise_src.binary_part.val[0];
@@ -205,35 +205,35 @@ inline void Float64x4_get_i64(const Float64x4 src, int64_t dst[4]) {
 // Float64x4 comparison functions
 //------------------------------------------------------------------------------
 
-inline bool Float64x4_cmpeq(const Float64x4 x, const Float64x4 y) {
+static inline bool Float64x4_cmpeq(const Float64x4 x, const Float64x4 y) {
 	return (
 		x.val[0] == y.val[0] && x.val[1] == y.val[1] &&
 		x.val[2] == y.val[2] && x.val[3] == y.val[3]
 	);
 }
 
-inline bool Float64x4_cmpneq(const Float64x4 x, const Float64x4 y) {
+static inline bool Float64x4_cmpneq(const Float64x4 x, const Float64x4 y) {
 	return (
 		x.val[0] != y.val[0] || x.val[1] != y.val[1] ||
 		x.val[2] != y.val[2] || x.val[3] != y.val[3]
 	);
 }
 
-inline bool Float64x4_cmpord(const Float64x4 x, const Float64x4 y) {
+static inline bool Float64x4_cmpord(const Float64x4 x, const Float64x4 y) {
 	return (
 		!isunordered(x.val[0], y.val[0]) && !isunordered(x.val[1], y.val[1]) &&
 		!isunordered(x.val[2], y.val[2]) && !isunordered(x.val[3], y.val[3])
 	);
 }
 
-inline bool Float64x4_cmpunord(const Float64x4 x, const Float64x4 y) {
+static inline bool Float64x4_cmpunord(const Float64x4 x, const Float64x4 y) {
 	return (
 		isunordered(x.val[0], y.val[0]) || isunordered(x.val[1], y.val[1]) ||
 		isunordered(x.val[2], y.val[2]) || isunordered(x.val[3], y.val[3])
 	);
 }
 
-inline bool Float64x4_cmplt(const Float64x4 x, const Float64x4 y) {
+static inline bool Float64x4_cmplt(const Float64x4 x, const Float64x4 y) {
 	return
 		(x.val[0] == y.val[0]) ? (
 			(x.val[1] == y.val[1]) ? (
@@ -244,7 +244,7 @@ inline bool Float64x4_cmplt(const Float64x4 x, const Float64x4 y) {
 		) : (x.val[0] < y.val[0]);
 }
 
-inline bool Float64x4_cmple(const Float64x4 x, const Float64x4 y) {
+static inline bool Float64x4_cmple(const Float64x4 x, const Float64x4 y) {
 	return
 		(x.val[0] == y.val[0]) ? (
 			(x.val[1] == y.val[1]) ? (
@@ -255,7 +255,7 @@ inline bool Float64x4_cmple(const Float64x4 x, const Float64x4 y) {
 		) : (x.val[0] < y.val[0]);
 }
 
-inline bool Float64x4_cmpgt(const Float64x4 x, const Float64x4 y) {
+static inline bool Float64x4_cmpgt(const Float64x4 x, const Float64x4 y) {
 	return
 		(x.val[0] == y.val[0]) ? (
 			(x.val[1] == y.val[1]) ? (
@@ -266,7 +266,7 @@ inline bool Float64x4_cmpgt(const Float64x4 x, const Float64x4 y) {
 		) : (x.val[0] > y.val[0]);
 }
 
-inline bool Float64x4_cmpge(const Float64x4 x, const Float64x4 y) {
+static inline bool Float64x4_cmpge(const Float64x4 x, const Float64x4 y) {
 	return
 		(x.val[0] == y.val[0]) ? (
 			(x.val[1] == y.val[1]) ? (
@@ -282,27 +282,27 @@ inline bool Float64x4_cmpge(const Float64x4 x, const Float64x4 y) {
 //------------------------------------------------------------------------------
 
 /** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
-inline bool Float64x4_cmpeq_zero(const Float64x4 x) {
+static inline bool Float64x4_cmpeq_zero(const Float64x4 x) {
 	return (x.val[0] == 0.0);
 }
 /** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
-inline bool Float64x4_cmpneq_zero(const Float64x4 x) {
+static inline bool Float64x4_cmpneq_zero(const Float64x4 x) {
 	return (x.val[0] != 0.0);
 }
 /** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
-inline bool Float64x4_cmplt_zero(const Float64x4 x) {
+static inline bool Float64x4_cmplt_zero(const Float64x4 x) {
 	return (x.val[0] < 0.0);
 }
 /** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
-inline bool Float64x4_cmple_zero(const Float64x4 x) {
+static inline bool Float64x4_cmple_zero(const Float64x4 x) {
 	return (x.val[0] <= 0.0);
 }
 /** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
-inline bool Float64x4_cmpgt_zero(const Float64x4 x) {
+static inline bool Float64x4_cmpgt_zero(const Float64x4 x) {
 	return (x.val[0] > 0.0);
 }
 /** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
-inline bool Float64x4_cmpge_zero(const Float64x4 x) {
+static inline bool Float64x4_cmpge_zero(const Float64x4 x) {
 	return (x.val[0] >= 0.0);
 }
 
@@ -310,35 +310,35 @@ inline bool Float64x4_cmpge_zero(const Float64x4 x) {
 // Float64x4 optimized comparison functions
 //------------------------------------------------------------------------------
 
-inline bool Float64x4_cmpeq_dx4_d(const Float64x4 x, const fp64 y) {
+static inline bool Float64x4_cmpeq_dx4_d(const Float64x4 x, const fp64 y) {
 	return (
 		x.val[0] == y && x.val[1] == 0.0 &&
 		x.val[2] == 0.0 && x.val[3] == 0.0
 	);
 }
 
-inline bool Float64x4_cmpneq_dx4_d(const Float64x4 x, const fp64 y) {
+static inline bool Float64x4_cmpneq_dx4_d(const Float64x4 x, const fp64 y) {
 	return (
 		x.val[0] != y || x.val[1] != 0.0 ||
 		x.val[2] != 0.0 || x.val[3] != 0.0
 	);
 }
 
-inline bool Float64x4_cmpord_dx4_d(const Float64x4 x, const fp64 y) {
+static inline bool Float64x4_cmpord_dx4_d(const Float64x4 x, const fp64 y) {
 	return (
 		!isunordered(x.val[0], y) && !isunordered(x.val[1], 0.0) &&
 		!isunordered(x.val[2], 0.0) && !isunordered(x.val[3], 0.0)
 	);
 }
 
-inline bool Float64x4_cmpunord_dx4_d(const Float64x4 x, const fp64 y) {
+static inline bool Float64x4_cmpunord_dx4_d(const Float64x4 x, const fp64 y) {
 	return (
 		isunordered(x.val[0], y) || isunordered(x.val[1], 0.0) ||
 		isunordered(x.val[2], 0.0) || isunordered(x.val[3], 0.0)
 	);
 }
 
-inline bool Float64x4_cmplt_dx4_d(const Float64x4 x, const fp64 y) {
+static inline bool Float64x4_cmplt_dx4_d(const Float64x4 x, const fp64 y) {
 	return
 		(x.val[0] == y) ? (
 			(x.val[1] == 0.0) ? (
@@ -349,7 +349,7 @@ inline bool Float64x4_cmplt_dx4_d(const Float64x4 x, const fp64 y) {
 		) : (x.val[0] < y);
 }
 
-inline bool Float64x4_cmple_dx4_d(const Float64x4 x, const fp64 y) {
+static inline bool Float64x4_cmple_dx4_d(const Float64x4 x, const fp64 y) {
 	return
 		(x.val[0] == y) ? (
 			(x.val[1] == 0.0) ? (
@@ -360,7 +360,7 @@ inline bool Float64x4_cmple_dx4_d(const Float64x4 x, const fp64 y) {
 		) : (x.val[0] < y);
 }
 
-inline bool Float64x4_cmpgt_dx4_d(const Float64x4 x, const fp64 y) {
+static inline bool Float64x4_cmpgt_dx4_d(const Float64x4 x, const fp64 y) {
 	return
 		(x.val[0] == y) ? (
 			(x.val[1] == 0.0) ? (
@@ -371,7 +371,7 @@ inline bool Float64x4_cmpgt_dx4_d(const Float64x4 x, const fp64 y) {
 		) : (x.val[0] > y);
 }
 
-inline bool Float64x4_cmpge_dx4_d(const Float64x4 x, const fp64 y) {
+static inline bool Float64x4_cmpge_dx4_d(const Float64x4 x, const fp64 y) {
 	return
 		(x.val[0] == y) ? (
 			(x.val[1] == 0.0) ? (
@@ -382,35 +382,35 @@ inline bool Float64x4_cmpge_dx4_d(const Float64x4 x, const fp64 y) {
 		) : (x.val[0] > y);
 }
 
-inline bool Float64x4_cmpeq_d_dx4(const fp64 x, const Float64x4 y) {
+static inline bool Float64x4_cmpeq_d_dx4(const fp64 x, const Float64x4 y) {
 	return (
 		x == y.val[0] && 0.0 == y.val[1] &&
 		0.0 == y.val[2] && 0.0 == y.val[3]
 	);
 }
 
-inline bool Float64x4_cmpneq_d_dx4(const fp64 x, const Float64x4 y) {
+static inline bool Float64x4_cmpneq_d_dx4(const fp64 x, const Float64x4 y) {
 	return (
 		x != y.val[0] || 0.0 != y.val[1] ||
 		0.0 != y.val[2] || 0.0 != y.val[3]
 	);
 }
 
-inline bool Float64x4_cmpord_d_dx4(const fp64 x, const Float64x4 y) {
+static inline bool Float64x4_cmpord_d_dx4(const fp64 x, const Float64x4 y) {
 	return (
 		!isunordered(x, y.val[0]) && !isunordered(0.0, y.val[1]) &&
 		!isunordered(0.0, y.val[2]) && !isunordered(0.0, y.val[3])
 	);
 }
 
-inline bool Float64x4_cmpunord_d_dx4(const fp64 x, const Float64x4 y) {
+static inline bool Float64x4_cmpunord_d_dx4(const fp64 x, const Float64x4 y) {
 	return (
 		isunordered(x, y.val[0]) || isunordered(0.0, y.val[1]) ||
 		isunordered(0.0, y.val[2]) || isunordered(0.0, y.val[3])
 	);
 }
 
-inline bool Float64x4_cmplt_d_dx4(const fp64 x, const Float64x4 y) {
+static inline bool Float64x4_cmplt_d_dx4(const fp64 x, const Float64x4 y) {
 	return
 		(x == y.val[0]) ? (
 			(0.0 == y.val[1]) ? (
@@ -421,7 +421,7 @@ inline bool Float64x4_cmplt_d_dx4(const fp64 x, const Float64x4 y) {
 		) : (x < y.val[0]);
 }
 
-inline bool Float64x4_cmple_d_dx4(const fp64 x, const Float64x4 y) {
+static inline bool Float64x4_cmple_d_dx4(const fp64 x, const Float64x4 y) {
 	return
 		(x == y.val[0]) ? (
 			(0.0 == y.val[1]) ? (
@@ -432,7 +432,7 @@ inline bool Float64x4_cmple_d_dx4(const fp64 x, const Float64x4 y) {
 		) : (x < y.val[0]);
 }
 
-inline bool Float64x4_cmpgt_d_dx4(const fp64 x, const Float64x4 y) {
+static inline bool Float64x4_cmpgt_d_dx4(const fp64 x, const Float64x4 y) {
 	return
 		(x == y.val[0]) ? (
 			(0.0 == y.val[1]) ? (
@@ -443,7 +443,7 @@ inline bool Float64x4_cmpgt_d_dx4(const fp64 x, const Float64x4 y) {
 		) : (x > y.val[0]);
 }
 
-inline bool Float64x4_cmpge_d_dx4(const fp64 x, const Float64x4 y) {
+static inline bool Float64x4_cmpge_d_dx4(const fp64 x, const Float64x4 y) {
 	return
 		(x == y.val[0]) ? (
 			(0.0 == y.val[1]) ? (
@@ -463,21 +463,21 @@ inline bool Float64x4_cmpge_d_dx4(const fp64 x, const Float64x4 y) {
  */
 
 /** @brief Computes fl(x + y) and err(x + y).  Assumes |x| >= |y|. */
-inline fp64 Float64_quick_two_sum(const fp64 x, const fp64 y, fp64* FLOAT64X4_RESTRICT const err) {
+static inline fp64 Float64_quick_two_sum(const fp64 x, const fp64 y, fp64* FLOAT64X4_RESTRICT const err) {
 	fp64 s = x + y;
 	*err = y - (s - x);
 	return s;
 }
 
 /** @brief Computes fl(x - y) and err(x - y).  Assumes |x| >= |y|. */
-inline fp64 Float64_quick_two_diff(const fp64 x, const fp64 y, fp64* FLOAT64X4_RESTRICT const err) {
+static inline fp64 Float64_quick_two_diff(const fp64 x, const fp64 y, fp64* FLOAT64X4_RESTRICT const err) {
 	fp64 s = x - y;
 	*err = (x - s) - y;
 	return s;
 }
 
 /** @brief Computes fl(x + y) and err(x + y). */
-inline fp64 Float64_two_sum(const fp64 x, const fp64 y, fp64* FLOAT64X4_RESTRICT const err) {
+static inline fp64 Float64_two_sum(const fp64 x, const fp64 y, fp64* FLOAT64X4_RESTRICT const err) {
 	fp64 s = x + y;
 	fp64 bb = s - x;
 	*err = (x - (s - bb)) + (y - bb);
@@ -485,14 +485,14 @@ inline fp64 Float64_two_sum(const fp64 x, const fp64 y, fp64* FLOAT64X4_RESTRICT
 }
 
 /** @brief Computes fl(x - y) and err(x - y). */
-inline fp64 Float64_two_diff(const fp64 x, const fp64 y, fp64* FLOAT64X4_RESTRICT const err) {
+static inline fp64 Float64_two_diff(const fp64 x, const fp64 y, fp64* FLOAT64X4_RESTRICT const err) {
 	fp64 s = x - y;
 	fp64 bb = s - x;
 	*err = (x - (s - bb)) - (y + bb);
 	return s;
 }
 
-inline void Float64_split(
+static inline void Float64_split(
 	fp64 a,
 	fp64* FLOAT64X4_RESTRICT const hi,
 	fp64* FLOAT64X4_RESTRICT const lo
@@ -515,7 +515,7 @@ inline void Float64_split(
 }
 
 /** @brief Computes fl(x * y) and err(x * y). */
-inline fp64 Float64_two_prod(const fp64 a, const fp64 b, fp64* FLOAT64X4_RESTRICT const err) {
+static inline fp64 Float64_two_prod(const fp64 a, const fp64 b, fp64* FLOAT64X4_RESTRICT const err) {
 	fp64 a_hi, a_lo, b_hi, b_lo;
 	fp64 p = a * b;
 	Float64_split(a, &a_hi, &a_lo);
@@ -525,7 +525,7 @@ inline fp64 Float64_two_prod(const fp64 a, const fp64 b, fp64* FLOAT64X4_RESTRIC
 }
 
 /** @brief Computes fl(x * x) and err(x * x). Faster than Float64_two_prod(x, x, err) */
-inline fp64 Float64_two_sqr(const fp64 a, fp64* FLOAT64X4_RESTRICT const err) {
+static inline fp64 Float64_two_sqr(const fp64 a, fp64* FLOAT64X4_RESTRICT const err) {
 	fp64 hi, lo;
 	fp64 q = a * a;
 	Float64_split(a, &hi, &lo);
@@ -538,7 +538,7 @@ inline fp64 Float64_two_sqr(const fp64 a, fp64* FLOAT64X4_RESTRICT const err) {
  * doubles, then the sum is output into `s` and `(a, b)` contains the
  * remainder. Otherwise `s` is zero and `(a, b)` contains the sum.
  */
-inline fp64 Float64x4_quick_three_accum(
+static inline fp64 Float64x4_quick_three_accum(
 	fp64* FLOAT64X4_RESTRICT const a,
 	fp64* FLOAT64X4_RESTRICT const b,
 	const fp64 c
@@ -566,7 +566,7 @@ inline fp64 Float64x4_quick_three_accum(
 	return 0.0;
 }
 
-inline void Float64x4_three_sum(
+static inline void Float64x4_three_sum(
 	fp64* FLOAT64X4_RESTRICT const a,
 	fp64* FLOAT64X4_RESTRICT const b,
 	fp64* FLOAT64X4_RESTRICT const c
@@ -577,7 +577,7 @@ inline void Float64x4_three_sum(
 	*b = Float64_two_sum(t2, t3, c  );
 }
 
-inline void Float64x4_three_sum2(
+static inline void Float64x4_three_sum2(
 	fp64* FLOAT64X4_RESTRICT const a,
 	fp64* FLOAT64X4_RESTRICT const b,
 	fp64* FLOAT64X4_RESTRICT const c
@@ -588,7 +588,7 @@ inline void Float64x4_three_sum2(
 	*b = t2 + t3;
 }
 
-inline void Float64x4_accurate_renorm(Float64x4* FLOAT64X4_RESTRICT const x) {
+static inline void Float64x4_accurate_renorm(Float64x4* FLOAT64X4_RESTRICT const x) {
 	fp64 s0, s1, s2 = 0.0, s3 = 0.0;
 
 	// if (isinf(x->val[0])) {
@@ -623,7 +623,7 @@ inline void Float64x4_accurate_renorm(Float64x4* FLOAT64X4_RESTRICT const x) {
 	x->val[3] = s3;
 }
 
-inline void Float64x4_quick_renorm(Float64x4* FLOAT64X4_RESTRICT const x) {
+static inline void Float64x4_quick_renorm(Float64x4* FLOAT64X4_RESTRICT const x) {
 	fp64 t0, t1, t2;
 	fp64 s;
 	s         = x->val[3];
@@ -637,7 +637,7 @@ inline void Float64x4_quick_renorm(Float64x4* FLOAT64X4_RESTRICT const x) {
 	x->val[3] = t0;
 }
 
-inline void Float64x4_renorm(
+static inline void Float64x4_renorm(
 	Float64x4* FLOAT64X4_RESTRICT const x
 ) {
 	#ifdef FLOAT64X4_IEEE_MODE
@@ -647,7 +647,7 @@ inline void Float64x4_renorm(
 	#endif
 }
 
-inline void Float64x4_accurate_renorm_err(
+static inline void Float64x4_accurate_renorm_err(
 	Float64x4* FLOAT64X4_RESTRICT const x, fp64* FLOAT64X4_RESTRICT const err
 ) {
 	fp64 s0, s1, s2 = 0.0, s3 = 0.0;
@@ -706,7 +706,7 @@ inline void Float64x4_accurate_renorm_err(
 	x->val[3] = s3;
 }
 
-inline void Float64x4_quick_renorm_err(
+static inline void Float64x4_quick_renorm_err(
 	Float64x4* FLOAT64X4_RESTRICT const x, fp64* FLOAT64X4_RESTRICT const err
 ) {
 	fp64 t0, t1, t2, t3;
@@ -726,7 +726,7 @@ inline void Float64x4_quick_renorm_err(
 	x->val[3] = t0 + t1;
 }
 
-inline void Float64x4_renorm_err(
+static inline void Float64x4_renorm_err(
 	Float64x4* FLOAT64X4_RESTRICT const x, fp64* FLOAT64X4_RESTRICT const err
 ) {
 	#ifdef FLOAT64X4_IEEE_MODE
@@ -745,7 +745,7 @@ inline void Float64x4_renorm_err(
 /**
  * @brief Negates a Float64x4 value (multiplies by -1.0)
  */
-inline Float64x4 Float64x4_negate(const Float64x4 x) {
+static inline Float64x4 Float64x4_negate(const Float64x4 x) {
 	Float64x4 ret = {{-x.val[0], -x.val[1], -x.val[2], -x.val[3]}};
 	return ret;
 }
@@ -761,7 +761,7 @@ inline Float64x4 Float64x4_negate(const Float64x4 x) {
 /* Float64x4 + Float64x4 */
 
 /** @brief Orginally qd_real::ieee_add */
-inline Float64x4 Float64x4_add_accurate(const Float64x4 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_add_accurate(const Float64x4 x, const Float64x4 y) {
 	int i, j, k;
 	fp64 s, t;
 	fp64 u, v;   /* double-length accumulator */
@@ -820,7 +820,7 @@ inline Float64x4 Float64x4_add_accurate(const Float64x4 x, const Float64x4 y) {
 }
 
 /** @brief Orginally qd_real::sloppy_add */
-inline Float64x4 Float64x4_add_quick(const Float64x4 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_add_quick(const Float64x4 x, const Float64x4 y) {
 	/*
 	fp64 s0, s1, s2, s3;
 	fp64 t0, t1, t2, t3;
@@ -889,7 +889,7 @@ inline Float64x4 Float64x4_add_quick(const Float64x4 x, const Float64x4 y) {
 	return s;
 }
 
-inline Float64x4 Float64x4_add(const Float64x4 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_add(const Float64x4 x, const Float64x4 y) {
 	#ifdef FLOAT64X4_IEEE_MODE
 		return Float64x4_add_accurate(x, y);
 	#else
@@ -899,7 +899,7 @@ inline Float64x4 Float64x4_add(const Float64x4 x, const Float64x4 y) {
 
 /* Float64x4 + Float64x2 */
 
-inline Float64x4 Float64x4_add_dx4_dx2(const Float64x4 x, const Float64x2 y) {
+static inline Float64x4 Float64x4_add_dx4_dx2(const Float64x4 x, const Float64x2 y) {
 	Float64x4 s;
 	fp64 t0, t1;
 
@@ -920,7 +920,7 @@ inline Float64x4 Float64x4_add_dx4_dx2(const Float64x4 x, const Float64x2 y) {
 
 /* Float64x2 + Float64x4 */
 
-inline Float64x4 Float64x4_add_dx2_dx4(const Float64x2 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_add_dx2_dx4(const Float64x2 x, const Float64x4 y) {
 	Float64x4 s;
 	fp64 t0, t1;
 
@@ -941,7 +941,7 @@ inline Float64x4 Float64x4_add_dx2_dx4(const Float64x2 x, const Float64x4 y) {
 
 /* Float64x4 + fp64 */
 
-inline Float64x4 Float64x4_add_dx4_d(const Float64x4 x, const fp64 y) {
+static inline Float64x4 Float64x4_add_dx4_d(const Float64x4 x, const fp64 y) {
 	Float64x4 ret;
 	fp64 e;
 
@@ -956,7 +956,7 @@ inline Float64x4 Float64x4_add_dx4_d(const Float64x4 x, const fp64 y) {
 
 /* fp64 + Float64x4 */
 
-inline Float64x4 Float64x4_add_d_dx4(const fp64 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_add_d_dx4(const fp64 x, const Float64x4 y) {
 	Float64x4 ret;
 	fp64 e;
 
@@ -975,7 +975,7 @@ inline Float64x4 Float64x4_add_d_dx4(const fp64 x, const Float64x4 y) {
 
 /* Float64x2 + Float64x2 */
 
-inline Float64x4 Float64x4_add_dx2_dx2(const Float64x2 x, const Float64x2 y) {
+static inline Float64x4 Float64x4_add_dx2_dx2(const Float64x2 x, const Float64x2 y) {
 	Float64x4 s;
 	fp64 t0, t1;
 
@@ -992,7 +992,7 @@ inline Float64x4 Float64x4_add_dx2_dx2(const Float64x2 x, const Float64x2 y) {
 
 /* Float64x2 + fp64 */
 
-inline Float64x4 Float64x4_add_dx2_d(const Float64x2 x, const fp64 y) {
+static inline Float64x4 Float64x4_add_dx2_d(const Float64x2 x, const fp64 y) {
 	Float64x4 s;
 	fp64 t0;
 
@@ -1007,7 +1007,7 @@ inline Float64x4 Float64x4_add_dx2_d(const Float64x2 x, const fp64 y) {
 
 /* fp64 + Float64x2 */
 
-inline Float64x4 Float64x4_add_d_dx2(const fp64 x, const Float64x2 y) {
+static inline Float64x4 Float64x4_add_d_dx2(const fp64 x, const Float64x2 y) {
 	Float64x4 s;
 	fp64 t0;
 
@@ -1022,7 +1022,7 @@ inline Float64x4 Float64x4_add_d_dx2(const fp64 x, const Float64x2 y) {
 
 /* fp64 + fp64 */
 
-inline Float64x4 Float64x4_add_d_d(const fp64 x, const fp64 y) {
+static inline Float64x4 Float64x4_add_d_d(const fp64 x, const fp64 y) {
 	Float64x4 s;
 	fp64 t0;
 
@@ -1044,7 +1044,7 @@ inline Float64x4 Float64x4_add_d_d(const fp64 x, const fp64 y) {
 /* Float64x4 - Float64x4 */
 
 /** @brief Orginally qd_real::ieee_add */
-inline Float64x4 Float64x4_sub_accurate(const Float64x4 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_sub_accurate(const Float64x4 x, const Float64x4 y) {
 	int i, j, k;
 	fp64 s, t;
 	fp64 u, v;   /* double-length accumulator */
@@ -1103,7 +1103,7 @@ inline Float64x4 Float64x4_sub_accurate(const Float64x4 x, const Float64x4 y) {
 }
 
 /** @brief Orginally qd_real::sloppy_add */
-inline Float64x4 Float64x4_sub_quick(const Float64x4 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_sub_quick(const Float64x4 x, const Float64x4 y) {
 	/*
 	fp64 s0, s1, s2, s3;
 	fp64 t0, t1, t2, t3;
@@ -1173,7 +1173,7 @@ inline Float64x4 Float64x4_sub_quick(const Float64x4 x, const Float64x4 y) {
 	return s;
 }
 
-inline Float64x4 Float64x4_sub(const Float64x4 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_sub(const Float64x4 x, const Float64x4 y) {
 	#ifdef FLOAT64X4_IEEE_MODE
 		return Float64x4_sub_accurate(x, y);
 	#else
@@ -1183,7 +1183,7 @@ inline Float64x4 Float64x4_sub(const Float64x4 x, const Float64x4 y) {
 
 /* Float64x4 - Float64x2 */
 
-inline Float64x4 Float64x4_sub_dx4_dx2(const Float64x4 x, const Float64x2 y) {
+static inline Float64x4 Float64x4_sub_dx4_dx2(const Float64x4 x, const Float64x2 y) {
 	Float64x4 s;
 	fp64 t0, t1;
 
@@ -1204,7 +1204,7 @@ inline Float64x4 Float64x4_sub_dx4_dx2(const Float64x4 x, const Float64x2 y) {
 
 /* Float64x2 - Float64x4 */
 
-inline Float64x4 Float64x4_sub_dx2_dx4(const Float64x2 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_sub_dx2_dx4(const Float64x2 x, const Float64x4 y) {
 	Float64x4 s;
 	fp64 t0, t1;
 
@@ -1225,7 +1225,7 @@ inline Float64x4 Float64x4_sub_dx2_dx4(const Float64x2 x, const Float64x4 y) {
 
 /* Float64x4 - fp64 */
 
-inline Float64x4 Float64x4_sub_dx4_d(const Float64x4 x, const fp64 y) {
+static inline Float64x4 Float64x4_sub_dx4_d(const Float64x4 x, const fp64 y) {
 	Float64x4 ret;
 	fp64 e;
 
@@ -1240,7 +1240,7 @@ inline Float64x4 Float64x4_sub_dx4_d(const Float64x4 x, const fp64 y) {
 
 /* fp64 - Float64x4 */
 
-inline Float64x4 Float64x4_sub_d_dx4(const fp64 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_sub_d_dx4(const fp64 x, const Float64x4 y) {
 	Float64x4 ret;
 	fp64 e;
 
@@ -1263,7 +1263,7 @@ inline Float64x4 Float64x4_sub_d_dx4(const fp64 x, const Float64x4 y) {
 
 /* Float64x2 - Float64x2 */
 
-inline Float64x4 Float64x4_sub_dx2_dx2(const Float64x2 x, const Float64x2 y) {
+static inline Float64x4 Float64x4_sub_dx2_dx2(const Float64x2 x, const Float64x2 y) {
 	Float64x4 s;
 	fp64 t0, t1;
 
@@ -1280,7 +1280,7 @@ inline Float64x4 Float64x4_sub_dx2_dx2(const Float64x2 x, const Float64x2 y) {
 
 /* Float64x2 - fp64 */
 
-inline Float64x4 Float64x4_sub_dx2_d(const Float64x2 x, const fp64 y) {
+static inline Float64x4 Float64x4_sub_dx2_d(const Float64x2 x, const fp64 y) {
 	Float64x4 s;
 	fp64 t0;
 
@@ -1295,7 +1295,7 @@ inline Float64x4 Float64x4_sub_dx2_d(const Float64x2 x, const fp64 y) {
 
 /* fp64 - Float64x2 */
 
-inline Float64x4 Float64x4_sub_d_dx2(const fp64 x, const Float64x2 y) {
+static inline Float64x4 Float64x4_sub_d_dx2(const fp64 x, const Float64x2 y) {
 	Float64x4 s;
 	fp64 t0;
 
@@ -1310,7 +1310,7 @@ inline Float64x4 Float64x4_sub_d_dx2(const fp64 x, const Float64x2 y) {
 
 /* fp64 - fp64 */
 
-inline Float64x4 Float64x4_sub_d_d(const fp64 x, const fp64 y) {
+static inline Float64x4 Float64x4_sub_d_d(const fp64 x, const fp64 y) {
 	Float64x4 s;
 	fp64 t0;
 
@@ -1332,7 +1332,7 @@ inline Float64x4 Float64x4_sub_d_d(const fp64 x, const fp64 y) {
 /* Float64x4 * Float64x4 */
 
 /** @brief Orginally qd_real::accurate_mul */
-inline Float64x4 Float64x4_mul_accurate(const Float64x4 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_mul_accurate(const Float64x4 x, const Float64x4 y) {
 	fp64 p0, p1, p2, p3, p4, p5;
 	fp64 q0, q1, q2, q3, q4, q5;
 	fp64 p6, p7, p8, p9;
@@ -1395,7 +1395,7 @@ inline Float64x4 Float64x4_mul_accurate(const Float64x4 x, const Float64x4 y) {
 }
 
 /** @brief Orginally qd_real::sloppy_mul */
-inline Float64x4 Float64x4_mul_quick(const Float64x4 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_mul_quick(const Float64x4 x, const Float64x4 y) {
 	fp64 p0, p1, p2, p3, p4, p5;
 	fp64 q0, q1, q2, q3, q4, q5;
 	fp64 t0, t1;
@@ -1430,7 +1430,7 @@ inline Float64x4 Float64x4_mul_quick(const Float64x4 x, const Float64x4 y) {
 	return ret;
 }
 
-inline Float64x4 Float64x4_mul(const Float64x4 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_mul(const Float64x4 x, const Float64x4 y) {
 	#ifdef FLOAT64X4_IEEE_MODE
 		return Float64x4_mul_accurate(x, y);
 	#else
@@ -1440,7 +1440,7 @@ inline Float64x4 Float64x4_mul(const Float64x4 x, const Float64x4 y) {
 
 /* Float64x4 * Float64x2 */
 
-inline Float64x4 Float64x4_mul_dx4_dx2(const Float64x4 x, const Float64x2 y) {
+static inline Float64x4 Float64x4_mul_dx4_dx2(const Float64x4 x, const Float64x2 y) {
 	Float64x4 p;
 	fp64 p_err;
 	fp64 q0, q1, q2, q3, q4;
@@ -1474,7 +1474,7 @@ inline Float64x4 Float64x4_mul_dx4_dx2(const Float64x4 x, const Float64x2 y) {
 
 /* Float64x2 * Float64x4 */
 
-inline Float64x4 Float64x4_mul_dx2_dx4(const Float64x2 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_mul_dx2_dx4(const Float64x2 x, const Float64x4 y) {
 	Float64x4 p;
 	fp64 p_err;
 	fp64 q0, q1, q2, q3, q4;
@@ -1508,7 +1508,7 @@ inline Float64x4 Float64x4_mul_dx2_dx4(const Float64x2 x, const Float64x4 y) {
 
 /* Float64x4 * fp64 */
 
-inline Float64x4 Float64x4_mul_dx4_d(const Float64x4 x, const fp64 y) {
+static inline Float64x4 Float64x4_mul_dx4_d(const Float64x4 x, const fp64 y) {
 	fp64 p0, p1, p2, p3;
 	fp64 q0, q1, q2;
 	Float64x4 s;
@@ -1536,7 +1536,7 @@ inline Float64x4 Float64x4_mul_dx4_d(const Float64x4 x, const fp64 y) {
 
 /* fp64 * Float64x4 */
 
-inline Float64x4 Float64x4_mul_d_dx4(const fp64 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_mul_d_dx4(const fp64 x, const Float64x4 y) {
 	fp64 p0, p1, p2, p3;
 	fp64 q0, q1, q2;
 	Float64x4 s;
@@ -1572,7 +1572,7 @@ inline Float64x4 Float64x4_mul_d_dx4(const fp64 x, const Float64x4 y) {
 
 /* Float64x2 * Float64x2 */
 
-inline Float64x4 Float64x4_mul_dx2_dx2(const Float64x2 x, const Float64x2 y) {
+static inline Float64x4 Float64x4_mul_dx2_dx2(const Float64x2 x, const Float64x2 y) {
 	Float64x4 p;
 	fp64 p_err;
 	fp64 q0, q1, q2, q3;
@@ -1609,7 +1609,7 @@ inline Float64x4 Float64x4_mul_dx2_dx2(const Float64x2 x, const Float64x2 y) {
  * @brief Multiplies a Float64x2 value with a fp64 value. Storing the result as
  * a Float64x4 value
  */
-inline Float64x4 Float64x4_mul_dx2_d(const Float64x2 x, const fp64 y) {
+static inline Float64x4 Float64x4_mul_dx2_d(const Float64x2 x, const fp64 y) {
 	fp64 p0, p1;
 	fp64 q0, q1;
 	Float64x4 s;
@@ -1632,7 +1632,7 @@ inline Float64x4 Float64x4_mul_dx2_d(const Float64x2 x, const fp64 y) {
  * @brief Multiplies a fp64 value with a Float64x2 value. Storing the result as
  * a Float64x4 value
  */
-inline Float64x4 Float64x4_mul_d_dx2(const fp64 x, const Float64x2 y) {
+static inline Float64x4 Float64x4_mul_d_dx2(const fp64 x, const Float64x2 y) {
 	fp64 p0, p1;
 	fp64 q0, q1;
 	Float64x4 s;
@@ -1656,7 +1656,7 @@ inline Float64x4 Float64x4_mul_d_dx2(const fp64 x, const Float64x2 y) {
  * as a Float64x4 value.
  * @note Float64x2 can store the values from this function exactly.
  */
-inline Float64x4 Float64x4_mul_d_d(const fp64 x, const fp64 y) {
+static inline Float64x4 Float64x4_mul_d_d(const fp64 x, const fp64 y) {
 	Float64x4 s;
 	s.val[0] = Float64_two_prod(x, y, &s.val[1]);
 	s.val[2] = 0.0;
@@ -1672,7 +1672,7 @@ inline Float64x4 Float64x4_mul_d_d(const fp64 x, const fp64 y) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 
-inline Float64x4 Float64x4_square(const Float64x4 x) {
+static inline Float64x4 Float64x4_square(const Float64x4 x) {
 	Float64x4 p;
 	fp64 p_err_hi, p_err_lo;
 	fp64 q0, q1, q2, q3;
@@ -1718,7 +1718,7 @@ inline Float64x4 Float64x4_square(const Float64x4 x) {
 /**
  * @brief Squares a Float64x2 value with the result stored as a Float64x4
  */
-inline Float64x4 Float64x4_square_dx2(const Float64x2 x) {
+static inline Float64x4 Float64x4_square_dx2(const Float64x2 x) {
 	Float64x4 p;
 	fp64 p_err;
 	fp64 q0, q1, q2;
@@ -1750,7 +1750,7 @@ inline Float64x4 Float64x4_square_dx2(const Float64x2 x) {
  * @brief Squares a fp64 value with the result stored as a Float64x4.
  * @note Float64x2 can store the values from this function exactly.
  */
-inline Float64x4 Float64x4_square_d(const fp64 x) {
+static inline Float64x4 Float64x4_square_d(const fp64 x) {
 	Float64x4 p;
 	p.val[0] = Float64_two_sqr(x, &p.val[1]);
 	p.val[2] = 0.0;
@@ -1770,7 +1770,7 @@ inline Float64x4 Float64x4_square_d(const fp64 x) {
 /* Float64x4 / Float64x4 */
 
 /** @brief Orginally qd_real::accurate_div */
-inline Float64x4 Float64x4_div_accurate(const Float64x4 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_div_accurate(const Float64x4 x, const Float64x4 y) {
 	Float64x4 q, r;
 
 	q.val[0] = x.val[0] / y.val[0];
@@ -1791,7 +1791,7 @@ inline Float64x4 Float64x4_div_accurate(const Float64x4 x, const Float64x4 y) {
 }
 
 /** @brief Orginally qd_real::sloppy_div */
-inline Float64x4 Float64x4_div_quick(const Float64x4 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_div_quick(const Float64x4 x, const Float64x4 y) {
 	Float64x4 q, r;
 
 	q.val[0] = x.val[0] / y.val[0];
@@ -1808,7 +1808,7 @@ inline Float64x4 Float64x4_div_quick(const Float64x4 x, const Float64x4 y) {
 	return q;
 }
 
-inline Float64x4 Float64x4_div(const Float64x4 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_div(const Float64x4 x, const Float64x4 y) {
 	#ifdef FLOAT64X4_IEEE_MODE
 		return Float64x4_div_accurate(x, y);
 	#else
@@ -1818,7 +1818,7 @@ inline Float64x4 Float64x4_div(const Float64x4 x, const Float64x4 y) {
 
 /* Float64x4 / Float64x2 */
 
-inline Float64x4 Float64x4_div_accurate_dx4_dx2(const Float64x4 x, const Float64x2 y) {
+static inline Float64x4 Float64x4_div_accurate_dx4_dx2(const Float64x4 x, const Float64x2 y) {
 	Float64x4 q, r;
 
 	q.val[0] = x.val[0] / y.hi;
@@ -1838,7 +1838,7 @@ inline Float64x4 Float64x4_div_accurate_dx4_dx2(const Float64x4 x, const Float64
 	return q;
 }
 
-inline Float64x4 Float64x4_div_quick_dx4_dx2(const Float64x4 x, const Float64x2 y) {
+static inline Float64x4 Float64x4_div_quick_dx4_dx2(const Float64x4 x, const Float64x2 y) {
 	Float64x4 q, r;
 
 	q.val[0] = x.val[0] / y.hi;
@@ -1855,7 +1855,7 @@ inline Float64x4 Float64x4_div_quick_dx4_dx2(const Float64x4 x, const Float64x2 
 	return q;
 }
 
-inline Float64x4 Float64x4_div_dx4_dx2(const Float64x4 x, const Float64x2 y) {
+static inline Float64x4 Float64x4_div_dx4_dx2(const Float64x4 x, const Float64x2 y) {
 	#ifdef FLOAT64X4_IEEE_MODE
 		return Float64x4_div_accurate_dx4_dx2(x, y);
 	#else
@@ -1865,7 +1865,7 @@ inline Float64x4 Float64x4_div_dx4_dx2(const Float64x4 x, const Float64x2 y) {
 
 /* Float64x4 / fp64 */
 
-inline Float64x4 Float64x4_div_accurate_dx4_d(const Float64x4 x, const fp64 y) {
+static inline Float64x4 Float64x4_div_accurate_dx4_d(const Float64x4 x, const fp64 y) {
 	Float64x4 q, r;
 
 	q.val[0] = x.val[0] / y;
@@ -1885,7 +1885,7 @@ inline Float64x4 Float64x4_div_accurate_dx4_d(const Float64x4 x, const fp64 y) {
 	return q;
 }
 
-inline Float64x4 Float64x4_div_quick_dx4_d(const Float64x4 x, const fp64 y) {
+static inline Float64x4 Float64x4_div_quick_dx4_d(const Float64x4 x, const fp64 y) {
 	Float64x4 q, r;
 
 	q.val[0] = x.val[0] / y;
@@ -1902,7 +1902,7 @@ inline Float64x4 Float64x4_div_quick_dx4_d(const Float64x4 x, const fp64 y) {
 	return q;
 }
 
-inline Float64x4 Float64x4_div_dx4_d(const Float64x4 x, const fp64 y) {
+static inline Float64x4 Float64x4_div_dx4_d(const Float64x4 x, const fp64 y) {
 	#ifdef FLOAT64X4_IEEE_MODE
 		return Float64x4_div_accurate_dx4_d(x, y);
 	#else
@@ -1912,7 +1912,7 @@ inline Float64x4 Float64x4_div_dx4_d(const Float64x4 x, const fp64 y) {
 
 /* Float64x2 / Float64x4 */
 
-inline Float64x4 Float64x4_div_accurate_dx2_dx4(const Float64x2 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_div_accurate_dx2_dx4(const Float64x2 x, const Float64x4 y) {
 	Float64x4 q, r;
 
 	q.val[0] = x.hi / y.val[0];
@@ -1932,7 +1932,7 @@ inline Float64x4 Float64x4_div_accurate_dx2_dx4(const Float64x2 x, const Float64
 	return q;
 }
 
-inline Float64x4 Float64x4_div_quick_dx2_dx4(const Float64x2 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_div_quick_dx2_dx4(const Float64x2 x, const Float64x4 y) {
 	Float64x4 q, r;
 
 	q.val[0] = x.hi / y.val[0];
@@ -1949,7 +1949,7 @@ inline Float64x4 Float64x4_div_quick_dx2_dx4(const Float64x2 x, const Float64x4 
 	return q;
 }
 
-inline Float64x4 Float64x4_div_dx2_dx4(const Float64x2 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_div_dx2_dx4(const Float64x2 x, const Float64x4 y) {
 	#ifdef FLOAT64X4_IEEE_MODE
 		return Float64x4_div_accurate_dx2_dx4(x, y);
 	#else
@@ -1959,7 +1959,7 @@ inline Float64x4 Float64x4_div_dx2_dx4(const Float64x2 x, const Float64x4 y) {
 
 /* fp64 / Float64x4 */
 
-inline Float64x4 Float64x4_div_accurate_d_dx4(const fp64 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_div_accurate_d_dx4(const fp64 x, const Float64x4 y) {
 	Float64x4 q, r;
 
 	q.val[0] = x / y.val[0];
@@ -1979,7 +1979,7 @@ inline Float64x4 Float64x4_div_accurate_d_dx4(const fp64 x, const Float64x4 y) {
 	return q;
 }
 
-inline Float64x4 Float64x4_div_quick_d_dx4(const fp64 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_div_quick_d_dx4(const fp64 x, const Float64x4 y) {
 	Float64x4 q, r;
 
 	q.val[0] = x / y.val[0];
@@ -1996,7 +1996,7 @@ inline Float64x4 Float64x4_div_quick_d_dx4(const fp64 x, const Float64x4 y) {
 	return q;
 }
 
-inline Float64x4 Float64x4_div_d_dx4(const fp64 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_div_d_dx4(const fp64 x, const Float64x4 y) {
 	#ifdef FLOAT64X4_IEEE_MODE
 		return Float64x4_div_accurate_d_dx4(x, y);
 	#else
@@ -2014,7 +2014,7 @@ inline Float64x4 Float64x4_div_d_dx4(const fp64 x, const Float64x4 y) {
 
 /* Float64x2 / Float64x2 */
 
-inline Float64x4 Float64x4_div_accurate_dx2_dx2(const Float64x2 x, const Float64x2 y) {
+static inline Float64x4 Float64x4_div_accurate_dx2_dx2(const Float64x2 x, const Float64x2 y) {
 	Float64x4 q, r;
 
 	q.val[0] = x.hi / y.hi;
@@ -2034,7 +2034,7 @@ inline Float64x4 Float64x4_div_accurate_dx2_dx2(const Float64x2 x, const Float64
 	return q;
 }
 
-inline Float64x4 Float64x4_div_quick_dx2_dx2(const Float64x2 x, const Float64x2 y) {
+static inline Float64x4 Float64x4_div_quick_dx2_dx2(const Float64x2 x, const Float64x2 y) {
 	Float64x4 q, r;
 
 	q.val[0] = x.hi / y.hi;
@@ -2051,7 +2051,7 @@ inline Float64x4 Float64x4_div_quick_dx2_dx2(const Float64x2 x, const Float64x2 
 	return q;
 }
 
-inline Float64x4 Float64x4_div_dx2_dx2(const Float64x2 x, const Float64x2 y) {
+static inline Float64x4 Float64x4_div_dx2_dx2(const Float64x2 x, const Float64x2 y) {
 	#ifdef FLOAT64X4_IEEE_MODE
 		return Float64x4_div_accurate_dx2_dx2(x, y);
 	#else
@@ -2061,7 +2061,7 @@ inline Float64x4 Float64x4_div_dx2_dx2(const Float64x2 x, const Float64x2 y) {
 
 /* Float64x2 / fp64 */
 
-inline Float64x4 Float64x4_div_accurate_dx2_d(const Float64x2 x, const fp64 y) {
+static inline Float64x4 Float64x4_div_accurate_dx2_d(const Float64x2 x, const fp64 y) {
 	Float64x4 q, r;
 
 	q.val[0] = x.hi / y;
@@ -2081,7 +2081,7 @@ inline Float64x4 Float64x4_div_accurate_dx2_d(const Float64x2 x, const fp64 y) {
 	return q;
 }
 
-inline Float64x4 Float64x4_div_quick_dx2_d(const Float64x2 x, const fp64 y) {
+static inline Float64x4 Float64x4_div_quick_dx2_d(const Float64x2 x, const fp64 y) {
 	Float64x4 q, r;
 
 	q.val[0] = x.hi / y;
@@ -2098,7 +2098,7 @@ inline Float64x4 Float64x4_div_quick_dx2_d(const Float64x2 x, const fp64 y) {
 	return q;
 }
 
-inline Float64x4 Float64x4_div_dx2_d(const Float64x2 x, const fp64 y) {
+static inline Float64x4 Float64x4_div_dx2_d(const Float64x2 x, const fp64 y) {
 	#ifdef FLOAT64X4_IEEE_MODE
 		return Float64x4_div_accurate_dx2_d(x, y);
 	#else
@@ -2108,7 +2108,7 @@ inline Float64x4 Float64x4_div_dx2_d(const Float64x2 x, const fp64 y) {
 
 /* fp64 / Float64x2 */
 
-inline Float64x4 Float64x4_div_accurate_d_dx2(const fp64 x, const Float64x2 y) {
+static inline Float64x4 Float64x4_div_accurate_d_dx2(const fp64 x, const Float64x2 y) {
 	Float64x4 q, r;
 
 	q.val[0] = x / y.hi;
@@ -2128,7 +2128,7 @@ inline Float64x4 Float64x4_div_accurate_d_dx2(const fp64 x, const Float64x2 y) {
 	return q;
 }
 
-inline Float64x4 Float64x4_div_quick_d_dx2(const fp64 x, const Float64x2 y) {
+static inline Float64x4 Float64x4_div_quick_d_dx2(const fp64 x, const Float64x2 y) {
 	Float64x4 q, r;
 
 	q.val[0] = x / y.hi;
@@ -2145,7 +2145,7 @@ inline Float64x4 Float64x4_div_quick_d_dx2(const fp64 x, const Float64x2 y) {
 	return q;
 }
 
-inline Float64x4 Float64x4_div_d_dx2(const fp64 x, const Float64x2 y) {
+static inline Float64x4 Float64x4_div_d_dx2(const fp64 x, const Float64x2 y) {
 	#ifdef FLOAT64X4_IEEE_MODE
 		return Float64x4_div_accurate_d_dx2(x, y);
 	#else
@@ -2155,7 +2155,7 @@ inline Float64x4 Float64x4_div_d_dx2(const fp64 x, const Float64x2 y) {
 
 /* fp64 / fp64 */
 
-inline Float64x4 Float64x4_div_accurate_d_d(const fp64 x, const fp64 y) {
+static inline Float64x4 Float64x4_div_accurate_d_d(const fp64 x, const fp64 y) {
 	Float64x4 q, r;
 
 	q.val[0] = x / y;
@@ -2175,7 +2175,7 @@ inline Float64x4 Float64x4_div_accurate_d_d(const fp64 x, const fp64 y) {
 	return q;
 }
 
-inline Float64x4 Float64x4_div_quick_d_d(const fp64 x, const fp64 y) {
+static inline Float64x4 Float64x4_div_quick_d_d(const fp64 x, const fp64 y) {
 	Float64x4 q, r;
 
 	q.val[0] = x / y;
@@ -2192,7 +2192,7 @@ inline Float64x4 Float64x4_div_quick_d_d(const fp64 x, const fp64 y) {
 	return q;
 }
 
-inline Float64x4 Float64x4_div_d_d(const fp64 x, const fp64 y) {
+static inline Float64x4 Float64x4_div_d_d(const fp64 x, const fp64 y) {
 	#ifdef FLOAT64X4_IEEE_MODE
 		return Float64x4_div_accurate_d_d(x, y);
 	#else
@@ -2210,7 +2210,7 @@ inline Float64x4 Float64x4_div_d_d(const fp64 x, const fp64 y) {
 
 /* 1.0 / Float64x4 */
 
-inline Float64x4 Float64x4_recip_accurate(const Float64x4 y) {
+static inline Float64x4 Float64x4_recip_accurate(const Float64x4 y) {
 	Float64x4 q, r;
 
 	q.val[0] = 1.0 / y.val[0];
@@ -2230,7 +2230,7 @@ inline Float64x4 Float64x4_recip_accurate(const Float64x4 y) {
 	return q;
 }
 
-inline Float64x4 Float64x4_recip_quick(const Float64x4 y) {
+static inline Float64x4 Float64x4_recip_quick(const Float64x4 y) {
 	Float64x4 q, r;
 
 	q.val[0] = 1.0 / y.val[0];
@@ -2247,7 +2247,7 @@ inline Float64x4 Float64x4_recip_quick(const Float64x4 y) {
 	return q;
 }
 
-inline Float64x4 Float64x4_recip(const Float64x4 y) {
+static inline Float64x4 Float64x4_recip(const Float64x4 y) {
 	#ifdef FLOAT64X4_IEEE_MODE
 		return Float64x4_recip_accurate(y);
 	#else
@@ -2257,7 +2257,7 @@ inline Float64x4 Float64x4_recip(const Float64x4 y) {
 
 /* 1.0 / Float64x2 */
 
-inline Float64x4 Float64x4_recip_accurate_dx2(const Float64x2 y) {
+static inline Float64x4 Float64x4_recip_accurate_dx2(const Float64x2 y) {
 	Float64x4 q, r;
 
 	q.val[0] = 1.0 / y.hi;
@@ -2277,7 +2277,7 @@ inline Float64x4 Float64x4_recip_accurate_dx2(const Float64x2 y) {
 	return q;
 }
 
-inline Float64x4 Float64x4_recip_quick_dx2(const Float64x2 y) {
+static inline Float64x4 Float64x4_recip_quick_dx2(const Float64x2 y) {
 	Float64x4 q, r;
 
 	q.val[0] = 1.0 / y.hi;
@@ -2294,7 +2294,7 @@ inline Float64x4 Float64x4_recip_quick_dx2(const Float64x2 y) {
 	return q;
 }
 
-inline Float64x4 Float64x4_recip_dx2(const Float64x2 y) {
+static inline Float64x4 Float64x4_recip_dx2(const Float64x2 y) {
 	#ifdef FLOAT64X4_IEEE_MODE
 		return Float64x4_recip_accurate_dx2(y);
 	#else
@@ -2304,7 +2304,7 @@ inline Float64x4 Float64x4_recip_dx2(const Float64x2 y) {
 
 /* 1.0 / fp64 */
 
-inline Float64x4 Float64x4_recip_accurate_d(const fp64 y) {
+static inline Float64x4 Float64x4_recip_accurate_d(const fp64 y) {
 	Float64x4 q, r;
 
 	q.val[0] = 1.0 / y;
@@ -2324,7 +2324,7 @@ inline Float64x4 Float64x4_recip_accurate_d(const fp64 y) {
 	return q;
 }
 
-inline Float64x4 Float64x4_recip_quick_d(const fp64 y) {
+static inline Float64x4 Float64x4_recip_quick_d(const fp64 y) {
 	Float64x4 q, r;
 
 	q.val[0] = 1.0 / y;
@@ -2341,7 +2341,7 @@ inline Float64x4 Float64x4_recip_quick_d(const fp64 y) {
 	return q;
 }
 
-inline Float64x4 Float64x4_recip_d(const fp64 y) {
+static inline Float64x4 Float64x4_recip_d(const fp64 y) {
 	#ifdef FLOAT64X4_IEEE_MODE
 		return Float64x4_recip_accurate_d(y);
 	#else
@@ -2356,7 +2356,7 @@ inline Float64x4 Float64x4_recip_d(const fp64 y) {
 /**
  * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero
  */
-inline Float64x4 Float64x4_mul_power2_dx4_d(Float64x4 x, const fp64 y) {
+static inline Float64x4 Float64x4_mul_power2_dx4_d(Float64x4 x, const fp64 y) {
 	x.val[0] *= y;
 	x.val[1] *= y;
 	x.val[2] *= y;
@@ -2367,7 +2367,7 @@ inline Float64x4 Float64x4_mul_power2_dx4_d(Float64x4 x, const fp64 y) {
 /**
  * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero
  */
-inline Float64x4 Float64x4_mul_power2_d_dx4(const fp64 x, Float64x4 y) {
+static inline Float64x4 Float64x4_mul_power2_d_dx4(const fp64 x, Float64x4 y) {
 	y.val[0] *= x;
 	y.val[1] *= x;
 	y.val[2] *= x;
@@ -2379,7 +2379,7 @@ inline Float64x4 Float64x4_mul_power2_d_dx4(const fp64 x, Float64x4 y) {
  * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero.
  * The result is stored as a Float64x4
  */
-inline Float64x4 Float64x4_mul_power2_d_d(const fp64 x, const fp64 y) {
+static inline Float64x4 Float64x4_mul_power2_d_d(const fp64 x, const fp64 y) {
 	Float64x4 ret;
 	ret.val[0] = x * y;
 	ret.val[1] = 0.0;
@@ -2392,7 +2392,7 @@ inline Float64x4 Float64x4_mul_power2_d_d(const fp64 x, const fp64 y) {
 // Float64x4 bitwise operations
 //------------------------------------------------------------------------------
 
-inline Float64x4 Float64x4_bitwise_not(const Float64x4 x) {
+static inline Float64x4 Float64x4_bitwise_not(const Float64x4 x) {
 	Bitwise_Float64x4 x0;
 	x0.float_part = x;
 	x0.binary_part.val[0] = ~x0.binary_part.val[0];
@@ -2402,7 +2402,7 @@ inline Float64x4 Float64x4_bitwise_not(const Float64x4 x) {
 	return x0.float_part;
 }
 
-inline Float64x4 Float64x4_bitwise_and(const Float64x4 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_bitwise_and(const Float64x4 x, const Float64x4 y) {
 	Bitwise_Float64x4 x0, y0;
 	x0.float_part = x;
 	y0.float_part = y;
@@ -2413,7 +2413,7 @@ inline Float64x4 Float64x4_bitwise_and(const Float64x4 x, const Float64x4 y) {
 	return x0.float_part;
 }
 
-inline Float64x4 Float64x4_bitwise_andnot(const Float64x4 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_bitwise_andnot(const Float64x4 x, const Float64x4 y) {
 	Bitwise_Float64x4 x0, y0;
 	x0.float_part = x;
 	y0.float_part = y;
@@ -2424,7 +2424,7 @@ inline Float64x4 Float64x4_bitwise_andnot(const Float64x4 x, const Float64x4 y) 
 	return x0.float_part;
 }
 
-inline Float64x4 Float64x4_bitwise_or(const Float64x4 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_bitwise_or(const Float64x4 x, const Float64x4 y) {
 	Bitwise_Float64x4 x0, y0;
 	x0.float_part = x;
 	y0.float_part = y;
@@ -2435,7 +2435,7 @@ inline Float64x4 Float64x4_bitwise_or(const Float64x4 x, const Float64x4 y) {
 	return x0.float_part;
 }
 
-inline Float64x4 Float64x4_bitwise_xor(const Float64x4 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_bitwise_xor(const Float64x4 x, const Float64x4 y) {
 	Bitwise_Float64x4 x0, y0;
 	x0.float_part = x;
 	y0.float_part = y;
@@ -2450,11 +2450,11 @@ inline Float64x4 Float64x4_bitwise_xor(const Float64x4 x, const Float64x4 y) {
 // Float64x4 max/min functions
 //------------------------------------------------------------------------------
 
-inline Float64x4 Float64x4_max(const Float64x4 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_max(const Float64x4 x, const Float64x4 y) {
 	return Float64x4_cmpge(x, y) ? x : y;
 }
 
-inline Float64x4 Float64x4_min(const Float64x4 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_min(const Float64x4 x, const Float64x4 y) {
 	return Float64x4_cmplt(x, y) ? x : y;
 }
 
@@ -2462,19 +2462,19 @@ inline Float64x4 Float64x4_min(const Float64x4 x, const Float64x4 y) {
 // Float64x4 math.h comparison functions
 //------------------------------------------------------------------------------
 
-inline bool Float64x4_isgreater(const Float64x4 x, const Float64x4 y) {
+static inline bool Float64x4_isgreater(const Float64x4 x, const Float64x4 y) {
 	return Float64x4_cmpgt(x, y);
 }
-inline bool Float64x4_isgreaterequal(const Float64x4 x, const Float64x4 y) {
+static inline bool Float64x4_isgreaterequal(const Float64x4 x, const Float64x4 y) {
 	return Float64x4_cmpge(x, y);
 }
-inline bool Float64x4_isless(const Float64x4 x, const Float64x4 y) {
+static inline bool Float64x4_isless(const Float64x4 x, const Float64x4 y) {
 	return Float64x4_cmplt(x, y);
 }
-inline bool Float64x4_islessequal(const Float64x4 x, const Float64x4 y) {
+static inline bool Float64x4_islessequal(const Float64x4 x, const Float64x4 y) {
 	return Float64x4_cmple(x, y);
 }
-inline bool Float64x4_islessgreater(const Float64x4 x, const Float64x4 y) {
+static inline bool Float64x4_islessgreater(const Float64x4 x, const Float64x4 y) {
 	return Float64x4_cmplt(x, y) || Float64x4_cmpgt(x, y);
 }
 
@@ -2486,7 +2486,7 @@ inline bool Float64x4_islessgreater(const Float64x4 x, const Float64x4 y) {
  * @author Taken from libQD which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-inline Float64x4 Float64x4_trunc(const Float64x4 x) {
+static inline Float64x4 Float64x4_trunc(const Float64x4 x) {
 	Float64x4 ret = {{trunc(x.val[0]), 0.0, 0.0, 0.0}};
 	if (ret.val[0] == x.val[0]) {
 		ret.val[1] = trunc(x.val[1]);
@@ -2506,7 +2506,7 @@ inline Float64x4 Float64x4_trunc(const Float64x4 x) {
 /**
  * @brief qd_real/fortran compatibility. Calls Float64x4_trunc(x)
  */
-inline Float64x4 Float64x4_aint(const Float64x4 x) {
+static inline Float64x4 Float64x4_aint(const Float64x4 x) {
 	return Float64x4_trunc(x);
 }
 
@@ -2514,7 +2514,7 @@ inline Float64x4 Float64x4_aint(const Float64x4 x) {
  * @author Taken from libQD which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-inline Float64x4 Float64x4_floor(const Float64x4 x) {
+static inline Float64x4 Float64x4_floor(const Float64x4 x) {
 	Float64x4 ret = {{floor(x.val[0]), 0.0, 0.0, 0.0}};
 	if (ret.val[0] == x.val[0]) {
 		ret.val[1] = floor(x.val[1]);
@@ -2531,7 +2531,7 @@ inline Float64x4 Float64x4_floor(const Float64x4 x) {
 	}
 	return ret;
 }
-inline Float64x4 Float64x4_ceil(const Float64x4 x) {
+static inline Float64x4 Float64x4_ceil(const Float64x4 x) {
 	Float64x4 ret = {{ceil(x.val[0]), 0.0, 0.0, 0.0}};
 	if (ret.val[0] == x.val[0]) {
 		ret.val[1] = ceil(x.val[1]);
@@ -2553,7 +2553,7 @@ inline Float64x4 Float64x4_ceil(const Float64x4 x) {
  * @author Taken from libQD which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-inline Float64x4 Float64x4_round(const Float64x4 x) {
+static inline Float64x4 Float64x4_round(const Float64x4 x) {
 	Float64x4 ret = {{round(x.val[0]), 0.0, 0.0, 0.0}};
 	if (ret.val[0] == x.val[0]) {
 		/* First double is already an integer. */
@@ -2590,11 +2590,11 @@ inline Float64x4 Float64x4_round(const Float64x4 x) {
 /**
  * @brief qd_real/fortran compatibility. Calls Float64x4_round(x)
  */
-inline Float64x4 Float64x4_nint(const Float64x4 x) {
+static inline Float64x4 Float64x4_nint(const Float64x4 x) {
 	return Float64x4_round(x);
 }
 
-inline Float64x4 Float64x4_rint(const Float64x4 x) {
+static inline Float64x4 Float64x4_rint(const Float64x4 x) {
 	switch (fegetround()) {
 		default:
 		case FE_TOWARDZERO:
@@ -2607,19 +2607,19 @@ inline Float64x4 Float64x4_rint(const Float64x4 x) {
 			return Float64x4_round(x);
 	}
 }
-inline long Float64x4_lround(const Float64x4 x) {
+static inline long Float64x4_lround(const Float64x4 x) {
 	Float64x4 ret = Float64x4_round(x);
 	return (long)ret.val[0] + (long)ret.val[1];
 }
-inline long Float64x4_lrint(const Float64x4 x) {
+static inline long Float64x4_lrint(const Float64x4 x) {
 	Float64x4 ret = Float64x4_rint(x);
 	return (long)ret.val[0] + (long)ret.val[1];
 }
-inline long long Float64x4_llround(const Float64x4 x) {
+static inline long long Float64x4_llround(const Float64x4 x) {
 	Float64x4 ret = Float64x4_round(x);
 	return (long long)ret.val[0] + (long long)ret.val[1] + (long long)ret.val[2];
 }
-inline long long Float64x4_llrint(const Float64x4 x) {
+static inline long long Float64x4_llrint(const Float64x4 x) {
 	Float64x4 ret = Float64x4_rint(x);
 	return (long long)ret.val[0] + (long long)ret.val[1] + (long long)ret.val[2];
 }
@@ -2628,25 +2628,25 @@ inline long long Float64x4_llrint(const Float64x4 x) {
 // Float64x4 math.h functions
 //------------------------------------------------------------------------------
 
-inline Float64x4 Float64x4_fabs(const Float64x4 x) {
+static inline Float64x4 Float64x4_fabs(const Float64x4 x) {
 	return (
 		Float64x4_cmplt_zero(x)
 	) ? Float64x4_negate(x) : x;
 }
 
-inline Float64x4 Float64x4_fdim(const Float64x4 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_fdim(const Float64x4 x, const Float64x4 y) {
 	return (
 		Float64x4_cmple(x, y)
 	) ? Float64x4_sub(x, y) : Float64x4_set_zero();
 }
 
-inline Float64x4 Float64x4_copysign(const Float64x4 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_copysign(const Float64x4 x, const Float64x4 y) {
 	return (
 		Float64x4_cmplt_zero(x) != Float64x4_cmplt_zero(y)
 	) ? Float64x4_negate(x) : x;
 }
 
-inline Float64x4 Float64x4_sqrt(const Float64x4 x) {
+static inline Float64x4 Float64x4_sqrt(const Float64x4 x) {
 	if (Float64x4_cmpeq_zero(x)) {
 		return x;
 	}
@@ -2657,7 +2657,7 @@ inline Float64x4 Float64x4_sqrt(const Float64x4 x) {
 	), 0.5);
 }
 
-inline Float64x4 Float64x4_cbrt(const Float64x4 x) {
+static inline Float64x4 Float64x4_cbrt(const Float64x4 x) {
 	if (Float64x4_cmpeq_zero(x)) {
 		return x;
 	}
@@ -2672,7 +2672,7 @@ inline Float64x4 Float64x4_cbrt(const Float64x4 x) {
 /**
 * @brief returns the fraction part of a Float64x4 value. int_part may be NULL
 */
-inline Float64x4 Float64x4_modf(const Float64x4 x, Float64x4* const int_part) {
+static inline Float64x4 Float64x4_modf(const Float64x4 x, Float64x4* const int_part) {
 	Float64x4 trunc_part = Float64x4_trunc(x);
 	if (int_part != NULL) {
 		*int_part = trunc_part;
@@ -2680,7 +2680,7 @@ inline Float64x4 Float64x4_modf(const Float64x4 x, Float64x4* const int_part) {
 	return Float64x4_sub(x, trunc_part);
 }
 
-inline Float64x4 Float64x4_fmod(const Float64x4 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_fmod(const Float64x4 x, const Float64x4 y) {
 	Float64x4 trunc_part = Float64x4_trunc(Float64x4_div(x, y));
 	return Float64x4_sub(x, Float64x4_mul(y, trunc_part));
 }
@@ -2691,33 +2691,33 @@ inline Float64x4 Float64x4_fmod(const Float64x4 x, const Float64x4 y) {
 
 Float64x4 Float64x4_exp(Float64x4 x);
 Float64x4 Float64x4_expm1(Float64x4 x);
-inline Float64x4 Float64x4_exp2(const Float64x4 x) {
+static inline Float64x4 Float64x4_exp2(const Float64x4 x) {
 	const Float64x4 mult_val = FLOAT64X4_LN2;
 	return Float64x4_exp(Float64x4_mul(x, mult_val));
 }
-inline Float64x4 Float64x4_exp10(const Float64x4 x) {
+static inline Float64x4 Float64x4_exp10(const Float64x4 x) {
 	const Float64x4 mult_val = FLOAT64X4_LN10;
 	return Float64x4_exp(Float64x4_mul(x, mult_val));
 }
 
 Float64x4 Float64x4_log(Float64x4 x);
 Float64x4 Float64x4_log1p(Float64x4 x);
-inline Float64x4 Float64x4_log2(const Float64x4 x) {
+static inline Float64x4 Float64x4_log2(const Float64x4 x) {
 	const Float64x4 mult_val = FLOAT64X4_LOG2E;
 	return Float64x4_mul(Float64x4_log(x), mult_val);
 }
-inline Float64x4 Float64x4_log10(const Float64x4 x) {
+static inline Float64x4 Float64x4_log10(const Float64x4 x) {
 	const Float64x4 mult_val = FLOAT64X4_LOG10E;
 	return Float64x4_mul(Float64x4_log(x), mult_val);
 }
 
-inline Float64x4 Float64x4_pow(const Float64x4 x, const Float64x4 y) {
+static inline Float64x4 Float64x4_pow(const Float64x4 x, const Float64x4 y) {
 	return Float64x4_exp(Float64x4_mul(Float64x4_log(x), y));
 }
-inline Float64x4 Float64x4_pow_dx4_dx2(const Float64x4 x, const Float64x2 y) {
+static inline Float64x4 Float64x4_pow_dx4_dx2(const Float64x4 x, const Float64x2 y) {
 	return Float64x4_exp(Float64x4_mul_dx4_dx2(Float64x4_log(x), y));
 }
-inline Float64x4 Float64x4_pow_dx4_d(const Float64x4 x, const fp64 y) {
+static inline Float64x4 Float64x4_pow_dx4_d(const Float64x4 x, const fp64 y) {
 	return Float64x4_exp(Float64x4_mul_dx4_d(Float64x4_log(x), y));
 }
 
@@ -2728,7 +2728,7 @@ inline Float64x4 Float64x4_pow_dx4_d(const Float64x4 x, const fp64 y) {
 Float64x4 Float64x4_sin(Float64x4 x);
 Float64x4 Float64x4_cos(Float64x4 x);
 void Float64x4_sincos(Float64x4 x, Float64x4* p_sin, Float64x4* p_cos);
-inline Float64x4 Float64x4_tan(const Float64x4 x) {
+static inline Float64x4 Float64x4_tan(const Float64x4 x) {
 	Float64x4 t_sin, t_cos;
 	Float64x4_sincos(x, &t_sin, &t_cos);
 	return Float64x4_div(t_sin, t_cos);
@@ -2741,7 +2741,7 @@ Float64x4 Float64x4_atan2(Float64x4 y, Float64x4 x);
 
 /** @note sinh is inaccurate when x is close to 0, which is why it isn't inlined */
 Float64x4 Float64x4_sinh(Float64x4 x);
-inline Float64x4 Float64x4_cosh(const Float64x4 x) {
+static inline Float64x4 Float64x4_cosh(const Float64x4 x) {
 	Float64x4 exp_x = Float64x4_exp(x);
 	return Float64x4_mul_power2_dx4_d(Float64x4_add(
 		exp_x, Float64x4_recip(exp_x)
@@ -2750,21 +2750,21 @@ inline Float64x4 Float64x4_cosh(const Float64x4 x) {
 Float64x4 Float64x4_tanh(Float64x4 x);
 void Float64x4_sinhcosh(Float64x4 x, Float64x4* p_sinh, Float64x4* p_cosh);
 
-inline Float64x4 Float64x4_asinh(const Float64x4 x) {
+static inline Float64x4 Float64x4_asinh(const Float64x4 x) {
 	return Float64x4_log(Float64x4_add(x,
 		Float64x4_sqrt(
 			Float64x4_sub_dx4_d(Float64x4_square(x), 1.0)
 		)
 	));
 }
-inline Float64x4 Float64x4_acosh(const Float64x4 x) {
+static inline Float64x4 Float64x4_acosh(const Float64x4 x) {
 	return Float64x4_log(Float64x4_add(x,
 		Float64x4_sqrt(
 			Float64x4_add_dx4_d(Float64x4_square(x), 1.0)
 		)
 	));
 }
-inline Float64x4 Float64x4_atanh(const Float64x4 x) {
+static inline Float64x4 Float64x4_atanh(const Float64x4 x) {
 	return Float64x4_mul_power2_dx4_d(Float64x4_log(Float64x4_div(
 			Float64x4_add_d_dx4(1.0, x),
 			Float64x4_sub_d_dx4(1.0, x)

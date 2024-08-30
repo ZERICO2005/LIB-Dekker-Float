@@ -186,24 +186,8 @@ static inline Float64x2 taylor_expm1(const Float64x2& x, fp64& m) {
 		evaluated using the familiar Taylor series.  Reducing the 
 		argument substantially speeds up the convergence.       */  
 
-	const fp64 k = 512.0;
-	const fp64 inv_k = 1.0 / k;
-
-	if (x.hi <= -709.0) {
-		return static_cast<Float64x2>(0.0);
-	}
-
-	if (x.hi >= 709.0) {
-		return std::numeric_limits<Float64x2>::infinity();
-	}
-
-	if (dekker_equal_zero(x)) {
-		return static_cast<fp64>(1.0);
-	}
-
-	if (dekker_equal_zero(x)) {
-		return Float64x2_euler;
-	}
+	constexpr fp64 k = 512.0;
+	constexpr fp64 inv_k = 1.0 / k;
 
 	m = floor(x.hi * Float64x2_log2e.hi + 0.5);
 	Float64x2 r = mul_pwr2(x - Float64x2_ln2 * m, inv_k);
@@ -242,6 +226,19 @@ static inline Float64x2 taylor_expm1(const Float64x2& x, fp64& m) {
 }
 
 Float64x2 exp(const Float64x2& x) {
+	if (x.hi <= -709.0) {
+		return static_cast<Float64x2>(0.0);
+	}
+	if (x.hi >= 709.0) {
+		return std::numeric_limits<Float64x2>::infinity();
+	}
+	if (dekker_equal_zero(x)) {
+		return static_cast<Float64x2>(1.0);
+	}
+	if (x == 1.0) {
+		return Float64x2_euler;
+	}
+
 	fp64 m;
 	Float64x2 ret = taylor_expm1(x, m);
 	ret += 1.0;
@@ -249,6 +246,15 @@ Float64x2 exp(const Float64x2& x) {
 }
 
 Float64x2 expm1(const Float64x2& x) {
+	if (x.hi <= -709.0) {
+		return static_cast<Float64x2>(0.0);
+	}
+	if (x.hi >= 709.0) {
+		return std::numeric_limits<Float64x2>::infinity();
+	}
+	if (dekker_equal_zero(x)) {
+		return static_cast<Float64x2>(0.0);
+	}
 	fp64 m;
 	Float64x2 ret = taylor_expm1(x, m);
 	/**

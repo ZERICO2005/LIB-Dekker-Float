@@ -24,8 +24,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./bin")
 	set(FEATURE_ColorDiagnostics "")
 
 # Compiling
-	set(CMAKE_C_COMPILER "clang")
-	set(CMAKE_CXX_COMPILER "clang++")
+	set(CMAKE_C_COMPILER "gcc")
+	set(CMAKE_CXX_COMPILER "g++")
 
 # Set C and C++ standards
 	set(CMAKE_C_STANDARD 99)
@@ -83,7 +83,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./bin")
 	set(WARNING_IGNORE_FLAGS
 		# Supress extra warnings below
 		-Wno-c++17-extensions
-		-Wno-static-in-inline
 	)
 
 	set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   ${FLAG_ColorDiagnostics}")

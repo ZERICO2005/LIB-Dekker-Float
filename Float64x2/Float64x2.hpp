@@ -707,7 +707,7 @@ namespace std {
 
 /* Constant Aliases */
 
-	constexpr Float64x2 Float64x2_euler = Float64x2_e   ; /**< ~0.693147181 */
+	constexpr Float64x2 Float64x2_euler = Float64x2_e   ; /**< ~2.718281828 */
 
 	constexpr Float64x2 Float64x2_tau   = Float64x2_2pi ; /**< ~6.283185 */
 	constexpr Float64x2 Float64x2_tau2  = Float64x2_pi  ; /**< ~3.141593 */
