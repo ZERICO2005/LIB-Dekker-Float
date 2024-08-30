@@ -196,13 +196,13 @@ void _mm256x4_sinhcosh_pdx4(
 	const __m256dx4 theta, __m256dx4* const p_sinh, __m256dx4* const p_cosh
 ) {
 	Float64x4 val[4];
-	Float64x4 sin_val[4];
-	Float64x4 cos_val[4];
+	Float64x4 sinh_val[4];
+	Float64x4 cosh_val[4];
 	_mm256x4_store_pdx4(val, theta);
-	Float64x4_sinhcosh(val[0], &sin_val[0], &cos_val[0]);
-	Float64x4_sinhcosh(val[1], &sin_val[1], &cos_val[1]);
-	Float64x4_sinhcosh(val[2], &sin_val[2], &cos_val[2]);
-	Float64x4_sinhcosh(val[3], &sin_val[3], &cos_val[3]);
-	*p_sinh = _mm256x4_load_pdx4(sin_val);
-	*p_cosh = _mm256x4_load_pdx4(cos_val);
+	Float64x4_sinhcosh(val[0], &sinh_val[0], &cosh_val[0]);
+	Float64x4_sinhcosh(val[1], &sinh_val[1], &cosh_val[1]);
+	Float64x4_sinhcosh(val[2], &sinh_val[2], &cosh_val[2]);
+	Float64x4_sinhcosh(val[3], &sinh_val[3], &cosh_val[3]);
+	*p_sinh = _mm256x4_load_pdx4(sinh_val);
+	*p_cosh = _mm256x4_load_pdx4(cosh_val);
 }

@@ -291,13 +291,13 @@ void _mm256x2_sinhcosh_pdx2(
 	const __m256dx2 theta, __m256dx2* const p_sinh, __m256dx2* const p_cosh
 ) {
 	Float64x2 val[4];
-	Float64x2 sin_val[4];
-	Float64x2 cos_val[4];
+	Float64x2 sinh_val[4];
+	Float64x2 cosh_val[4];
 	_mm256x2_store_pdx2(val, theta);
-	Float64x2_sinhcosh(val[0], &sin_val[0], &cos_val[0]);
-	Float64x2_sinhcosh(val[1], &sin_val[1], &cos_val[1]);
-	Float64x2_sinhcosh(val[2], &sin_val[2], &cos_val[2]);
-	Float64x2_sinhcosh(val[3], &sin_val[3], &cos_val[3]);
-	*p_sinh = _mm256x2_load_pdx2(sin_val);
-	*p_cosh = _mm256x2_load_pdx2(cos_val);
+	Float64x2_sinhcosh(val[0], &sinh_val[0], &cosh_val[0]);
+	Float64x2_sinhcosh(val[1], &sinh_val[1], &cosh_val[1]);
+	Float64x2_sinhcosh(val[2], &sinh_val[2], &cosh_val[2]);
+	Float64x2_sinhcosh(val[3], &sinh_val[3], &cosh_val[3]);
+	*p_sinh = _mm256x2_load_pdx2(sinh_val);
+	*p_cosh = _mm256x2_load_pdx2(cosh_val);
 }
