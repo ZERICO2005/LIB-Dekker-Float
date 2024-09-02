@@ -9,7 +9,6 @@
 #include "Float64x2.h"
 #include "Float64x2_AVX.h"
 
-#include <emmintrin.h>
 #include <immintrin.h>
 
 static inline __m256dx2 _mm256x2_taylor_expm1_pdx2(const __m256dx2 x, __m128i* m_bin) {
@@ -80,31 +79,16 @@ __m256dx2 _mm256x2_exp_pdx2(const __m256dx2 x) {
 	__m256dx2 ret = _mm256x2_taylor_expm1_pdx2(x, &m_bin);
 	ret = _mm256x2_add_pdx2_pd(ret, _mm256_set1_pd(1.0));
 	
-	// Adds to the exponent bits of a ieee float
-	__m128 m_mult = _mm_castsi128_ps(_mm_and_si128(
-		_mm_add_epi32(
-			_mm_castps_si128(_mm_set1_ps(1.0f)), _mm_slli_epi32(m_bin, 23)
-		),
-		_mm_set1_epi32(0x7F800000)
-	));
-	
-	return _mm256x2_mul_pdx2_pd(ret, _mm256_cvtps_pd(m_mult));
+	return _mm256x2_mul_pdx2_pd(ret, _mm256_ldexp1_pd_epi32(m_bin));
 }
 
 __m256dx2 _mm256x2_expm1_pdx2(const __m256dx2 x) {
 	__m128i m_bin;
 	__m256dx2 ret_expm1 = _mm256x2_taylor_expm1_pdx2(x, &m_bin);
 
-	// Adds to the exponent bits of a ieee float
 	__m256dx2 ret = _mm256x2_add_pdx2_pd(ret_expm1, _mm256_set1_pd(1.0));
 	
-	__m128 m_mult =  _mm_castsi128_ps(_mm_and_si128(
-		_mm_add_epi32(
-			_mm_castps_si128(_mm_set1_ps(1.0f)), _mm_slli_epi32(m_bin, 23)
-		),
-		_mm_set1_epi32(0x7F800000)
-	));
-	ret = _mm256x2_mul_pdx2_pd(ret, _mm256_cvtps_pd(m_mult));
+	ret = _mm256x2_mul_pdx2_pd(ret, _mm256_ldexp1_pd_epi32(m_bin));
 	ret = _mm256x2_sub_pdx2_pd(ret, _mm256_set1_pd(1.0));
 
 	// Check if x was in range

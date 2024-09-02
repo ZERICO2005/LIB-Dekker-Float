@@ -40,8 +40,8 @@ void func(void) {
 		int64_t start = getNanoTime();
 		__m256dx2 result;
 		// 16777216 tests took around 4.084s compared to 15.994s for the non-AVX exp function.
-		for (int t = 0; t < 256; t++) {
-			result = _mm256x2_expm1_pdx2(calc);
+		for (int t = 0; t < 1 /* 256 */; t++) {
+			result = _mm256x2_exp_pdx2(calc);
 		}
 		int64_t finish = getNanoTime();
 		printf("Time: %.3lfms\n", (fp64)(finish - start) * 1.0e-6);

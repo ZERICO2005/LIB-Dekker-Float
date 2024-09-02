@@ -16,12 +16,15 @@
  * preprocessor isn't aware of function definitions
  */
 
+#include <emmintrin.h>
 #if (!defined(__AVX__) && defined(__GNUC__))
 	#error "__AVX__ is not enabled in your compiler. Try -mavx"
 #endif
 
 #include <stdint.h>
 #include <immintrin.h>
+
+#include "Float64_SSE2.h"
 
 #ifdef __cplusplus
 	extern "C" {
@@ -141,7 +144,7 @@ static inline __m256d _mm256_const_phi_pd(void) {
 // __m256d floating point manipulation
 //------------------------------------------------------------------------------
 
-/** @brief Returns a __m256dx4 value set to positive infinity */
+/** @brief Returns a __m256d value set to positive infinity */
 static inline __m256d _mm256_get_infinity_pd(void) {
 	return _mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FF0000000000000));
 }
@@ -327,6 +330,116 @@ static inline __m256d _mm256_fmin_pd(__m256d x, __m256d y) {
 	return _mm256_blendv_pd(x, y, fmax_cmp);
 }
 #endif
+
+//------------------------------------------------------------------------------
+// __m256d float manipulation
+//------------------------------------------------------------------------------
+
+#ifdef __AVX2__
+
+	/**
+	 * @brief Computes ldexp(1.0, exp) using AVX2 integer operations
+	 */
+	static inline __m256d _mm256_ldexp1_pd_epi64(__m256i exp) {
+		// Adds to the exponent bits of an ieee double
+		return _mm256_castsi256_pd(_mm256_add_epi64(
+			_mm256_castpd_si256(_mm256_set1_pd(1.0)), _mm256_slli_epi64(exp, 52)
+		));
+	}
+
+	/**
+	 * @brief Computes ldexp(1.0, exp) using AVX2 integer operations
+	 */
+	static inline __m256d _mm256_ldexp1_pd_epi32(__m128i exp) {
+		return _mm256_ldexp1_pd_epi64(_mm256_cvtepi32_epi64(exp));
+	}
+
+	/**
+	 * @brief Computes ldexp(1.0, exp) using AVX2 integer operations
+	 */
+	static inline __m256d _mm256_ldexp1_pd_pd(__m256d exp) {
+		return _mm256_ldexp1_pd_epi64(
+			_mm256_cvtepi32_epi64(_mm256_cvttpd_epi32(exp))
+		);
+	}
+
+#else
+
+	/**
+	 * @brief Computes ldexp(1.0, exp) using SSE2 integer operations
+	 */
+	static inline __m256d _mm256_ldexp1_pd_epi64(__m256i exp) {
+		__m128d part_0 = _mm_ldexp1_pd_epi64(_mm256_extractf128_si256(exp, 0));
+		__m128d part_1 = _mm_ldexp1_pd_epi64(_mm256_extractf128_si256(exp, 1));
+		return _mm256_set_m128d(part_0, part_1);
+	}
+
+	/**
+	 * @brief Computes ldexp(1.0, exp) using SSE2 integer operations
+	 */
+	static inline __m256d _mm256_ldexp1_pd_epi32(__m128i exp) {
+		// Turns ABCD---- into -A-B-C-D
+		__m256i extend = _mm256_set_m128i(
+			_mm_castps_si128(_mm_permute_ps(_mm_castsi128_ps(exp), 0x50)),
+			_mm_castps_si128(_mm_permute_ps(_mm_castsi128_ps(exp), 0xFA))
+		);
+		extend = _mm256_castps_si256(_mm256_and_ps(
+			_mm256_castsi256_ps(extend), _mm256_castsi256_ps(_mm256_set1_epi32(0x0000FFFF))
+		));
+		
+		return _mm256_ldexp1_pd_epi64(extend);
+	}
+	
+	/**
+	 * @brief Computes ldexp(1.0, exp) using SSE2 integer operations
+	 */
+	static inline __m256d _mm256_ldexp1_pd_pd(__m256d exp) {
+		return _mm256_ldexp1_pd_epi32(_mm256_cvttpd_epi32(exp));
+	}
+
+#endif
+
+/**
+ * @brief This is an internal funciton, do NOT call it directly.
+ */
+static inline __m256d _internal_mm256_ldexp_pd_epi64(__m256d x, __m256d exp) {
+	__m256d x_mult = _mm256_and_pd(
+		exp,
+		// sign bit and exponent mask
+		_mm256_castsi256_pd(_mm256_set1_epi64x(0xFFF0000000000000))
+	);
+	// blendv checks the most significant bit
+	return _mm256_mul_pd(
+		x, _mm256_blendv_pd(x_mult, _mm256_get_qNaN_pd(), x_mult)
+	);
+}
+
+/**
+ * @brief Computes ldexp(x, exp)
+ * @returns qNaN on overflow/underflow.
+ * @note The result is undefined if exp is >= 1024 or if exp <= -1024
+ */
+static inline __m256d _mm256_ldexp_pd_epi64(__m256d x, __m256i exp) {
+	return _internal_mm256_ldexp_pd_epi64(x, _mm256_ldexp1_pd_epi64(exp));
+}
+
+/**
+ * @brief Computes ldexp(x, exp)
+ * @returns qNaN on overflow/underflow.
+ * @note The result is undefined if exp is >= 1024 or if exp <= -1024
+ */
+static inline __m256d _mm256_ldexp_pd_epi32(__m256d x, __m128i exp) {
+	return _internal_mm256_ldexp_pd_epi64(x, _mm256_ldexp1_pd_epi32(exp));
+}
+
+/**
+ * @brief Computes ldexp(x, exp)
+ * @returns qNaN on overflow/underflow.
+ * @note The result is undefined if exp is >= 1024 or if exp <= -1024
+ */
+static inline __m256d _mm256_ldexp_pd_pd(__m256d x, __m256d exp) {
+	_internal_mm256_ldexp_pd_epi64(x, _mm256_ldexp1_pd_pd(exp));
+}
 
 //------------------------------------------------------------------------------
 // __m256d SVML replacement functions
