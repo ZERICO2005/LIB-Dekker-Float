@@ -1027,30 +1027,31 @@ Float64x2 atanh(const Float64x2& a) {
 // Float64x2 from string
 //------------------------------------------------------------------------------
 
-#include "../FloatNx2/FloatNx2_stringTo.hpp"
+#include "../FloatNxN/FloatNxN_stringTo.hpp"
 
 Float64x2 stringTo_Float64x2(const char* nPtr, char** endPtr) {
-	internal_double_FloatN_stringTo<Float64x2, fp64> stringTo_func;
-	return stringTo_func.stringTo_FloatNx2(nPtr, endPtr);
+	internal_FloatNxN_stringTo<Float64x2, fp64> stringTo_func;
+	return stringTo_func.stringTo_FloatNxN(nPtr, endPtr);
 }
 
 std::istream& operator>>(std::istream& stream, Float64x2& value) {
-	internal_double_FloatN_stringTo<Float64x2, fp64> func_cin;
-	return func_cin.cin_FloatNx2(stream, value);
+	internal_FloatNxN_stringTo<Float64x2, fp64> func_cin;
+	return func_cin.cin_FloatNxN(stream, value);
 }
 
 //------------------------------------------------------------------------------
 // Float64x2 to string
 //------------------------------------------------------------------------------
 
-#include "../FloatNx2/FloatNx2_snprintf.hpp"
+#include "../FloatNxN/FloatNxN_snprintf.hpp"
 
 int Float64x2_snprintf(char* buf, size_t len, const char* format, ...) {
 	va_list args;
 	va_start(args, format);
-	internal_double_FloatN_snprintf<Float64x2, fp64> func_snprintf;
-	int ret_val = func_snprintf.FloatNx2_snprintf(
-		PRIFloat64x2, buf, len,
+	internal_FloatNxN_snprintf<Float64x2, fp64> func_snprintf;
+	int ret_val = func_snprintf.FloatNxN_snprintf(
+		PRIFloat64x2, PRIFloat64,
+		buf, len,
 		format, args
 	);
 	va_end(args);
@@ -1058,8 +1059,8 @@ int Float64x2_snprintf(char* buf, size_t len, const char* format, ...) {
 }
 
 inline std::ostream& operator<<(std::ostream& stream, const Float64x2& value) {
-	internal_double_FloatN_snprintf<Float64x2, fp64> func_cout;
-	return func_cout.FloatNx2_cout(PRIFloat64x2, stream, value);
+	internal_FloatNxN_snprintf<Float64x2, fp64> func_cout;
+	return func_cout.FloatNxN_cout(PRIFloat64x2, PRIFloat64, stream, value);
 }
 
 //------------------------------------------------------------------------------

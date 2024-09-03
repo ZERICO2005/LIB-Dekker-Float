@@ -766,25 +766,26 @@ typedef Float32x2 fp32x2;
 
 	/* Strings */
 
-		#include "../FloatNx2/FloatNx2_stringTo.hpp"
+		#include "../FloatNxN/FloatNxN_stringTo.hpp"
 
 		inline Float32x2 stringTo_Float32x2(const char* nPtr, char** endPtr = nullptr) {
-			internal_double_FloatN_stringTo<Float32x2, fp32> stringTo_func;
-			return stringTo_func.stringTo_FloatNx2(nPtr, endPtr);
+			internal_FloatNxN_stringTo<Float32x2, fp32> stringTo_func;
+			return stringTo_func.stringTo_FloatNxN(nPtr, endPtr);
 		}
 
 		/**
 		 * @brief Wrapper for stringTo_Float32x2
 		 */
 		inline std::istream& operator>>(std::istream& stream, Float32x2& value) {
-			internal_double_FloatN_stringTo<Float32x2, fp32> func_cin;
-			return func_cin.cin_FloatNx2(stream, value);
+			internal_FloatNxN_stringTo<Float32x2, fp32> func_cin;
+			return func_cin.cin_FloatNxN(stream, value);
 		}
 
-		#include "../FloatNx2/FloatNx2_snprintf.hpp"
+		#include "../FloatNxN/FloatNxN_snprintf.hpp"
+
+		#include "Float32/Float32.h"
 
 		#define PRIFloat32x2 "D"
-		#define PRIfp32x2 PRIFloat32x2
 
 		/**
 		 * @brief snprintf a singular Float32x2/fp32x2.
@@ -800,9 +801,10 @@ typedef Float32x2 fp32x2;
 		) {
 			va_list args;
 			va_start(args, format);
-			internal_double_FloatN_snprintf<Float32x2, fp32> func_snprintf;
-			int ret_val = func_snprintf.FloatNx2_snprintf(
-				PRIFloat32x2, buf, len,
+			internal_FloatNxN_snprintf<Float32x2, fp32> func_snprintf;
+			int ret_val = func_snprintf.FloatNxN_snprintf(
+				PRIFloat32x2, PRIFloat32,
+				buf, len,
 				format, args
 			);
 			va_end(args);
@@ -813,8 +815,8 @@ typedef Float32x2 fp32x2;
 		 * @brief Wrapper for Float32x2_snprintf
 		 */
 		inline std::ostream& operator<<(std::ostream& stream, const Float32x2& value) {
-			internal_double_FloatN_snprintf<Float32x2, fp32> func_cout;
-			return func_cout.FloatNx2_cout(PRIFloat32x2, stream, value);
+			internal_FloatNxN_snprintf<Float32x2, fp32> func_cout;
+			return func_cout.FloatNxN_cout(PRIFloat32x2, PRIFloat32, stream, value);
 		}
 
 #endif /* FLOAT32X2_HPP */

@@ -1308,8 +1308,9 @@ static inline Float64x2 Float64x2_atanh(const Float64x2 x) {
 	Float64x2 stringTo_Float64x2(const char* nPtr, char** endPtr);
 #endif
 
+#include "Float64/Float64.h"
+
 #define PRIFloat64x2 "D"
-#define PRIfp64x2 PRIFloat64x2
 
 /**
  * @brief snprintf a singular Float64x2/fp64x2.

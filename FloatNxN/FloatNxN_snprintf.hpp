@@ -6,8 +6,8 @@
 **	this project. If not, see https://opensource.org/license/MIT
 */
 
-#ifndef DOUBLE_FLOATN_SNPRINTF_HPP
-#define DOUBLE_FLOATN_SNPRINTF_HPP
+#ifndef FLOATNXN_SNPRINTF_HPP
+#define FLOATNXN_SNPRINTF_HPP
 
 #include <cmath>
 #include <cstdarg>
@@ -17,8 +17,8 @@
 #include <cstdio>
 #include <iostream>
 
-template<typename FloatNx2, typename FloatN>
-class internal_double_FloatN_snprintf {
+template<typename FloatNxN, typename FloatN>
+class internal_FloatNxN_snprintf {
 	private:
 	
 	/** Searches for the first %, skips %% */
@@ -136,15 +136,15 @@ class internal_double_FloatN_snprintf {
 		return format;
 	}
 
-	/** Searches for the PRIFloatNx2 specifier and aAeEfFgG */
+	/** Searches for the PRIFloatNxN specifier and aAeEfFgG */
 	static const char* parse_specifier(
 		const char* format,
 		char& specifier,
-		const char* PRIFloatNx2
+		const char* PRIFloatNxN
 	) {
 		if (format == nullptr) { return nullptr; }
 		specifier = '\0';
-		if (strcmp(format, PRIFloatNx2) == 0) {
+		if (strcmp(format, PRIFloatNxN) == 0) {
 			return format;
 		}
 		format++;
@@ -166,7 +166,7 @@ class internal_double_FloatN_snprintf {
 		return format;
 	}
 
-	struct FloatNx2_format_param {
+	struct FloatNxN_format_param {
 		int width; // %*Df
 		int precision; // %.*Df
 		bool left_justify; // %-Df
@@ -242,13 +242,13 @@ class internal_double_FloatN_snprintf {
 	// 	return false;
 	// }
 
-	static std::string FloatNx2_write(
-		const FloatNx2_format_param& param,
-		FloatNx2 value, const int base, const bool upperCase
+	static std::string FloatNxN_write(
+		const FloatNxN_format_param& param,
+		FloatNxN value, const int base, const bool upperCase
 	) {
 
 		std::string str = "";
-		if (value < static_cast<FloatNx2>(0.0)) {
+		if (value < static_cast<FloatNxN>(0.0)) {
 			str += '-';
 		} else if (param.explicit_sign) {
 			str += '+';
@@ -264,19 +264,19 @@ class internal_double_FloatN_snprintf {
 			return str;
 		}
 		value = fabs(value);
-		FloatNx2 value_int = trunc(value);
-		FloatNx2 value_frac = value - value_int;
+		FloatNxN value_int = trunc(value);
+		FloatNxN value_frac = value - value_int;
 
-		if (value_int == static_cast<FloatNx2>(0.0)) {
+		if (value_int == static_cast<FloatNxN>(0.0)) {
 			str += '0';
 		} else {
 			/* Integer Part */
 			std::string int_digits = "";
-			while (value_int > static_cast<FloatNx2>(0.0)) {
-				FloatNx2 digit_temp = value_int - (trunc(value_int / (FloatNx2)base) * (FloatNx2)base);
+			while (value_int > static_cast<FloatNxN>(0.0)) {
+				FloatNxN digit_temp = value_int - (trunc(value_int / (FloatNxN)base) * (FloatNxN)base);
 				char digit = get_digit_from_base((int)digit_temp, base, upperCase);
 				int_digits += digit;
-				value_int = trunc(value_int / (FloatNx2)base);
+				value_int = trunc(value_int / (FloatNxN)base);
 			}
 			reverse(int_digits.begin(), int_digits.end());
 			str += int_digits;
@@ -288,20 +288,20 @@ class internal_double_FloatN_snprintf {
 			str += '.';
 			std::string frac_digits = "";
 			for (int d = 0; d < param.precision - 1; d++) {
-				if (value_frac == static_cast<FloatNx2>(0.0)) {
+				if (value_frac == static_cast<FloatNxN>(0.0)) {
 					// Rest of the digits will be 0
 					frac_digits += '0';
 					continue;
 				}
-				value_frac *= (FloatNx2)base;
-				FloatNx2 digit_temp = trunc(value_frac);
+				value_frac *= (FloatNxN)base;
+				FloatNxN digit_temp = trunc(value_frac);
 				char digit = get_digit_from_base((int)digit_temp, base, upperCase);
 				frac_digits += digit;
 				value_frac = value_frac - trunc(value_frac);
 			}
 			{ /* Rounds the last digit */
-				value_frac *= (FloatNx2)base;
-				FloatNx2 digit_temp = round(value_frac);
+				value_frac *= (FloatNxN)base;
+				FloatNxN digit_temp = round(value_frac);
 				if ((int)digit_temp == base) {
 					/* round()
 					char* round_ptr = (char*)frac_digits.c_str();
@@ -352,8 +352,8 @@ class internal_double_FloatN_snprintf {
 
 	public:
 
-	static int FloatNx2_snprintf(
-		const char* PRIFloatNx2,
+	static int FloatNxN_snprintf(
+		const char* PRIFloatNxN, __attribute__((unused)) const char* PRIFloatN,
 		char* buf, size_t len,
 		const char* format, va_list args
 	) {
@@ -364,7 +364,7 @@ class internal_double_FloatN_snprintf {
 
 		const char* const fm_start = fm_ptr;
 
-		FloatNx2_format_param param;
+		FloatNxN_format_param param;
 
 		fm_ptr = parse_flags(
 			fm_ptr,
@@ -389,7 +389,7 @@ class internal_double_FloatN_snprintf {
 			}
 		}
 		char specifier;
-		fm_ptr = parse_specifier(fm_ptr, specifier, PRIFloatNx2);
+		fm_ptr = parse_specifier(fm_ptr, specifier, PRIFloatNxN);
 
 		switch(specifier) {
 			case 'a':
@@ -408,7 +408,7 @@ class internal_double_FloatN_snprintf {
 				return (int)strlen(format);
 		}
 		
-		FloatNx2 value = va_arg(args, FloatNx2);
+		FloatNxN value = va_arg(args, FloatNxN);
 
 		std::string output_str = "";
 		if (fm_start > format) { /* Copy text before % */
@@ -419,28 +419,28 @@ class internal_double_FloatN_snprintf {
 		switch (specifier) {
 			default:
 			case 'f':
-				output_str += FloatNx2_write(param, value, 10, false);
+				output_str += FloatNxN_write(param, value, 10, false);
 				break;
 			case 'F':
-				output_str += FloatNx2_write(param, value, 10, true);
+				output_str += FloatNxN_write(param, value, 10, true);
 				break;
 			case 'a':
-				output_str += "<unsupported %a FloatNx2_snprintf>";
+				output_str += "<unsupported %a FloatNxN_snprintf>";
 				break;
 			case 'A':
-				output_str += "<unsupported %A FloatNx2_snprintf>";
+				output_str += "<unsupported %A FloatNxN_snprintf>";
 				break;
 			case 'e':
-				output_str += "<unsupported %e FloatNx2_snprintf>";
+				output_str += "<unsupported %e FloatNxN_snprintf>";
 				break;
 			case 'E':
-				output_str += "<unsupported %E FloatNx2_snprintf>";
+				output_str += "<unsupported %E FloatNxN_snprintf>";
 				break;
 			case 'g':
-				output_str += "<unsupported %g FloatNx2_snprintf>";
+				output_str += "<unsupported %g FloatNxN_snprintf>";
 				break;
 			case 'G':
-				output_str += "<unsupported %G FloatNx2_snprintf>";
+				output_str += "<unsupported %G FloatNxN_snprintf>";
 				break;
 		}
 		
@@ -458,15 +458,16 @@ class internal_double_FloatN_snprintf {
 	/**
 	 * @brief converts a fixed amount arguments into a va_list
 	 */
-	static int FloatNx2_cout_snprintf(
-		const char* PRIFloatNx2,
+	static int FloatNxN_cout_snprintf(
+		const char* PRIFloatNxN, const char* PRIFloatN,
 		char* buf, size_t len,
 		const char* format, ...
 	) {
 		va_list args;
 		va_start(args, format);
-		int ret_val = FloatNx2_snprintf(
-			PRIFloatNx2, buf, len,
+		int ret_val = FloatNxN_snprintf(
+			PRIFloatNxN, PRIFloatN,
+			buf, len,
 			format, args
 		);
 		va_end(args);
@@ -475,16 +476,16 @@ class internal_double_FloatN_snprintf {
 
 	public:
 
-	static std::ostream& FloatNx2_cout(
-		const char* PRIFloatNx2,
-		std::ostream& stream, const FloatNx2& value
+	static std::ostream& FloatNxN_cout(
+		const char* PRIFloatNxN, const char* PRIFloatN,
+		std::ostream& stream, const FloatNxN& value
 	) {
 		std::string format_str = "%";
 		format_str += (stream.flags() & std::ios_base::showpoint) ? "#" : "";
 		format_str += (stream.flags() & std::ios_base::showpos) ? "+" : "";
 		// format_str += (stream.flags() & std::ios_base::right) ? "-" : "";
 		format_str += "*.*";
-		format_str += PRIFloatNx2;
+		format_str += PRIFloatNxN;
 		bool uppercase_format = (stream.flags() & std::ios_base::uppercase) ? true : false;
 		bool fixed_format = (stream.flags() & std::ios_base::fixed) ? true : false;
 		bool scientific_format = (stream.flags() & std::ios_base::scientific) ? true : false;
@@ -511,18 +512,25 @@ class internal_double_FloatN_snprintf {
 		
 		int width = 0; // stream.width();
 		int precision = (int)stream.precision(); // cast from size_t to int
-		int len_str = FloatNx2_cout_snprintf(PRIFloatNx2, nullptr, 0, format_str.c_str(), width, precision, value);
+		int len_str = FloatNxN_cout_snprintf(
+			PRIFloatNxN, PRIFloatN,
+			nullptr, 0,
+			format_str.c_str(), width, precision, value
+		);
 		if (len_str < 0) {
-			stream << "Failed to format FloatNx2";
+			stream << "Failed to format FloatNxN";
 			return stream;
 		}
 		size_t str_size = (size_t)len_str;
 		char* buf = (char*)calloc(str_size + 1, sizeof(char));
 		if (buf == nullptr) {
-			stream << "Failed to calloc FloatNx22";
+			stream << "Failed to calloc FloatNxN2";
 			return stream;
 		}
-		FloatNx2_cout_snprintf(PRIFloatNx2, buf, str_size, format_str.c_str(), width, precision, value);
+		FloatNxN_cout_snprintf(
+			PRIFloatNxN, PRIFloatN,
+			buf, str_size, format_str.c_str(), width, precision, value
+		);
 		stream << buf;
 		free(buf);
 		buf = nullptr;
@@ -530,4 +538,4 @@ class internal_double_FloatN_snprintf {
 	}
 };
 
-#endif /* DOUBLE_FLOATN_SNPRINTF_HPP */
+#endif /* FLOATNXN_SNPRINTF_HPP */

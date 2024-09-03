@@ -763,25 +763,24 @@ typedef Float80x2 fp80x2;
 
 	/* Strings */
 
-		#include "../FloatNx2/FloatNx2_stringTo.hpp"
+		#include "../FloatNxN/FloatNxN_stringTo.hpp"
 
 		inline Float80x2 stringTo_Float80x2(const char* nPtr, char** endPtr = nullptr) {
-			internal_double_FloatN_stringTo<Float80x2, fp80> stringTo_func;
-			return stringTo_func.stringTo_FloatNx2(nPtr, endPtr);
+			internal_FloatNxN_stringTo<Float80x2, fp80> stringTo_func;
+			return stringTo_func.stringTo_FloatNxN(nPtr, endPtr);
 		}
 
 		/**
 		 * @brief Wrapper for stringTo_Float80x2
 		 */
 		inline std::istream& operator>>(std::istream& stream, Float80x2& value) {
-			internal_double_FloatN_stringTo<Float80x2, fp80> func_cin;
-			return func_cin.cin_FloatNx2(stream, value);
+			internal_FloatNxN_stringTo<Float80x2, fp80> func_cin;
+			return func_cin.cin_FloatNxN(stream, value);
 		}
 
-		#include "../FloatNx2/FloatNx2_snprintf.hpp"
+		#include "../FloatNxN/FloatNxN_snprintf.hpp"
 
 		#define PRIFloat80x2 "D"
-		#define PRIfp80x2 PRIFloat80x2
 
 		/**
 		 * @brief snprintf a singular Float80x2/fp80x2.
@@ -797,9 +796,9 @@ typedef Float80x2 fp80x2;
 		) {
 			va_list args;
 			va_start(args, format);
-			internal_double_FloatN_snprintf<Float80x2, fp80> func_snprintf;
-			int ret_val = func_snprintf.FloatNx2_snprintf(
-				PRIFloat80x2, buf, len,
+			internal_FloatNxN_snprintf<Float80x2, fp80> func_snprintf;
+			int ret_val = func_snprintf.FloatNxN_snprintf(
+				PRIFloat80x2, PRIFloat80, buf, len,
 				format, args
 			);
 			va_end(args);
@@ -810,8 +809,8 @@ typedef Float80x2 fp80x2;
 		 * @brief Wrapper for Float80x2_snprintf
 		 */
 		inline std::ostream& operator<<(std::ostream& stream, const Float80x2& value) {
-			internal_double_FloatN_snprintf<Float80x2, fp80> func_cout;
-			return func_cout.FloatNx2_cout(PRIFloat80x2, stream, value);
+			internal_FloatNxN_snprintf<Float80x2, fp80> func_cout;
+			return func_cout.FloatNxN_cout(PRIFloat80x2, PRIFloat80, stream, value);
 		}
 
 #endif /* FLOAT80X2_HPP */
