@@ -27,6 +27,33 @@
 #include <cmath>
 
 //------------------------------------------------------------------------------
+// Float64x4 String Operations
+//------------------------------------------------------------------------------
+
+#include "Float64x4_string.h"
+
+#if __cplusplus >= 200809L
+/**
+ * @brief Wrapper for stringTo_Float64x4
+ */
+inline Float64x4 operator""_FP64X4(const char* str, std::size_t) {
+	return stringTo_Float64x4(str, nullptr);
+}
+#endif
+
+#include <istream>
+/**
+ * @brief Wrapper for stringTo_Float64x4
+ */
+inline std::istream& operator>>(std::istream& stream, Float64x4& value);
+
+#include <ostream>
+/**
+ * @brief Wrapper for Float64x4_snprintf
+ */
+inline std::ostream& operator<<(std::ostream& stream, const Float64x4& value);
+
+//------------------------------------------------------------------------------
 // Float64x4 Compairison
 //------------------------------------------------------------------------------
 
@@ -893,11 +920,9 @@ constexpr Float64x4 Float64x4_tau  = Float64x4_2pi; /**< ~6.283185307 */
 		Float64x4 trunc_part = trunc(x / y);
 		return x - y * trunc_part;
 	}
-	inline Float64x4 modf(const Float64x4& x, Float64x4* int_part) {
+	inline Float64x4 modf(const Float64x4& x, Float64x4& int_part) {
 		Float64x4 trunc_part = trunc(x);
-		if (int_part != nullptr) {
-			*int_part = trunc_part;
-		}
+		int_part = trunc_part;
 		return x - trunc_part;
 	}
 	inline Float64x4 nearbyint(const Float64x4& x) {
@@ -907,63 +932,66 @@ constexpr Float64x4 Float64x4_tau  = Float64x4_2pi; /**< ~6.283185307 */
 		Float64x4 round_part = round(x / y);
 		return x - y * round_part;
 	}
-	inline Float64x4 remquo(const Float64x4& x, const Float64x4& y, int* quo) {
+	inline Float64x4 remquo(const Float64x4& x, const Float64x4& y, int& quo) {
 		Float64x4 q = round(x / y);
 		Float64x4 r = x - y * q;
-		*quo = static_cast<int>(q.val[0] + q.val[1]);
+		quo = static_cast<int>(q.val[0] + q.val[1]);
 		return r;
 	}
 
 /* Float Exponents */
 
-	/** @brief ilogb(x.val[0]) */
+	/**
+	 * @brief Extracts the exponent of a Float64x4 value to compute the
+	 * binary logarithm.
+	 */
 	inline int ilogb(const Float64x4& x) {
-		return ilogb(x.val[0]);
+		return ilogb(x.val[0] + (x.val[1] + (x.val[2] + x.val[3])));
 	}
-	/** @brief frexp(x.val[0], exp) */
-	inline Float64x4 frexp(const Float64x4& x, int* exp) {
-		return frexp(x.val[0], exp);
-	}
-	inline Float64x4 ldexp(const Float64x4& x, int exp) {
-		Float64x4 ret = x;
-		ret.val[0] = ldexp(x.val[0], exp);
-		if (isfinite(ret.val[0])) {
-			ret.val[1] = ldexp(x.val[1], exp);
-			ret.val[2] = ldexp(x.val[2], exp);
-			ret.val[3] = ldexp(x.val[3], exp);
-			return ret;
-		}
-		ret.val[1] = x.val[0];
-		ret.val[2] = x.val[0];
-		ret.val[3] = x.val[0];
+	/**
+	 * @brief Returns a normalized Float64x4 value and the exponent in
+	 * the form [0.0, 1.0) * 2^expon
+	 */
+	inline Float64x4 frexp(const Float64x4& x, int& expon) {
+		Float64x4 ret;
+		expon = ilogb(x.val[0] + (x.val[1] + (x.val[2] + x.val[3]))) + 1;
+		ret.val[0] = ldexp(x.val[0], -(expon));
+		ret.val[1] = ldexp(x.val[1], -(expon));
+		ret.val[2] = ldexp(x.val[2], -(expon));
+		ret.val[3] = ldexp(x.val[3], -(expon));
 		return ret;
 	}
-	inline Float64x4 scalbn(const Float64x4& x, int exp) {
-		Float64x4 ret = x;
-		ret.val[0] = scalbn(x.val[0], exp);
-		if (isfinite(x.val[0])) {
-			ret.val[1] = scalbn(x.val[1], exp);
-			ret.val[2] = scalbn(x.val[2], exp);
-			ret.val[3] = scalbn(x.val[3], exp);
-			return ret;
-		}
-		ret.val[1] = x.val[0];
-		ret.val[2] = x.val[0];
-		ret.val[3] = x.val[0];
+	/**
+	 * @brief Multiplies a Float64x4 value by 2^expon
+	 */
+	inline Float64x4 ldexp(const Float64x4& x, int expon) {
+		Float64x4 ret;
+		ret.val[0] = ldexp(x.val[0], expon);
+		ret.val[1] = isfinite(x.val[0]) ? ldexp(x.val[1], expon) : x.val[0];
+		ret.val[2] = isfinite(x.val[0]) ? ldexp(x.val[2], expon) : x.val[0];
+		ret.val[3] = isfinite(x.val[0]) ? ldexp(x.val[3], expon) : x.val[0];
 		return ret;
 	}
-	inline Float64x4 scalbln(const Float64x4& x, long exp) {
-		Float64x4 ret = x;
-		ret.val[0] = scalbln(x.val[0], exp);
-		if (isfinite(x.val[0])) {
-			ret.val[1] = scalbln(x.val[1], exp);
-			ret.val[2] = scalbln(x.val[2], exp);
-			ret.val[3] = scalbln(x.val[3], exp);
-			return ret;
-		}
-		ret.val[1] = x.val[0];
-		ret.val[2] = x.val[0];
-		ret.val[3] = x.val[0];
+	/**
+	 * @brief Multiplies a Float64x4 value by FLT_RADIX^expon
+	 */
+	inline Float64x4 scalbn(const Float64x4& x, int expon) {
+		Float64x4 ret;
+		ret.val[0] = scalbn(x.val[0], expon);
+		ret.val[1] = isfinite(x.val[0]) ? scalbn(x.val[1], expon) : x.val[0];
+		ret.val[2] = isfinite(x.val[0]) ? scalbn(x.val[2], expon) : x.val[0];
+		ret.val[3] = isfinite(x.val[0]) ? scalbn(x.val[3], expon) : x.val[0];
+		return ret;
+	}
+	/**
+	 * @brief Multiplies a Float64x4 value by FLT_RADIX^expon
+	 */
+	inline Float64x4 scalbln(const Float64x4& x, long expon) {
+		Float64x4 ret;
+		ret.val[0] = scalbln(x.val[0], expon);
+		ret.val[1] = isfinite(x.val[0]) ? scalbln(x.val[1], expon) : x.val[0];
+		ret.val[2] = isfinite(x.val[0]) ? scalbln(x.val[2], expon) : x.val[0];
+		ret.val[3] = isfinite(x.val[0]) ? scalbln(x.val[3], expon) : x.val[0];
 		return ret;
 	}
 

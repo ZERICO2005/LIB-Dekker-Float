@@ -13,412 +13,549 @@
 #include <cmath>
 #include <cfenv>
 
-typedef float fp32;
-typedef double fp64;
-
 #include "Float80.hpp"
 #include "Float80x2_def.h"
 
 // Can be changed to other types for better accuracy
-typedef fp80 fp80x2_Math;
+typedef long double Float80x2_Math;
 
+//------------------------------------------------------------------------------
+// Float80x2 String Operations
+//------------------------------------------------------------------------------
+
+#include "Float80x2_string.h"
+
+#if __cplusplus >= 200809L
 /**
- * @brief Double-Float80 Dekker Float implementation.
- * Source: Creel "Double it Like Dekker" on YouTube.
+ * @brief Wrapper for stringTo_Float80x2
  */
-struct Float80x2 {
-	
-	fp80 hi;
-	fp80 lo;
+inline Float80x2 operator""_FP80X2(const char* str, std::size_t) {
+	return stringTo_Float80x2(str, nullptr);
+}
+#endif
 
-	/* Arithmetic */
+#include <istream>
+/**
+ * @brief Wrapper for stringTo_Float80x2
+ */
+inline std::istream& operator>>(std::istream& stream, Float80x2& value);
 
-	static inline Float80x2 Dekker_Add(
-		const Float80x2& x, const Float80x2& y
-	) {
-		fp80 r_hi = x.hi + y.hi;
-		fp80 r_lo = static_cast<fp80>(0.0);
-		if (fabsl(x.hi) > fabsl(y.hi)) {
-			r_lo = x.hi - r_hi + y.hi + y.lo + x.lo;
-		} else {
-			r_lo = y.hi - r_hi + x.hi + x.lo + y.lo;
-		}
+#include <ostream>
+/**
+ * @brief Wrapper for Float80x2_snprintf
+ */
+inline std::ostream& operator<<(std::ostream& stream, const Float80x2& value);
 
-		Float80x2 c;
-		c.hi = r_hi + r_lo;
-		c.lo = r_hi - c.hi + r_lo;
-		return c;
+//------------------------------------------------------------------------------
+// Float80x2 Comparison
+//------------------------------------------------------------------------------
+
+/* Comparison */
+
+inline constexpr bool operator==(const Float80x2& x, const Float80x2& y) {
+	return (x.hi == y.hi && x.lo == y.lo);
+}
+inline constexpr bool operator!=(const Float80x2& x, const Float80x2& y) {
+	return (x.hi != y.hi || x.lo != y.lo);
+}
+inline constexpr bool operator<(const Float80x2& x, const Float80x2& y) {
+	return (x.hi == y.hi) ? (x.lo < y.lo) : (x.hi < y.hi);
+}
+inline constexpr bool operator<=(const Float80x2& x, const Float80x2& y) {
+	return (x.hi == y.hi) ? (x.lo <= y.lo) : (x.hi < y.hi);
+}
+inline constexpr bool operator>(const Float80x2& x, const Float80x2& y) {
+	return (x.hi == y.hi) ? (x.lo > y.lo) : (x.hi > y.hi);
+}
+inline constexpr bool operator>=(const Float80x2& x, const Float80x2& y) {
+	return (x.hi == y.hi) ? (x.lo >= y.lo) : (x.hi > y.hi);
+}
+
+/* Optimized Comparison */
+
+inline constexpr bool operator==(const Float80x2& x, const fp80 y) {
+	return (x.hi == y && x.lo == static_cast<fp80>(0.0));
+}
+inline constexpr bool operator!=(const Float80x2& x, const fp80 y) {
+	return (x.hi != y || x.lo != static_cast<fp80>(0.0));
+}
+inline constexpr bool operator<(const Float80x2& x, const fp80 y) {
+	return (x.hi == y) ? (x.lo < static_cast<fp80>(0.0)) : (x.hi < y);
+}
+inline constexpr bool operator<=(const Float80x2& x, const fp80 y) {
+	return (x.hi == y) ? (x.lo <= static_cast<fp80>(0.0)) : (x.hi < y);
+}
+inline constexpr bool operator>(const Float80x2& x, const fp80 y) {
+	return (x.hi == y) ? (x.lo > static_cast<fp80>(0.0)) : (x.hi > y);
+}
+inline constexpr bool operator>=(const Float80x2& x, const fp80 y) {
+	return (x.hi == y) ? (x.lo >= static_cast<fp80>(0.0)) : (x.hi > y);
+}
+
+inline constexpr bool operator==(const fp80 x, const Float80x2& y) {
+	return (x == y.hi && static_cast<fp80>(0.0) == y.lo);
+}
+inline constexpr bool operator!=(const fp80 x, const Float80x2& y) {
+	return (x != y.hi || static_cast<fp80>(0.0) != y.lo);
+}
+inline constexpr bool operator<(const fp80 x, const Float80x2& y) {
+	return (x == y.hi) ? (static_cast<fp80>(0.0) < y.lo) : (x < y.hi);
+}
+inline constexpr bool operator<=(const fp80 x, const Float80x2& y) {
+	return (x == y.hi) ? (static_cast<fp80>(0.0) <= y.lo) : (x < y.hi);
+}
+inline constexpr bool operator>(const fp80 x, const Float80x2& y) {
+	return (x == y.hi) ? (static_cast<fp80>(0.0) > y.lo) : (x > y.hi);
+}
+inline constexpr bool operator>=(const fp80 x, const Float80x2& y) {
+	return (x == y.hi) ? (static_cast<fp80>(0.0) >= y.lo) : (x > y.hi);
+}
+
+/* Compare to Zero */
+
+/** @brief Assumes that if x.hi is zero then x.lo is also zero */
+inline constexpr bool dekker_equal_zero(const Float80x2& x) {
+	return (x.hi == static_cast<fp80>(0.0));
+}
+/** @brief Assumes that if x.hi is zero then x.lo is also zero */
+inline constexpr bool dekker_notequal_zero(const Float80x2& x) {
+	return (x.hi != static_cast<fp80>(0.0));
+}
+/** @brief Assumes that if x.hi is zero then x.lo is also zero */
+inline constexpr bool dekker_less_zero(const Float80x2& x) {
+	return (x.hi < static_cast<fp80>(0.0));
+}
+/** @brief Assumes that if x.hi is zero then x.lo is also zero */
+inline constexpr bool dekker_lessequal_zero(const Float80x2& x) {
+	return (x.hi <= static_cast<fp80>(0.0));
+}
+/** @brief Assumes that if x.hi is zero then x.lo is also zero */
+inline constexpr bool dekker_greater_zero(const Float80x2& x) {
+	return (x.hi > static_cast<fp80>(0.0));
+}
+/** @brief Assumes that if x.hi is zero then x.lo is also zero */
+inline constexpr bool dekker_greaterequal_zero(const Float80x2& x) {
+	return (x.hi >= static_cast<fp80>(0.0));
+}
+
+
+//------------------------------------------------------------------------------
+// Float80x2 Basic Arithmetic
+//------------------------------------------------------------------------------
+
+/* Negation */
+
+inline constexpr Float80x2 operator-(const Float80x2& x) {
+	return {-x.hi, -x.lo};
+}
+
+inline Float80x2 operator+(const Float80x2& x, const Float80x2& y) {
+	fp80 r_hi = x.hi + y.hi;
+	fp80 r_lo = static_cast<fp80>(0.0);
+	if (fabs(x.hi) > fabs(y.hi)) {
+		r_lo = x.hi - r_hi + y.hi + y.lo + x.lo;
+	} else {
+		r_lo = y.hi - r_hi + x.hi + x.lo + y.lo;
 	}
 
-	static inline Float80x2 Dekker_Sub(
-		const Float80x2& x, const Float80x2& y
-	) {
-		fp80 r_hi = x.hi - y.hi;
-		fp80 r_lo = static_cast<fp80>(0.0);
-		if (fabsl(x.hi) > fabsl(y.hi)) {
-			r_lo = x.hi - r_hi - y.hi - y.lo + x.lo;
-		} else {
-			r_lo = -y.hi - r_hi + x.hi + x.lo - y.lo;
-		}
+	Float80x2 c;
+	c.hi = r_hi + r_lo;
+	c.lo = r_hi - c.hi + r_lo;
+	return c;
+}
 
-		Float80x2 c;
-		c.hi = r_hi + r_lo;
-		c.lo = r_hi - c.hi + r_lo;
-		return c;
+inline Float80x2 operator-(const Float80x2& x, const Float80x2& y) {
+	fp80 r_hi = x.hi - y.hi;
+	fp80 r_lo = static_cast<fp80>(0.0);
+	if (fabs(x.hi) > fabs(y.hi)) {
+		r_lo = x.hi - r_hi - y.hi - y.lo + x.lo;
+	} else {
+		r_lo = -y.hi - r_hi + x.hi + x.lo - y.lo;
 	}
 
-	static constexpr fp80 Dekker_Scale = 4294967297.0; // (2^ceil(64 / 2) + 1)
-	
-	static inline Float80x2 Dekker_Split(const fp80& x) {
+	Float80x2 c;
+	c.hi = r_hi + r_lo;
+	c.lo = r_hi - c.hi + r_lo;
+	return c;
+}
+
+
+#if defined(FLOATNX2_BITWISE_SPLIT) || defined(FLOAT80X2_BITWISE_SPLIT)
+	/**
+	 * @brief Splits the mantissa bits of a floating point value via bitwise
+	 * operations for use in the dekker_mul12 function.
+	 * @note This function might not work at the moment.
+	 */
+	inline Float80x2 dekker_split(const fp80 x) {
+		Bitwise_Float80x2 r;
+		const uint64_t Dekker_Split_Mask = ~((uint64_t)0x3FFFFFF);
+		r.float_part.hi = x;
+		r.binary_part.hi &= Dekker_Split_Mask;
+		r.float_part.lo = x - r.float_part.hi;
+		return r.float_part;
+	}
+#else
+	/**
+	 * @brief Splits the mantissa bits of a floating point value via
+	 * multiplication for use in the dekker_mul12 function.
+	 */
+	inline Float80x2 dekker_split(const fp80 x) {
+		constexpr fp80 Dekker_Scale = 4294967297.0; // (2^ceil(64 / 2) + 1)
 		fp80 p = x * Dekker_Scale;
 		Float80x2 r;
 		r.hi = (x - p) + p;
 		r.lo = x - r.hi;
 		return r;
 	}
-	
-	// static constexpr uint64_t Dekker_Split_Mask = ~((uint64_t)0xFFFFFFFF);
+#endif
 
-	// inline Float80x2 Dekker_Split(const fp80& x) const {
-	// 	Float80x2 r;
-	// 	r.hi = x;
-	// 	uint32_t* bit_mask = (uint32_t*)((void*)&r.hi);
-	// 	*bit_mask = 0x00000000;
-	// 	r.lo = x - r.hi;
-	// 	return r;
-	// }
+/**
+ * @brief Multiplies two fp80 values with result stored as a Float80x2
+ */
+inline Float80x2 dekker_mul12(const fp80 x, const fp80 y) {
+	Float80x2 a = dekker_split(x);
+	Float80x2 b = dekker_split(y);
+	fp80 p = a.hi * b.hi;
+	fp80 q = a.hi * b.lo + a.lo * b.hi;
 
-	static inline Float80x2 Dekker_Mul12(
-		const fp80& x, const fp80& y
-	) {
-		Float80x2 a = Dekker_Split(x);
-		Float80x2 b = Dekker_Split(y);
-		fp80 p = a.hi * b.hi;
-		fp80 q = a.hi * b.lo + a.lo * b.hi;
+	Float80x2 r;
+	r.hi = p + q;
+	r.lo = p - r.hi + q + a.lo * b.lo;
+	return r;
+}
 
-		Float80x2 r;
-		r.hi = p + q;
-		r.lo = p - r.hi + q + a.lo * b.lo;
-		return r;
+inline Float80x2 operator*(const Float80x2& x, const Float80x2& y) {
+	Float80x2 t = dekker_mul12(x.hi, y.hi);
+	fp80 c = x.hi * y.lo + x.lo * y.hi + t.lo;
+
+	Float80x2 r;
+	r.hi = t.hi + c;
+	r.lo = t.hi - r.hi + c;
+	return r;
+}
+
+inline Float80x2 operator/(const Float80x2& x, const Float80x2& y) {
+	fp80 u = x.hi / y.hi;
+	Float80x2 t = dekker_mul12(u, y.hi);
+	fp80 l = (x.hi - t.hi - t.lo + x.lo - u * y.lo) / y.hi;
+
+	Float80x2 r;
+	r.hi = u + l;
+	r.lo = u - r.hi + l;
+	return r;
+}
+
+/**
+ * @brief Squares a fp80 value with the result stored as a Float80x2
+ */
+inline Float80x2 dekker_square12(const fp80 x) {
+	Float80x2 a = dekker_split(x);
+	fp80 p = a.hi * a.hi;
+	fp80 q = static_cast<fp80>(2.0) * (a.hi * a.lo);
+
+	Float80x2 r;
+	r.hi = p + q;
+	r.lo = ((p - r.hi) + q) + (a.lo * a.lo);
+	return r;
+}
+
+inline Float80x2 square(const Float80x2 x) {
+	Float80x2 t = dekker_square12(x.hi);
+	fp80 c = (static_cast<fp80>(2.0) * (x.hi * x.lo)) + t.lo;
+
+	Float80x2 r;
+	r.hi = t.hi + c;
+	r.lo = (t.hi - r.hi) + c;
+	return r;
+}
+
+inline Float80x2 recip(const Float80x2 y) {
+	fp80 u = static_cast<fp80>(1.0) / y.hi;
+	Float80x2 t = dekker_mul12(u, y.hi);
+	fp80 l = (((static_cast<fp80>(1.0) - t.hi) - t.lo) - (u * y.lo)) / y.hi;
+
+	Float80x2 r;
+	r.hi = u + l;
+	r.lo = (u - r.hi) + l;
+	return r;
+}
+
+//------------------------------------------------------------------------------
+// Float80x2 optimized arithmetic
+//------------------------------------------------------------------------------
+
+inline Float80x2 operator+(const Float80x2& x, const fp80 y) {
+	fp80 r_hi = x.hi + y;
+	fp80 r_lo = static_cast<fp80>(0.0);
+	if (fabs(x.hi) > fabs(y)) {
+		r_lo = x.hi - r_hi + y + x.lo;
+	} else {
+		r_lo = y - r_hi + x.hi + x.lo;
 	}
 
-	static inline Float80x2 Dekker_Mul(
-		const Float80x2& x, const Float80x2& y
-	) {
-		Float80x2 t = Dekker_Mul12(x.hi, y.hi);
-		fp80 c = x.hi * y.lo + x.lo * y.hi + t.lo;
+	Float80x2 c;
+	c.hi = r_hi + r_lo;
+	c.lo = r_hi - c.hi + r_lo;
+	return c;
+}
 
-		Float80x2 r;
-		r.hi = t.hi + c;
-		r.lo = t.hi - r.hi + c;
-		return r;
+inline Float80x2 operator+(const fp80 x, const Float80x2& y) {
+	fp80 r_hi = x + y.hi;
+	fp80 r_lo = static_cast<fp80>(0.0);
+	if (fabs(x) > fabs(y.hi)) {
+		r_lo = x - r_hi + y.hi + y.lo;
+	} else {
+		r_lo = y.hi - r_hi + x + y.lo;
 	}
 
-	static inline Float80x2 Dekker_Div(
-		const Float80x2& x, const Float80x2& y
-	) {
-		Float80x2 u;
-		u.hi = x.hi / y.hi;
-		Float80x2 t = Dekker_Mul12(u.hi, y.hi);
-		fp80 l = (x.hi - t.hi - t.lo + x.lo - u.hi * y.lo) / y.hi;
+	Float80x2 c;
+	c.hi = r_hi + r_lo;
+	c.lo = r_hi - c.hi + r_lo;
+	return c;
+}
 
-		Float80x2 r;
-		r.hi = u.hi + l;
-		r.lo = u.hi - r.hi + l;
-		return r;
+/**
+ * @brief Adds two fp80 values with the result stored as a Float80x2
+ */
+inline Float80x2 dekker_add12(const fp80 x, const fp80 y) {
+	fp80 r_hi = x + y;
+	fp80 r_lo = static_cast<fp80>(0.0);
+	if (fabs(x) > fabs(y)) {
+		r_lo = x - r_hi + y;
+	} else {
+		r_lo = y - r_hi + x;
 	}
 
-	static inline Float80x2 Dekker_Sqr12(
-		const fp80& x
-	) {
-		Float80x2 a = Dekker_Split(x);
-		fp80 p = a.hi * a.hi;
-		fp80 q = static_cast<fp80>(2.0) * a.hi * a.lo;
+	Float80x2 c;
+	c.hi = r_hi + r_lo;
+	c.lo = r_hi - c.hi + r_lo;
+	return c;
+}
 
-		Float80x2 r;
-		r.hi = p + q;
-		r.lo = p - r.hi + q + a.lo * a.lo;
-		return r;
+inline Float80x2 operator-(const Float80x2& x, const fp80 y) {
+	fp80 r_hi = x.hi - y;
+	fp80 r_lo = static_cast<fp80>(0.0);
+	if (fabs(x.hi) > fabs(y)) {
+		r_lo = x.hi - r_hi - y + x.lo;
+	} else {
+		r_lo = -y - r_hi + x.hi + x.lo;
 	}
 
-	static inline Float80x2 Dekker_Sqr(
-		const Float80x2& x
-	) {
-		Float80x2 t = Dekker_Sqr12(x.hi);
-		fp80 c = static_cast<fp80>(2.0) * x.hi * x.lo + t.lo;
+	Float80x2 c;
+	c.hi = r_hi + r_lo;
+	c.lo = r_hi - c.hi + r_lo;
+	return c;
+}
 
-		Float80x2 r;
-		r.hi = t.hi + c;
-		r.lo = t.hi - r.hi + c;
-		return r;
+inline Float80x2 operator-(const fp80 x, const Float80x2& y) {
+	fp80 r_hi = x - y.hi;
+	fp80 r_lo = static_cast<fp80>(0.0);
+	if (fabs(x) > fabs(y.hi)) {
+		r_lo = x - r_hi - y.hi - y.lo;
+	} else {
+		r_lo = -y.hi - r_hi + x - y.lo;
 	}
 
-	/* Double-Single Arithmetic */
+	Float80x2 c;
+	c.hi = r_hi + r_lo;
+	c.lo = r_hi - c.hi + r_lo;
+	return c;
+}
 
-	static inline Float80x2 Dekker_Add_Float80(
-		const Float80x2& x, const fp80& y
-	) {
-		fp80 r_hi = x.hi + y;
-		fp80 r_lo = static_cast<fp80>(0.0);
-		if (fabsl(x.hi) > fabsl(y)) {
-			r_lo = x.hi - r_hi + y + x.lo;
-		} else {
-			r_lo = y - r_hi + x.hi + x.lo;
-		}
-
-		Float80x2 c;
-		c.hi = r_hi + r_lo;
-		c.lo = r_hi - c.hi + r_lo;
-		return c;
+/**
+ * @brief Subtracts two fp80 values with the result stored as a Float80x2
+ */
+inline Float80x2 dekker_sub12(const fp80 x, const fp80 y) {
+	fp80 r_hi = x - y;
+	fp80 r_lo = static_cast<fp80>(0.0);
+	if (fabs(x) > fabs(y)) {
+		r_lo = x - r_hi - y;
+	} else {
+		r_lo = -y - r_hi + x;
 	}
 
-	static inline Float80x2 Dekker_Sub_Float80(
-		const Float80x2& x, const fp80& y
-	) {
-		fp80 r_hi = x.hi - y;
-		fp80 r_lo = static_cast<fp80>(0.0);
-		if (fabsl(x.hi) > fabsl(y)) {
-			r_lo = x.hi - r_hi - y + x.lo;
-		} else {
-			r_lo = -y - r_hi + x.hi + x.lo;
-		}
+	Float80x2 c;
+	c.hi = r_hi + r_lo;
+	c.lo = r_hi - c.hi + r_lo;
+	return c;
+}
 
-		Float80x2 c;
-		c.hi = r_hi + r_lo;
-		c.lo = r_hi - c.hi + r_lo;
-		return c;
-	}
+inline Float80x2 operator*(const Float80x2& x, const fp80 y) {
+	Float80x2 t = dekker_mul12(x.hi, y);
+	fp80 c = (x.lo * y) + t.lo;
 
-	static inline Float80x2 Dekker_Mul_Float80(
-		const Float80x2& x, const fp80& y
-	) {
-		Float80x2 t = Dekker_Mul12(x.hi, y);
-		fp80 c = x.lo * y + t.lo;
+	Float80x2 r;
+	r.hi = t.hi + c;
+	r.lo = (t.hi - r.hi) + c;
+	return r;
+}
 
-		Float80x2 r;
-		r.hi = t.hi + c;
-		r.lo = t.hi - r.hi + c;
-		return r;
-	}
+inline Float80x2 operator*(const fp80 x, const Float80x2& y) {
+	Float80x2 t = dekker_mul12(x, y.hi);
+	fp80 c = (x * y.lo) + t.lo;
 
-	static inline Float80x2 Dekker_Div_Float80(
-		const Float80x2& x, const fp80& y
-	) {
-		Float80x2 u;
-		u.hi = x.hi / y;
-		Float80x2 t = Dekker_Mul12(u.hi, y);
-		fp80 l = (x.hi - t.hi - t.lo + x.lo) / y;
+	Float80x2 r;
+	r.hi = t.hi + c;
+	r.lo = (t.hi - r.hi) + c;
+	return r;
+}
 
-		Float80x2 r;
-		r.hi = u.hi + l;
-		r.lo = u.hi - r.hi + l;
-		return r;
-	}
+inline Float80x2 operator/(const Float80x2& x, const fp80 y) {
+	fp80 u = x.hi / y;
+	Float80x2 t = dekker_mul12(u, y);
+	fp80 l = (((x.hi - t.hi) - t.lo) + x.lo) / y;
 
-	static inline Float80x2 Float80_Div_Dekker(
-		const fp80& x, const Float80x2& y
-	) {
-		Float80x2 u;
-		u.hi = x / y.hi;
-		Float80x2 t = Dekker_Mul12(u.hi, y.hi);
-		fp80 l = (x - t.hi - t.lo - u.hi * y.lo) / y.hi;
+	Float80x2 r;
+	r.hi = u + l;
+	r.lo = (u - r.hi) + l;
+	return r;
+}
 
-		Float80x2 r;
-		r.hi = u.hi + l;
-		r.lo = u.hi - r.hi + l;
-		return r;
-	}
+inline Float80x2 operator/(const fp80 x, const Float80x2& y) {
+	fp80 u = x / y.hi;
+	Float80x2 t = dekker_mul12(u, y.hi);
+	fp80 l = (((x - t.hi) - t.lo) - (u * y.lo)) / y.hi;
 
-/* Arithmetic */
+	Float80x2 r;
+	r.hi = u + l;
+	r.lo = (u - r.hi) + l;
+	return r;
+}
 
-	inline Float80x2 operator+(const Float80x2 &value) const {
-		return Dekker_Add(*this, value);
-	}
+/**
+ * @brief Divides two fp80 values with the result stored as a Float80x2
+ */
+inline Float80x2 dekker_div12(const fp80 x, const fp80 y) {
+	fp80 u = x / y;
+	Float80x2 t = dekker_mul12(u, y);
+	fp80 l = ((x - t.hi) - t.lo) / y;
 
-	inline Float80x2 operator-(const Float80x2 &value) const {
-		return Dekker_Sub(*this, value);
-	}
+	Float80x2 r;
+	r.hi = u + l;
+	r.lo = (u - r.hi) + l;
+	return r;
+}
 
-	inline Float80x2 operator*(const Float80x2 &value) const {
-		return Dekker_Mul(*this, value);
-	}
+/**
+ * @brief Calculates the reciprocal of a fp80 value with the result stored
+ * as a Float80x2
+ */
 
-	inline Float80x2 operator/(const Float80x2 &value) const {
-		return Dekker_Div(*this, value);
-	}
+inline Float80x2 dekker_recip12(const fp80 y) {
+	fp80 u = static_cast<fp80>(1.0) / y;
+	Float80x2 t = dekker_mul12(u, y);
+	fp80 l = ((static_cast<fp80>(1.0) - t.hi) - t.lo) / y;
 
-	inline Float80x2 operator+(const fp80 &value) const {
-		return Dekker_Add_Float80(*this, value);
-	}
+	Float80x2 r;
+	r.hi = u + l;
+	r.lo = (u - r.hi) + l;
+	return r;
+}
 
-	inline Float80x2 operator-(const fp80 &value) const {
-		return Dekker_Sub_Float80(*this, value);
-	}
+//------------------------------------------------------------------------------
+// Float80x2 specialized arithmetic
+//------------------------------------------------------------------------------
 
-	inline Float80x2 operator*(const fp80 &value) const {
-		return Dekker_Mul_Float80(*this, value);
-	}
+/**
+ * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero
+ */
+inline Float80x2 mul_pwr2(const Float80x2& x, const fp80 y) {
+	Float80x2 ret;
+	ret.hi = x.hi * y;
+	ret.lo = x.lo * y;
+	return ret;
+}
 
-	inline Float80x2 operator/(const fp80 &value) const {
-		return Dekker_Div_Float80(*this, value);
-	}
+/**
+ * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero
+ */
+inline Float80x2 mul_pwr2(const fp80 x, const Float80x2& y) {
+	Float80x2 ret;
+	ret.hi = x * y.hi;
+	ret.lo = x * y.lo;
+	return ret;
+}
 
-	inline Float80x2 operator-() const {
-		Float80x2 value = *this;
-		value.hi = -value.hi;
-		value.lo = -value.lo;
-		return value;
-	}
+/**
+ * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero.
+ * The result is stored as a Float80x2
+ */
+inline Float80x2 dekker_mul12_pwr2(const fp80 x, const fp80 y) {
+	Float80x2 ret;
+	ret.hi = x * y;
+	ret.lo = static_cast<fp80>(0.0);
+	return ret;
+}
 
-/* Increment/Decrement */
+//------------------------------------------------------------------------------
+// Float80x2 Operator Overloads
+//------------------------------------------------------------------------------
 
-	inline Float80x2& operator++() {
-		*this = Dekker_Add(*this, static_cast<Float80x2>(1.0));
-		return *this;
-	}
-
-	inline Float80x2& operator--() {
-		*this = Dekker_Sub(*this, static_cast<Float80x2>(1.0));
-		return *this;
-	}
-
-	inline Float80x2 operator++(int) {
-		Float80x2 temp = *this;
-		*this = Dekker_Add(*this, static_cast<Float80x2>(1.0));
-		return temp;
-	}
-
-	inline Float80x2 operator--(int) {
-		Float80x2 temp = *this;
-		*this = Dekker_Sub(*this, static_cast<Float80x2>(1.0));
-		return temp;
-	}
+// #if __cplusplus >= 201304L
+// 	#define FLOAT80X2_RELAXED_CONSTEXPR constexpr
+// #else
+// 	#define FLOAT80X2_RELAXED_CONSTEXPR
+// #endif
 
 /* Compound Assignment */
 
-	inline Float80x2& operator+=(const Float80x2 &value) {
-		*this = Dekker_Add(*this, value);
-		return *this;
-	}
+inline Float80x2& operator+=(Float80x2& x, const Float80x2& y) {
+	x = x + y;
+	return x;
+}
+inline Float80x2& operator-=(Float80x2& x, const Float80x2& y) {
+	x = x - y;
+	return x;
+}
+inline Float80x2& operator*=(Float80x2& x, const Float80x2& y) {
+	x = x * y;
+	return x;
+}
+inline Float80x2& operator/=(Float80x2& x, const Float80x2& y) {
+	x = x / y;
+	return x;
+}
 
-	inline Float80x2& operator-=(const Float80x2 &value) {
-		*this = Dekker_Sub(*this, value);
-		return *this;
-	}
+inline Float80x2& operator+=(Float80x2& x, const fp80 y) {
+	x = x + y;
+	return x;
+}
+inline Float80x2& operator-=(Float80x2& x, const fp80 y) {
+	x = x - y;
+	return x;
+}
+inline Float80x2& operator*=(Float80x2& x, const fp80 y) {
+	x = x * y;
+	return x;
+}
+inline Float80x2& operator/=(Float80x2& x, const fp80 y) {
+	x = x / y;
+	return x;
+}
 
-	inline Float80x2& operator*=(const Float80x2 &value) {
-		*this = Dekker_Mul(*this, value);
-		return *this;
-	}
+/* Increment/Decrement */
 
-	inline Float80x2& operator/=(const Float80x2 &value) {
-		*this = Dekker_Div(*this, value);
-		return *this;
-	}
+inline Float80x2& operator++(Float80x2& x) {
+	x += static_cast<fp80>(1.0);
+	return x;
+}
 
-/* Double-Single Compound Assignment */
+inline Float80x2& operator--(Float80x2& x) {
+	x -= static_cast<fp80>(1.0);
+	return x;
+}
 
-	inline Float80x2& operator+=(const fp80 &value) {
-		*this = Dekker_Add_Float80(*this, value);
-		return *this;
-	}
+inline Float80x2 operator++(Float80x2& x, int) {
+	Float80x2 temp = x;
+	x += static_cast<fp80>(1.0);
+	return temp;
+}
 
-	inline Float80x2& operator-=(const fp80 &value) {
-		*this = Dekker_Sub_Float80(*this, value);
-		return *this;
-	}
-
-	inline Float80x2& operator*=(const fp80 &value) {
-		*this = Dekker_Mul_Float80(*this, value);
-		return *this;
-	}
-
-	inline Float80x2& operator/=(const fp80 &value) {
-		*this = Dekker_Div_Float80(*this, value);
-		return *this;
-	}
-
-/* Comparison */
-
-	inline bool operator==(const Float80x2 &value) const {
-		return (
-			this->hi == value.hi &&
-			this->lo == value.lo
-		) ? true : false;
-	}
-	inline bool operator!=(const Float80x2 &value) const {
-		return (
-			this->hi != value.hi ||
-			this->lo != value.lo
-		) ? true : false;
-	}
-
-	inline bool operator<(const Float80x2 &value) const {
-		if (this->hi == value.hi) {
-			return (this->lo < value.lo);
-		}
-		return (this->hi < value.hi);
-	}
-
-	inline bool operator<=(const Float80x2 &value) const {
-		if (this->hi == value.hi) {
-			return (this->lo <= value.lo);
-		}
-		return (this->hi <= value.hi);
-	}
-
-	inline bool operator>(const Float80x2 &value) const {
-		if (this->hi == value.hi) {
-			return (this->lo > value.lo);
-		}
-		return (this->hi > value.hi);
-	}
-
-	inline bool operator>=(const Float80x2 &value) const {
-		if (this->hi == value.hi) {
-			return (this->lo >= value.lo);
-		}
-		return (this->hi >= value.hi);
-	}
-
-/* Constructors */
-
-	Float80x2() = default;
-
-	constexpr inline Float80x2(const fp80& value_hi, const fp80& value_lo) :
-		hi(value_hi), lo(value_lo) {}
-
-	constexpr inline Float80x2(const fp32& value) :
-		hi((fp32)value), lo(static_cast<fp80>(0.0)) {}
-
-	constexpr inline Float80x2(const fp64& value) :
-		hi((fp64)value), lo(static_cast<fp80>(0.0)) {}
-
-	constexpr inline Float80x2(const fp80& value) :
-		hi(value), lo(static_cast<fp80>(0.0)) {}
-
-	template<typename fpX>
-	constexpr inline Float80x2(const fpX& value) :
-		hi((fp80)value), lo((fp80)(value - (fpX)this->hi)) {}
-
-/* Casts */
-
-	constexpr inline operator fp32() const {
-		return (fp32)this->hi;
-	}
-	constexpr inline operator fp64() const {
-		return (fp64)this->hi;
-	}
-	constexpr inline operator fp80() const {
-		return this->hi;
-	}
-
-	template<typename fpX>
-	constexpr inline operator fpX() const {
-		return (fpX)this->hi + (fpX)this->lo;
-	}
-
-};
+inline Float80x2 operator--(Float80x2& x, int) {
+	Float80x2 temp = x;
+	x -= static_cast<fp80>(1.0);
+	return temp;
+}
 
 //------------------------------------------------------------------------------
 // Float80x2 Constants
@@ -461,171 +598,346 @@ namespace std {
 }
 #endif
 
-typedef Float80x2 fp80x2;
+//------------------------------------------------------------------------------
+// Float80x2 Math Functions
+//------------------------------------------------------------------------------
 
-/* Math functions (Natively implemented) */
+/* Floating Point Classify */
 
-	/* Arithmetic */
-	
-	inline fp80x2 fmax(fp80x2 x, fp80x2 y) {
-		return (x > y) ? x : y;
-	}
-	// inline fp80x2 fmax(fp80x2 x, fp80x2 y, fp80x2 z) {
-	// 	return (x > y) ?
-	// 	((x > z) ? x : z) :
-	// 	((y > z) ? y : z);
-	// }
-	inline fp80x2 fmin(fp80x2 x, fp80x2 y) {
-		return (x < y) ? x : y;
-	}
-	// inline fp80x2 fmin(fp80x2 x, fp80x2 y, fp80x2 z) {
-	// 	return (x < y) ?
-	// 	((x < z) ? x : z) :
-	// 	((y < z) ? y : z);
-	// }
-	inline fp80x2 fabs(fp80x2 x) {
-		return (x < static_cast<fp80x2>(0.0)) ? -x : x;
-	}
-	inline fp80x2 fdim(fp80x2 x, fp80x2 y) {
-		return (x > y) ? (x - y) : static_cast<fp80x2>(0.0);
-	}
-	inline fp80x2 fma(fp80x2 x, fp80x2 y, fp80x2 z) {
-		return (x * y) + z;
-	}
-	inline fp80x2 copysign(fp80x2 x, fp80x2 y) {
-		return (
-			(x.hi < static_cast<fp80>(0.0)) != (y.hi < (static_cast<fp80>(0.0)))
-		) ? -x : x;
-	}
-	/** @note This function name may change to square() or etc */
-	inline fp80x2 sqr(fp80x2 x) {
-		return Float80x2::Dekker_Sqr(x);
-	}
-	inline fp80x2 sqrt(fp80x2 x) {
-		if (x == static_cast<fp80x2>(0.0)) {
-			return x;
-		}
-		fp80x2 guess;
-		guess.hi = sqrt(x.hi);
-		guess.lo = static_cast<fp80>(0.5);
-		return (guess + x / guess) * static_cast<fp80>(0.5);
-	}
-	inline fp80x2 cbrt(fp80x2 x) {
-		if (x == static_cast<fp80x2>(0.0)) {
-			return x;
-		}
-		fp80x2 guess;
-		guess.hi = cbrt(x.hi);
-		guess.lo = static_cast<fp80>(0.5);
-		return (
-			guess * static_cast<fp80>(2.0) + (x) / Float80x2::Dekker_Sqr(guess)
-		) / static_cast<fp80>(3.0);
-	}
-	inline fp80x2 hypot(fp80x2 x, fp80x2 y) {
-		return sqrt(
-			Float80x2::Dekker_Sqr(x) + Float80x2::Dekker_Sqr(y)
-		);
-	}
-	// inline fp80x2 hypot(fp80x2 x, fp80x2 y, fp80x2 z) {
-	// 	return sqrt(
-	// 		Float80x2::Dekker_Sqr(x) + Float80x2::Dekker_Sqr(y) + Float80x2::Dekker_Sqr(z)
-	// 	);
-	// }
-
-	/* Tests */
-
-	inline bool signbit(fp80x2 x) {
-		return (x.hi < static_cast<fp80>(0.0)) ? true : false;
+	inline constexpr bool signbit(const Float80x2& x) {
+		return dekker_less_zero(x);
 	}
 	/** Returns true if both x.hi and x.lo are finite */
-	inline bool isfinite(fp80x2 x) {
+	inline constexpr bool isfinite(const Float80x2& x) {
 		return (isfinite(x.hi) && isfinite(x.lo));
 	}
 	/** Returns true if either x.hi or x.lo are infinite */
-	inline bool isinf(fp80x2 x) {
+	inline constexpr bool isinf(const Float80x2& x) {
 		return (isinf(x.hi) || isinf(x.lo));
 	}
 	/** Returns true if either x.hi or x.lo are nan */
-	inline bool isnan(fp80x2 x) {
+	inline constexpr bool isnan(const Float80x2& x) {
 		return (isnan(x.hi) || isnan(x.lo));
 	}
 	/** Returns true if both x.hi and x.lo are normal */
-	inline bool isnormal(fp80x2 x) {
+	inline constexpr bool isnormal(const Float80x2& x) {
 		return (isnormal(x.hi) && isnormal(x.lo));
 	}
 	/** Returns true if either {x.hi, y.hi} or {x.lo, y.lo} are unordered */
-	inline bool isunordered(fp80x2 x, fp80x2 y) {
+	inline constexpr bool isunordered(const Float80x2& x, const Float80x2& y) {
 		return (isunordered(x.hi, y.hi) || isunordered(x.lo, y.lo));
 	}
-	inline int fpclassify(fp80x2 x) {
-		if (isinf(x)) { return FP_INFINITE; }
-		if (isnan(x)) { return FP_NAN; }
-		if (x == static_cast<fp80x2>(0.0)) { return FP_ZERO; }
-		if (isnormal(x)) { return FP_NORMAL; }
-		return FP_SUBNORMAL;
+	inline constexpr int fpclassify(const Float80x2& x) {
+		return
+			isinf(x)             ? FP_INFINITE :
+			isnan(x)             ? FP_NAN      :
+			dekker_equal_zero(x) ? FP_ZERO     :
+			isnormal(x)          ? FP_NORMAL   :
+			FP_SUBNORMAL;
 	}
 
-	/* Comparison */
+/* Comparison */
 
-	inline bool isgreater(fp80x2 x, fp80x2 y) {
+	inline constexpr bool isgreater(const Float80x2& x, const Float80x2& y) {
 		return (x > y);
 	}
-	inline bool isgreaterequal(fp80x2 x, fp80x2 y) {
+	inline constexpr bool isgreaterequal(const Float80x2& x, const Float80x2& y) {
 		return (x >= y);
 	}
-	inline bool isless(fp80x2 x, fp80x2 y) {
+	inline constexpr bool isless(const Float80x2& x, const Float80x2& y) {
 		return (x < y);
 	}
-	inline bool islessequal(fp80x2 x, fp80x2 y) {
+	inline constexpr bool islessequal(const Float80x2& x, const Float80x2& y) {
 		return (x <= y);
 	}
-	inline bool islessgreater(fp80x2 x, fp80x2 y) {
+	inline constexpr bool islessgreater(const Float80x2& x, const Float80x2& y) {
 		return (x < y) || (x > y);
 	}
 
-	/* Rounding */
+/* fmax and fmin */
 
-	inline fp80x2 trunc(fp80x2 x) {
-		fp80x2 int_hi = trunc(x.hi);
-		fp80x2 int_lo = trunc(x.lo);
+	/**
+	 * @brief Returns the fmax of x and y. Correctly handling NaN and signed zeros.
+	 * You may use std::max as a faster alternative.
+	 */
+	inline constexpr Float80x2 fmax(const Float80x2& x, const Float80x2& y) {
+		return
+			(x < y) ? y :
+			(y < x) ? x :
+			isnan(x) ? y :
+			isnan(y) ? x :
+			signbit(x) ? y : x;
+	}
+
+	/**
+	 * @brief Returns the fmin of x and y. Correctly handling NaN and signed zeros.
+	 * You may use std::min as a faster alternative.
+	 */
+	inline constexpr Float80x2 fmin(const Float80x2& x, const Float80x2& y) {
+		return
+			(x > y) ? y :
+			(y > x) ? x :
+			isnan(x) ? y :
+			isnan(y) ? x :
+			signbit(x) ? x : y;
+	}
+
+/* Arithmetic */
+
+	inline constexpr Float80x2 fmax(const Float80x2& x, const Float80x2& y, const Float80x2& z) {
+		return fmax(fmax(x, y), z);
+	}
+	inline constexpr Float80x2 fmin(const Float80x2& x, const Float80x2& y, const Float80x2& z) {
+		return fmin(fmin(x, y), z);
+	}
+	inline constexpr Float80x2 fabs(const Float80x2& x) {
+		return (signbit(x)) ? -x : x;
+	}
+	inline constexpr Float80x2 fdim(const Float80x2& x, const Float80x2& y) {
+		return (x > y) ? (x - y) : static_cast<Float80x2>(0.0);
+	}
+	/** @note Naive implementation of fma (Fused multiply add). May lose precision */
+	inline Float80x2 fma(const Float80x2& x, const Float80x2& y, const Float80x2& z) {
+		return (x * y) + z;
+	}
+	inline constexpr Float80x2 copysign(const Float80x2& x, const Float80x2& y) {
+		return (
+			(signbit(x)) != (signbit(y))
+		) ? -x : x;
+	}
+	inline Float80x2 sqrt(const Float80x2& x) {
+		if (dekker_equal_zero(x)) {
+			return x;
+		}
+		fp80 guess = sqrt(x.hi);
+		return mul_pwr2((guess + x / guess), static_cast<fp80>(0.5));
+	}
+	inline Float80x2 cbrt(const Float80x2& x) {
+		if (dekker_equal_zero(x)) {
+			return x;
+		}
+		fp80 guess = cbrt(x.hi);
+		return (
+			(static_cast<fp80>(2.0) * guess) + (x / dekker_square12(guess))
+		) / static_cast<fp80>(3.0);
+	}
+	/** @note Naive implementation of hypot, may overflow for large inputs */
+	inline Float80x2 hypot(const Float80x2& x, const Float80x2& y) {
+		return sqrt(
+			square(x) + square(y)
+		);
+	}
+	/** @note Naive implementation of hypot, may overflow for large inputs */
+	inline Float80x2 hypot(const Float80x2& x, const Float80x2& y, const Float80x2& z) {
+		return sqrt(
+			square(x) + square(y) + square(z)
+		);
+	}
+
+/* Trigonometry */
+
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 sin(const Float80x2& x) { return static_cast<Float80x2>(sin(static_cast<Float80x2_Math>(x))); }
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 cos(const Float80x2& x) { return static_cast<Float80x2>(cos(static_cast<Float80x2_Math>(x))); }
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline void sincos(const Float80x2& x, Float80x2& p_sin, Float80x2& p_cos) {
+		p_sin = sin(x);
+		p_cos = cos(x);
+	}
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 tan(const Float80x2& x) {
+		Float80x2 sin_val, cos_val;
+		sincos(x, sin_val, cos_val);
+		return sin_val / cos_val;
+	}
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 asin(const Float80x2& x) { return static_cast<Float80x2>(asin(static_cast<Float80x2_Math>(x))); }
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 acos(const Float80x2& x) { return static_cast<Float80x2>(acos(static_cast<Float80x2_Math>(x))); }
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 atan(const Float80x2& x) { return static_cast<Float80x2>(atan(static_cast<Float80x2_Math>(x))); }
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 sinh(const Float80x2& x) { return static_cast<Float80x2>(sinh(static_cast<Float80x2_Math>(x))); }
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 cosh(const Float80x2& x) { return static_cast<Float80x2>(cosh(static_cast<Float80x2_Math>(x))); }
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 tanh(const Float80x2& x) { return static_cast<Float80x2>(tanh(static_cast<Float80x2_Math>(x))); }
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline void sinhcosh(const Float80x2& x, Float80x2& p_sinh, Float80x2& p_cosh) {
+		p_sinh = sinh(x);
+		p_cosh = cosh(x);
+	}
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 asinh(const Float80x2& x) { return static_cast<Float80x2>(asinh(static_cast<Float80x2_Math>(x))); }
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 acosh(const Float80x2& x) { return static_cast<Float80x2>(acosh(static_cast<Float80x2_Math>(x))); }
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 atanh(const Float80x2& x) { return static_cast<Float80x2>(atanh(static_cast<Float80x2_Math>(x))); }
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 atan2(const Float80x2& y, const Float80x2& x) {
+		return static_cast<Float80x2>(atan2(static_cast<Float80x2_Math>(y), static_cast<Float80x2_Math>(x)));
+	}
+
+/* Logarithms and Exponents */
+
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 log(const Float80x2& x) { return static_cast<Float80x2>(log(static_cast<Float80x2_Math>(x))); }
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 log1p(const Float80x2& x) {
+		return log(x + static_cast<fp80>(1.0));
+	}
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 log2(const Float80x2 x) {
+		return log(x) * Float80x2_log2e;
+	}
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 log10(const Float80x2 x) {
+		return log(x) * Float80x2_log10e;
+	}
+	
+	inline Float80x2 logb(const Float80x2 x) { return logb(x.hi + x.lo); }
+	
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 exp(const Float80x2& x) { return static_cast<Float80x2>(exp(static_cast<Float80x2_Math>(x))); }
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 expm1(const Float80x2 x) {
+		return exp(x) - static_cast<fp80>(1.0);
+	}
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 exp2(const Float80x2 x) {
+		return exp(x * Float80x2_ln2);
+	}
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 exp10(const Float80x2 x) {
+		return exp(x * Float80x2_ln10);
+	}
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 pow(const Float80x2 x, const Float80x2 y) {
+		return exp(y * log(x));
+	}
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 pow(const Float80x2 x, const fp80 y) {
+		return exp(y * log(x));
+	}
+	
+/* Rounding */
+
+	inline Float80x2 trunc(const Float80x2& x) {
+		Float80x2 int_hi = trunc(x.hi);
+		Float80x2 int_lo = trunc(x.lo);
 		fp80 frac_hi = x.hi - int_hi.hi;
 		fp80 frac_lo = x.lo - int_lo.hi;
 		// Sum in increasing order
-		fp80x2 trunc_all = static_cast<fp80x2>(0.0);
-		trunc_all += (
-			(fp80x2)frac_hi + (fp80x2)frac_lo >= static_cast<fp80x2>(1.0)
-		) ? static_cast<fp80x2>(1.0) : static_cast<fp80x2>(0.0);
+		Float80x2 trunc_all = (
+			dekker_add12(frac_hi, frac_lo) >= static_cast<fp80>(1.0)
+		) ? static_cast<Float80x2>(1.0) : static_cast<Float80x2>(0.0);
 		trunc_all += int_lo;
 		trunc_all += int_hi;
 		return trunc_all;
 	}
-	inline fp80x2 floor(fp80x2 x) {
-		fp80x2 int_part = trunc(x);
+	inline Float80x2 floor(const Float80x2& x) {
+		Float80x2 int_part = trunc(x);
 		return (
-			x < static_cast<fp80x2>(0.0) && int_part != x
-		) ? int_part - static_cast<fp80x2>(1.0) : int_part;
+			dekker_less_zero(x) && int_part != x
+		) ? int_part - static_cast<fp80>(1.0) : int_part;
 	}
-	inline fp80x2 ceil(fp80x2 x) {
-		fp80x2 int_part = trunc(x);
+	inline Float80x2 ceil(const Float80x2& x) {
+		Float80x2 int_part = trunc(x);
 		return (
-			x > static_cast<fp80x2>(0.0) && int_part != x
-		) ? int_part + static_cast<fp80x2>(1.0) : int_part;
+			dekker_greater_zero(x) && int_part != x
+		) ? int_part + static_cast<fp80>(1.0) : int_part;
 	}
-	inline fp80x2 round(fp80x2 x) {
-		fp80x2 int_part = trunc(x);
-		fp80x2 frac_part = x - int_part;
-		if (x >= static_cast<fp80x2>(0.0)) {
-			if (frac_part >= static_cast<fp80x2>(0.5)) {
-				return int_part + static_cast<fp80x2>(1.0);
+	inline Float80x2 round(const Float80x2& x) {
+		Float80x2 int_part = trunc(x);
+		Float80x2 frac_part = x - int_part;
+		if (dekker_greaterequal_zero(x)) {
+			if (frac_part >= static_cast<fp80>(0.5)) {
+				return int_part + static_cast<fp80>(1.0);
 			}
 			return int_part;
 		}
-		if (frac_part <= static_cast<fp80x2>(-0.5)) {
-			return int_part - static_cast<fp80x2>(1.0);
+		if (frac_part <= static_cast<fp80>(-0.5)) {
+			return int_part - static_cast<fp80>(1.0);
 		}
 		return int_part;
 	}
-	inline fp80x2 rint(fp80x2 x) {
+	inline Float80x2 rint(const Float80x2& x) {
 		switch (fegetround()) {
 			default:
 			case FE_TOWARDZERO:
@@ -638,179 +950,129 @@ typedef Float80x2 fp80x2;
 				return round(x);
 		}
 	}
-	inline long lround(fp80x2 x) {
-		return (long)round(x);
+	inline long lround(const Float80x2& x) {
+		return static_cast<long>(round(x));
 	}
-	inline long lrint(fp80x2 x) {
-		return (long)rint(x);
+	inline long lrint(const Float80x2& x) {
+		return static_cast<long>(rint(x));
 	}
-	inline long long llround(fp80x2 x) {
-		return (long long)round(x);
+	inline long long llround(const Float80x2& x) {
+		return static_cast<long long>(round(x));
 	}
-	inline long long llrint(fp80x2 x) {
-		return (long long)rint(x);
+	inline long long llrint(const Float80x2& x) {
+		return static_cast<long long>(rint(x));
 	}
 
 	/* Integer and Remainder */
 
-	inline fp80x2 modf(fp80x2 x, fp80x2* int_part) {
-		fp80x2 trunc_part = trunc(x);
-		if (int_part != nullptr) {
-			*int_part = trunc_part;
-		}
+	inline Float80x2 fmod(const Float80x2& x, const Float80x2& y) {
+		Float80x2 trunc_part = trunc(x / y);
+		return x - y * trunc_part;
+	}
+	inline Float80x2 modf(const Float80x2& x, Float80x2& int_part) {
+		Float80x2 trunc_part = trunc(x);
+		int_part = trunc_part;
 		return x - trunc_part;
 	}
-	inline fp80x2 nearbyint(fp80x2 x) {
+	inline Float80x2 nearbyint(const Float80x2& x) {
 		return rint(x);
 	}
-
-	/* Float Exponents */
-
-	inline fp80x2 ldexp(fp80x2 x, int exp) {
-		x.hi = ldexp(x.hi, exp);
-		x.lo = isfinite(x.hi) ? ldexp(x.lo, exp) : x.hi;
-		return x;
+	inline Float80x2 remainder(const Float80x2& x, const Float80x2& y) {
+		Float80x2 round_part = round(x / y);
+		return x - y * round_part;
 	}
-	inline fp80x2 scalbn(fp80x2 x, int exp) {
-		x.hi = scalbn(x.hi, exp);
-		x.lo = isfinite(x.hi) ? scalbn(x.lo, exp) : x.hi;
-		return x;
-	}
-	inline fp80x2 scalbln(fp80x2 x, long exp) {
-		x.hi = scalbln(x.hi, exp);
-		x.lo = isfinite(x.hi) ? scalbln(x.lo, exp) : x.hi;
-		return x;
+	inline Float80x2 remquo(const Float80x2& x, const Float80x2& y, int& quo) {
+		Float80x2 q = round(x / y);
+		Float80x2 r = x - y * q;
+		quo = static_cast<int>(q.hi + q.lo);
+		return r;
 	}
 
-/* Math overloads (Casts to other types) */
+/* Float Exponents */
 
-		/* Arithmetic */
-		// inline fp80x2 fmax(fp80x2 x, fp80x2 y) { return (fp80x2)fmax((fp80x2_Math)x, (fp80x2_Math)y); }
-		// inline fp80x2 fmin(fp80x2 x, fp80x2 y) { return (fp80x2)fmin((fp80x2_Math)x, (fp80x2_Math)y); }
-		// inline fp80x2 fabs(fp80x2 x) { return (fp80x2)fabs((fp80x2_Math)x); }
-		// inline fp80x2 fdim(fp80x2 x, fp80x2 y) { return (fp80x2)fdim((fp80x2_Math)x, (fp80x2_Math)y); }
-		// inline fp80x2 fma(fp80x2 x, fp80x2 y, fp80x2 z) { return (fp80x2)fma((fp80x2_Math)x, (fp80x2_Math)y, (fp80x2_Math)z); }
-		// inline fp80x2 copysign(fp80x2 x, fp80x2 y) { return (fp80x2)copysign((fp80x2_Math)x, (fp80x2_Math)y); }
-		// inline fp80x2 sqrt(fp80x2 x) { return (fp80x2)sqrt((fp80x2_Math)x); }
-		// inline fp80x2 cbrt(fp80x2 x) { return (fp80x2)cbrt((fp80x2_Math)x); }
-		// inline fp80x2 hypot(fp80x2 x, fp80x2 y) { return (fp80x2)hypot((fp80x2_Math)x, (fp80x2_Math)y); }
-		/* Trigonometry */
-		inline fp80x2  sin (fp80x2 x) { return (fp80x2) sin ((fp80x2_Math)x); }
-		inline fp80x2  cos (fp80x2 x) { return (fp80x2) cos ((fp80x2_Math)x); }
-		inline fp80x2  tan (fp80x2 x) { return (fp80x2) tan ((fp80x2_Math)x); }
-		inline fp80x2 asin (fp80x2 x) { return (fp80x2)asin ((fp80x2_Math)x); }
-		inline fp80x2 acos (fp80x2 x) { return (fp80x2)acos ((fp80x2_Math)x); }
-		inline fp80x2 atan (fp80x2 x) { return (fp80x2)atan ((fp80x2_Math)x); }
-		inline fp80x2  sinh(fp80x2 x) { return (fp80x2) sinh((fp80x2_Math)x); }
-		inline fp80x2  cosh(fp80x2 x) { return (fp80x2) cosh((fp80x2_Math)x); }
-		inline fp80x2  tanh(fp80x2 x) { return (fp80x2) tanh((fp80x2_Math)x); }
-		inline fp80x2 asinh(fp80x2 x) { return (fp80x2)asinh((fp80x2_Math)x); }
-		inline fp80x2 acosh(fp80x2 x) { return (fp80x2)acosh((fp80x2_Math)x); }
-		inline fp80x2 atanh(fp80x2 x) { return (fp80x2)atanh((fp80x2_Math)x); }
-		inline fp80x2 atan2(fp80x2 y, fp80x2 x) { return (fp80x2)atan2((fp80x2_Math)y, (fp80x2_Math)x); }
-		inline void sincos(fp80x2 x, fp80x2* p_sin, fp80x2* p_cos) {
-			*p_sin = sin(x);
-			*p_cos = cos(x);
-		}
-		/* Logarithms and Exponents */
-		inline fp80x2 log  (fp80x2 x) { return (fp80x2)log  ((fp80x2_Math)x); }
-		inline fp80x2 log1p(fp80x2 x) { return (fp80x2)log1p((fp80x2_Math)x); }
-		inline fp80x2 logb (fp80x2 x) { return (fp80x2)logb ((fp80x2_Math)x); }
-		inline fp80x2 log2 (fp80x2 x) { return (fp80x2)log2 ((fp80x2_Math)x); }
-		inline fp80x2 log10(fp80x2 x) { return (fp80x2)log10((fp80x2_Math)x); }
-		inline fp80x2 exp  (fp80x2 x) { return (fp80x2)exp  ((fp80x2_Math)x); }
-		inline fp80x2 expm1(fp80x2 x) { return (fp80x2)expm1((fp80x2_Math)x); }
-		inline fp80x2 exp2 (fp80x2 x) { return (fp80x2)exp2 ((fp80x2_Math)x); }
-		inline fp80x2 pow(fp80x2 x, fp80x2 y) { return (fp80x2)pow((fp80x2_Math)x, (fp80x2_Math)y); }
-		/* Rounding */
-		// inline fp80x2 trunc(fp80x2 x) { return (fp80x2)trunc((fp80x2_Math)x); }
-		// inline fp80x2 floor(fp80x2 x) { return (fp80x2)floor((fp80x2_Math)x); }
-		// inline fp80x2 ceil (fp80x2 x) { return (fp80x2)ceil ((fp80x2_Math)x); }
-		// inline fp80x2 rint (fp80x2 x) { return (fp80x2)rint ((fp80x2_Math)x); }
-		// inline fp80x2 round(fp80x2 x) { return (fp80x2)round((fp80x2_Math)x); }
-		// inline long lrint (fp80x2 x) { return lrint ((fp80x2_Math)x); }
-		// inline long lround(fp80x2 x) { return lround((fp80x2_Math)x); }
-		// inline long long llrint (fp80x2 x) { return llrint ((fp80x2_Math)x); }
-		// inline long long llround(fp80x2 x) { return llround((fp80x2_Math)x); }
-		/* Integer and Remainder */
-		inline fp80x2 fmod(fp80x2 x, fp80x2 y) { return (fp80x2)fmod((fp80x2_Math)x, (fp80x2_Math)y); }
-		// inline fp80x2 modf(fp80x2 x, fp80x2* y) {
-		// 	fp80x2_Math y_temp;
-		// 	fp80x2 result = modf((fp80x2_Math)x, &y_temp);
-		// 	*y = (fp80x2)y_temp;
-		// 	return result;
-		// }
-		// inline fp80x2 nearbyint(fp80x2 x) { return (fp80x2)nearbyint((fp80x2_Math)x); }
-		// Incorrect Function // inline fp80x2 nextafter(fp80x2 x, fp80x2 y) { return (fp80x2)nextafter((fp80x2_Math)x, (fp80x2_Math)y); }
-		inline fp80x2 remainder(fp80x2 x, fp80x2 y) { return (fp80x2)remainder((fp80x2_Math)x, (fp80x2_Math)y); }
-		inline fp80x2 remquo(fp80x2 x, fp80x2 y, int* quo) { return (fp80x2)remquo((fp80x2_Math)x, (fp80x2_Math)y, quo); }
-		/* Float Exponents */
-		inline int ilogb(fp80x2 x) { return ilogb((fp80x2_Math)x); }
-		inline fp80x2 frexp  (fp80x2 x, int* exp) { return (fp80x2)frexp  ((fp80x2_Math)x, exp); }
-		// inline fp80x2 ldexp  (fp80x2 x, int  exp) { return (fp80x2)ldexp  ((fp80x2_Math)x, exp); }
-		// inline fp80x2 scalbn (fp80x2 x, int  exp) { return (fp80x2)scalbn ((fp80x2_Math)x, exp); }
-		// inline fp80x2 scalbln(fp80x2 x, long exp) { return (fp80x2)scalbln((fp80x2_Math)x, exp); }
-		/* Tests */
-		// inline bool signbit(fp80x2 x) { return (signbit((fp80x2_Math)x) != 0) ? true : false; }
-		// inline bool isfinite(fp80x2 x) { return (isfinite((fp80x2_Math)x) != 0) ? true : false; }
-		// inline bool isinf(fp80x2 x) { return (isinf((fp80x2_Math)x) != 0) ? true : false; }
-		// inline bool isnan(fp80x2 x) { return (isnan((fp80x2_Math)x) != 0) ? true : false; }
-		/* Transcendental Functions */
-		inline fp80x2 erf (fp80x2 x) { return (fp80x2)erf ((fp80x2_Math)x); }
-		inline fp80x2 erfc(fp80x2 x) { return (fp80x2)erfc((fp80x2_Math)x); }
-		inline fp80x2 lgamma(fp80x2 x) { return (fp80x2)lgamma((fp80x2_Math)x); }
-		inline fp80x2 tgamma(fp80x2 x) { return (fp80x2)tgamma((fp80x2_Math)x); }
+	/**
+	 * @brief Extracts the exponent of a Float80x2 value to compute the
+	 * binary logarithm.
+	 */
+	inline int ilogb(const Float80x2& x) {
+		return ilogb(x.hi + x.lo);
+	}
+	/**
+	 * @brief Returns a normalized Float80x2 value and the exponent in
+	 * the form [0.0, 1.0) * 2^expon
+	 */
+	inline Float80x2 frexp(const Float80x2& x, int& expon) {
+		Float80x2 ret;
+		expon = ilogb(x.hi + x.lo) + 1;
+		ret.hi = ldexp(x.hi, -(expon));
+		ret.lo = ldexp(x.lo, -(expon));
+		return ret;
+	}
+	/**
+	 * @brief Multiplies a Float80x2 value by 2^expon
+	 */
+	inline Float80x2 ldexp(const Float80x2& x, int expon) {
+		Float80x2 ret;
+		ret.hi = ldexp(x.hi, expon);
+		ret.lo = isfinite(x.hi) ? ldexp(x.lo, expon) : x.hi;
+		return ret;
+	}
+	/**
+	 * @brief Multiplies a Float80x2 value by FLT_RADIX^expon
+	 */
+	inline Float80x2 scalbn(const Float80x2& x, int expon) {
+		Float80x2 ret;
+		ret.hi = scalbn(x.hi, expon);
+		ret.lo = isfinite(x.hi) ? scalbn(x.lo, expon) : x.hi;
+		return ret;
+	}
+	/**
+	 * @brief Multiplies a Float80x2 value by FLT_RADIX^expon
+	 */
+	inline Float80x2 scalbln(const Float80x2& x, long expon) {
+		Float80x2 ret;
+		ret.hi = scalbln(x.hi, expon);
+		ret.lo = isfinite(x.hi) ? scalbln(x.lo, expon) : x.hi;
+		return ret;
+	}
 
-	/* Strings */
-
-		#include "../FloatNxN/FloatNxN_stringTo.hpp"
-
-		inline Float80x2 stringTo_Float80x2(const char* nPtr, char** endPtr = nullptr) {
-			internal_FloatNxN_stringTo<Float80x2, fp80> stringTo_func;
-			return stringTo_func.stringTo_FloatNxN(nPtr, endPtr);
-		}
-
-		/**
-		 * @brief Wrapper for stringTo_Float80x2
-		 */
-		inline std::istream& operator>>(std::istream& stream, Float80x2& value) {
-			internal_FloatNxN_stringTo<Float80x2, fp80> func_cin;
-			return func_cin.cin_FloatNxN(stream, value);
-		}
-
-		#include "../FloatNxN/FloatNxN_snprintf.hpp"
-
-		#define PRIFloat80x2 "D"
-
-		/**
-		 * @brief snprintf a singular Float80x2/fp80x2.
-		 * Similar in functionallity to quadmath_snprintf.
-		 * @note $ not supported. This function ignore additional
-		 * format specifiers.
-		 * @return -1 on encoding failure. Otherwise the total length of the
-		 * string excluding the \0 terminator and ignoring the buffer size.
-		 */
-		inline int Float80x2_snprintf(
-			char* buf, size_t len,
-			const char* format, ...
-		) {
-			va_list args;
-			va_start(args, format);
-			internal_FloatNxN_snprintf<Float80x2, fp80> func_snprintf;
-			int ret_val = func_snprintf.FloatNxN_snprintf(
-				PRIFloat80x2, PRIFloat80, buf, len,
-				format, args
-			);
-			va_end(args);
-			return ret_val;
-		}
-
-		/**
-		 * @brief Wrapper for Float80x2_snprintf
-		 */
-		inline std::ostream& operator<<(std::ostream& stream, const Float80x2& value) {
-			internal_FloatNxN_snprintf<Float80x2, fp80> func_cout;
-			return func_cout.FloatNxN_cout(PRIFloat80x2, PRIFloat80, stream, value);
-		}
+/* Transcendental Functions */
+	
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 erf(const Float80x2& x) {
+		return static_cast<Float80x2>(
+			erf(static_cast<Float80x2_Math>(x))
+		);
+	}
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 erfc(const Float80x2& x) {
+		return static_cast<Float80x2>(
+			erfc(static_cast<Float80x2_Math>(x))
+		);
+	}
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 lgamma(const Float80x2& x) {
+		return static_cast<Float80x2>(
+			lgamma(static_cast<Float80x2_Math>(x))
+		);
+	}
+	/** 
+	 * @note casts to Float80x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float80x2 tgamma(const Float80x2& x) {
+		return static_cast<Float80x2>(
+			tgamma(static_cast<Float80x2_Math>(x))
+		);
+	}
 
 #endif /* FLOAT80X2_HPP */

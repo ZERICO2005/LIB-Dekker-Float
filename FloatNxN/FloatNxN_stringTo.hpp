@@ -14,6 +14,7 @@
 #include <climits>
 #include <cmath>
 #include <limits>
+#include <istream>
 
 template<typename FloatNxN, typename FloatN>
 class internal_FloatNxN_stringTo {
@@ -107,28 +108,24 @@ class internal_FloatNxN_stringTo {
 		if (compare_text(ptr, "INFINITY")) {
 			ptr += sizeof("INFINITY");
 			FloatNxN value;
-			value.hi = std::numeric_limits<FloatN>::infinity();
-			value.lo = std::numeric_limits<FloatN>::infinity();
-			value.hi = sign ? -value.hi : value.hi;
-			value.lo = sign ? -value.lo : value.lo;
+			value = std::numeric_limits<FloatNxN>::infinity();
+			value = sign ? -value : value;
 			if (endPtr != nullptr) { memcpy(endPtr, &nPtr, sizeof(*endPtr)); }
 			return value;
 		}
 		if (compare_text(ptr, "NAN")) {
 			ptr += sizeof("NAN");
 			FloatNxN value;
-			value.hi = std::numeric_limits<FloatN>::quiet_NaN();
-			value.lo = std::numeric_limits<FloatN>::quiet_NaN();
-			value.hi = sign ? -value.hi : value.hi;
-			value.lo = sign ? -value.lo : value.lo;
+			value = std::numeric_limits<FloatNxN>::quiet_NaN();
+			value = sign ? -value : value;
 			if (endPtr != nullptr) { memcpy(endPtr, &nPtr, sizeof(*endPtr)); }
 			return value;
 		}
 
-		FloatNxN int_part = static_cast<FloatNxN>(0.0);
+		FloatNxN int_part = static_cast<FloatN>(0.0);
 		while (*ptr >= '0' && *ptr <= '9') {
-			int_part *= static_cast<FloatNxN>(10.0);
-			int_part += (FloatNxN)(*ptr - '0');
+			int_part *= static_cast<FloatN>(10.0);
+			int_part += static_cast<FloatN>(*ptr - '0');
 			ptr++;
 		}
 		
@@ -137,22 +134,21 @@ class internal_FloatNxN_stringTo {
 			int exponent;
 			ptr = get_exponent(ptr, exponent);
 			mult_exp(int_part, exponent);
-			int_part.hi = sign ? -int_part.hi : int_part.hi;
-			int_part.lo = sign ? -int_part.lo : int_part.lo;
+			int_part = sign ? -int_part : int_part;
 			if (endPtr != nullptr) { memcpy(endPtr, &nPtr, sizeof(*endPtr)); }
 			return int_part;
 		}
 		ptr++; // character after '.'
 
-		FloatNxN frac_part = static_cast<FloatNxN>(0.0);
-		FloatNxN pow10_div = static_cast<FloatNxN>(10.0);
+		FloatNxN frac_part = static_cast<FloatN>(0.0);
+		FloatNxN pow10_div = static_cast<FloatN>(10.0);
 		while (*ptr >= '0' && *ptr <= '9') {
-			FloatNxN temp_digit = (FloatNxN)(*ptr - '0') / pow10_div;
+			FloatNxN temp_digit = static_cast<FloatN>(*ptr - '0') / pow10_div;
 			if (isfinite(temp_digit) == false) {
 				break;
 			}
 			frac_part += temp_digit;
-			pow10_div *= static_cast<FloatNxN>(10.0);
+			pow10_div *= static_cast<FloatN>(10.0);
 			ptr++;
 		}
 		while (*ptr >= '0' && *ptr <= '9') {
@@ -162,8 +158,7 @@ class internal_FloatNxN_stringTo {
 		int exponent;
 		ptr = get_exponent(ptr, exponent);
 		mult_exp(frac_part, exponent);
-		frac_part.hi = sign ? -frac_part.hi : frac_part.hi;
-		frac_part.lo = sign ? -frac_part.lo : frac_part.lo;
+		frac_part = sign ? -frac_part : frac_part;
 		if (endPtr != nullptr) { memcpy(endPtr, &nPtr, sizeof(*endPtr)); }
 		return frac_part;
 	}
@@ -172,7 +167,7 @@ class internal_FloatNxN_stringTo {
 		std::istream::sentry sentry(stream);
 
 		if (!sentry) {
-			value = static_cast<FloatNxN>(0.0);
+			value = static_cast<FloatN>(0.0);
 			return stream;
 		}
 
@@ -180,7 +175,7 @@ class internal_FloatNxN_stringTo {
 		stream >> num_str;
 
 		if (num_str.empty()) {
-			value = static_cast<FloatNxN>(0.0);
+			value = static_cast<FloatN>(0.0);
 			stream.setstate(std::ios::failbit);
 			return stream;
 		}
@@ -189,7 +184,7 @@ class internal_FloatNxN_stringTo {
 		value = stringTo_FloatNxN(num_str.c_str(), &endPtr);
 
 		if (endPtr == num_str.c_str()) {
-			value = static_cast<FloatNxN>(0.0);
+			value = static_cast<FloatN>(0.0);
 			stream.setstate(std::ios::failbit);
 		}
 

@@ -10,9 +10,6 @@
 #define FLOAT80X2_DEF_H
 
 #include "Float80.hpp"
-#include "Float80x2.hpp"
-
-#if 0
 
 /**
  * @brief defines the Float80x2 struct
@@ -37,6 +34,9 @@ typedef struct Float80x2 {
 		hi(value_hi), lo(value_lo) {}
 
 	constexpr inline Float80x2(const fp80 values[2]) :
+		hi(values[0]), lo(values[1]) {}
+
+	constexpr inline Float80x2(const fp80 (&values)[2]) :
 		hi(values[0]), lo(values[1]) {}
 
 	constexpr inline Float80x2(const fp32 value) :
@@ -71,7 +71,5 @@ typedef struct Float80x2 {
 
 #endif
 } Float80x2;
-
-#endif
 
 #endif /* FLOAT80X2_DEF_H */

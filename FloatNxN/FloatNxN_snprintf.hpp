@@ -15,10 +15,16 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdio>
-#include <iostream>
+#include <ostream>
+#include <vector>
 
-template<typename FloatNxN, typename FloatN>
+template<
+	typename FloatNxN, typename FloatN,
+	size_t FloatN_Count
+>
 class internal_FloatNxN_snprintf {
+	static_assert(FloatN_Count >= 2);
+
 	private:
 	
 	/** Searches for the first %, skips %% */
@@ -138,16 +144,25 @@ class internal_FloatNxN_snprintf {
 
 	/** Searches for the PRIFloatNxN specifier and aAeEfFgG */
 	static const char* parse_specifier(
+		const char* PRIFloatNxN,
 		const char* format,
-		char& specifier,
-		const char* PRIFloatNxN
+		char& specifier
 	) {
 		if (format == nullptr) { return nullptr; }
 		specifier = '\0';
-		if (strcmp(format, PRIFloatNxN) == 0) {
-			return format;
+		{
+			// Compares the two strings manually
+			const char* PRI_ptr = PRIFloatNxN;
+			const char* fm_ptr = format;
+			while (*PRI_ptr == *fm_ptr && *PRI_ptr != '\0' && *fm_ptr != '\0') {
+				PRI_ptr++;
+				fm_ptr++;
+			}
+			if (*PRI_ptr != '\0') {
+				return format;
+			}
+			format = fm_ptr; // Pointer to the specifier character
 		}
-		format++;
 		switch(*format) {
 			case 'a':
 			case 'A':
@@ -174,8 +189,222 @@ class internal_FloatNxN_snprintf {
 		bool space_sign; // % Df
 		bool explicit_decimal_point; // %#Df
 		bool pad_zeros; // %0Df
+		char specifier; // fFgGeEaA
 	};
 
+	static std::string FloatN_string_snprintf(
+		const char* format, int precision, FloatN value
+	) {
+		// This is used to supress -Wformat-non-literal portably
+		typedef int (* const snprintf_func)(char *buf, size_t size, const char *format, ...);
+		const snprintf_func snprintf_wrapper = snprintf;
+
+		std::string ret = "";
+		// Get the size of the string
+		int len_str = snprintf_wrapper(nullptr, 0, format, precision, value);
+		if (len_str < 0) {
+			// snprintf failure
+			return ret;
+		}
+
+		// Allocates the string/buffer
+		size_t size_str = len_str + 1;
+		char* buf = (char*)calloc(size_str, sizeof(char));
+		if (buf == nullptr) {
+			// calloc failure
+			return ret;
+		}
+
+		// Writes the string to the buffer
+		if (snprintf_wrapper(buf, size_str, format, precision, value) < 0) {
+			// snprintf failure
+			free(buf);
+			buf = nullptr;
+			return ret;
+		}
+
+		// Converts to an std::string
+		ret.assign(buf);
+		free(buf);
+		buf = nullptr;
+		return ret;
+	}
+
+	/**
+	 * @brief Assumes |x| >= |y| and that x and y have the same number of decimal places.
+	 */
+	static std::string sum_decimal_strings(
+		std::string x, std::string y,
+		bool explicit_decimal_point
+	) {
+		std::string ret = "";
+		if (x.size() <= 1 || y.size() <= 1) {
+			// Invalid string
+			return ret;
+		}
+
+		bool found_decimal_point = false;
+		const bool x_sign = (x.at(0) == '-');
+		const bool y_sign = (y.at(0) == '-');
+		const bool subtraction_mode = (x_sign != y_sign);
+
+		// End of the string
+		const char* x_str = x.c_str() + x.size() - 1;
+		const char* y_str = y.c_str() + y.size() - 1;
+
+		int carry = 0;
+
+		while (x_str > x.c_str() && y_str > y.c_str()) {
+			// Skips over the decimal point
+			if (*x_str == '.' && *y_str == '.' && found_decimal_point == false) {
+				found_decimal_point = true;
+				ret += '.';
+				x_str--;
+				y_str--;
+				continue;
+			} else if (
+				*x_str < '0' || *x_str > '9' ||
+				*y_str < '0' || *y_str > '9'
+			) {
+				// Invalid character, misaligned decimal points, or double decimal point.
+				return ret;
+			}
+
+			int x_num = *x_str - '0';
+			int y_num = *y_str - '0';
+			int num = x_num + carry + (subtraction_mode ? -y_num : y_num);
+			carry = num / 10;
+			num %= 10;
+			if (subtraction_mode && num < 0) {
+				num += 10;
+				carry--;
+			}
+			ret += (char)(num + '0');
+			x_str--;
+			y_str--;
+		}
+		while (x_str > x.c_str()) {
+			int x_num = *x_str - '0';
+			int num = x_num + carry;
+			carry = num / 10;
+			num %= 10;
+			if (subtraction_mode && num < 0) {
+				num += 10;
+				carry--;
+			}
+			ret += (char)(num + '0');
+			x_str--;
+		}
+		while (carry != 0) {
+			int num = carry;
+			carry /= 10;
+			num %= 10;
+			if (subtraction_mode && num < 0) {
+				num += 10;
+				carry--;
+			}
+			ret += (char)(num + '0');
+		}
+
+		// Remove extra zeros
+		size_t padding_index = ret.size() - 1;
+		while (ret.at(padding_index) == '0') {
+			padding_index--;
+		}
+		if (ret.at(padding_index) == '.') {
+			found_decimal_point = true;
+			padding_index++;
+		}
+		ret = ret.substr(0, padding_index + 1);
+		ret += x_sign ? "-" : "+";
+		std::reverse(ret.begin(), ret.end());
+		if (found_decimal_point == false && explicit_decimal_point == true) {
+			ret += '.';
+		}
+		return ret;
+	}
+
+
+	static std::string FloatNxN_sum_decimal_strings(
+		const char* PRIFloatN,
+		const FloatNxN_format_param& param,
+		const FloatN* const val, const size_t val_count
+	) {
+		std::string format = "%+.*";
+		format += PRIFloatN;
+		format += "f";
+
+		std::string sum_str = FloatN_string_snprintf(
+			format.c_str(), param.precision, val[0]
+		);
+		for (size_t i = 1; i < val_count; i++) {
+			std::string add_str = FloatN_string_snprintf(
+				format.c_str(), param.precision, val[i]
+			);
+			sum_str = sum_decimal_strings(
+				sum_str, add_str, param.explicit_decimal_point
+			);
+		}
+		// Removes the sign used for summing the strings together
+		return sum_str.substr(1, sum_str.size());
+	}
+
+	static std::string FloatNxN_write_decimal_string(
+		const char* PRIFloatN,
+		const FloatNxN_format_param& param, const bool upperCase,
+		const FloatN* const val, const size_t val_count
+	) {
+		// Used for checking for infinity, nan, etc
+		FloatN approx_value = static_cast<FloatN>(0.0);
+		for (size_t i = 0; i < val_count; i++) {
+			approx_value += val[i];
+		}
+
+		std::string str = "";
+
+		if (std::signbit(approx_value)) {
+			str += '-';
+		} else if (param.explicit_sign) {
+			str += '+';
+		} else if (param.space_sign) {
+			str += ' ';
+		}
+
+		if (std::isinf(approx_value)) {
+			str += upperCase ? "INFINITY" : "infinity";
+			return str;
+		}
+		if (std::isnan(approx_value)) {
+			str += upperCase ? "NAN" : "nan";
+			return str;
+		}
+		str += FloatNxN_sum_decimal_strings(
+			PRIFloatN, param, val, val_count
+		);
+		
+		size_t len_str = str.length();
+		size_t pad_width = (param.width < 0) ? 0 : (size_t)param.width;
+		if (len_str >= pad_width) {
+			return str;
+		}
+		
+		std::string padded_str = "";
+		size_t pad_length = pad_width - len_str;
+		const char pad_char = (param.pad_zeros && param.left_justify == false) ? '0' : ' ';
+		for (size_t i = 0; i < pad_length; i++) {
+			padded_str += pad_char;
+		}
+		
+		if (param.left_justify) {  
+			str += padded_str;
+			return str;
+		}
+		padded_str += str;
+
+		return padded_str;
+	}
+
+#if 0
 	/**
 	* @brief Prints decimial/hexadecimal digit
 	* @note Assumes base is either 10 or 16 for %f, %F, %a, and %A
@@ -349,11 +578,12 @@ class internal_FloatNxN_snprintf {
 		
 		return padded_str;
 	}
+#endif
 
 	public:
 
 	static int FloatNxN_snprintf(
-		const char* PRIFloatNxN, __attribute__((unused)) const char* PRIFloatN,
+		const char* PRIFloatNxN, const char* PRIFloatN,
 		char* buf, size_t len,
 		const char* format, va_list args
 	) {
@@ -388,10 +618,9 @@ class internal_FloatNxN_snprintf {
 				param.precision = 0;
 			}
 		}
-		char specifier;
-		fm_ptr = parse_specifier(fm_ptr, specifier, PRIFloatNxN);
+		fm_ptr = parse_specifier(PRIFloatNxN, fm_ptr, param.specifier);
 
-		switch(specifier) {
+		switch(param.specifier) {
 			case 'a':
 			case 'A':
 			case 'e':
@@ -415,14 +644,20 @@ class internal_FloatNxN_snprintf {
 			size_t copy_amount = (size_t)(fm_start - format);
 			output_str.append(format, copy_amount - 1);
 		}
-
-		switch (specifier) {
+		FloatN* const value_array = reinterpret_cast<FloatN*>(&value);
+		switch (param.specifier) {
 			default:
 			case 'f':
-				output_str += FloatNxN_write(param, value, 10, false);
+				output_str += FloatNxN_write_decimal_string(
+					PRIFloatN,
+					param, false, value_array, FloatN_Count
+				);
 				break;
 			case 'F':
-				output_str += FloatNxN_write(param, value, 10, true);
+				output_str += FloatNxN_write_decimal_string(
+					PRIFloatN,
+					param, true, value_array, FloatN_Count
+				);
 				break;
 			case 'a':
 				output_str += "<unsupported %a FloatNxN_snprintf>";
@@ -514,8 +749,7 @@ class internal_FloatNxN_snprintf {
 		int precision = (int)stream.precision(); // cast from size_t to int
 		int len_str = FloatNxN_cout_snprintf(
 			PRIFloatNxN, PRIFloatN,
-			nullptr, 0,
-			format_str.c_str(), width, precision, value
+			nullptr, 0, format_str.c_str(), width, precision, value
 		);
 		if (len_str < 0) {
 			stream << "Failed to format FloatNxN";

@@ -9,7 +9,7 @@
 #define FLOAT32X2_HPP
 
 // #include "Float32x2.h"
-// #include "Float32x2_def.h"
+#include "Float32x2_def.h"
 
 #include <cstdarg>
 #include <cstdint>
@@ -18,405 +18,592 @@
 #include <cfenv>
 #include <limits>
 
-
 typedef float fp32;
 typedef double fp64;
 
 // Can be changed to other types for better accuracy
-typedef fp32 fp32x2_Math;
+typedef fp64 Float32x2_Math;
 
+//------------------------------------------------------------------------------
+// Float32x2 String Operations
+//------------------------------------------------------------------------------
+
+#include "Float32x2_string.h"
+
+#if __cplusplus >= 200809L
 /**
- * @brief Double-Float32 Dekker Float implementation.
- * Source: Creel "Double it Like Dekker" on YouTube.
- *
- * @warning -Ofast may break this library. -O3 compiles okay on gcc and clang.
+ * @brief Wrapper for stringTo_Float32x2
  */
-struct Float32x2 {
+inline Float32x2 operator""_FP32X2(const char* str, std::size_t) {
+	return stringTo_Float32x2(str, nullptr);
+}
+#endif
 
-	fp32 hi;
-	fp32 lo;
+#include <istream>
+/**
+ * @brief Wrapper for stringTo_Float32x2
+ */
+inline std::istream& operator>>(std::istream& stream, Float32x2& value);
 
-	/* Arithmetic */
+#include <ostream>
+/**
+ * @brief Wrapper for Float32x2_snprintf
+ */
+inline std::ostream& operator<<(std::ostream& stream, const Float32x2& value);
 
-	static inline Float32x2 Dekker_Add(
-		const Float32x2& x, const Float32x2& y
-	) {
-		fp32 r_hi = x.hi + y.hi;
-		fp32 r_lo = static_cast<fp32>(0.0);
-		if (fabsf(x.hi) > fabsf(y.hi)) {
-			r_lo = x.hi - r_hi + y.hi + y.lo + x.lo;
-		} else {
-			r_lo = y.hi - r_hi + x.hi + x.lo + y.lo;
-		}
+//------------------------------------------------------------------------------
+// Float32x2 Comparison
+//------------------------------------------------------------------------------
 
-		Float32x2 c;
-		c.hi = r_hi + r_lo;
-		c.lo = r_hi - c.hi + r_lo;
-		return c;
+/* Comparison */
+
+inline constexpr bool operator==(const Float32x2 x, const Float32x2 y) {
+	return (x.hi == y.hi && x.lo == y.lo);
+}
+inline constexpr bool operator!=(const Float32x2 x, const Float32x2 y) {
+	return (x.hi != y.hi || x.lo != y.lo);
+}
+inline constexpr bool operator<(const Float32x2 x, const Float32x2 y) {
+	return (x.hi == y.hi) ? (x.lo < y.lo) : (x.hi < y.hi);
+}
+inline constexpr bool operator<=(const Float32x2 x, const Float32x2 y) {
+	return (x.hi == y.hi) ? (x.lo <= y.lo) : (x.hi < y.hi);
+}
+inline constexpr bool operator>(const Float32x2 x, const Float32x2 y) {
+	return (x.hi == y.hi) ? (x.lo > y.lo) : (x.hi > y.hi);
+}
+inline constexpr bool operator>=(const Float32x2 x, const Float32x2 y) {
+	return (x.hi == y.hi) ? (x.lo >= y.lo) : (x.hi > y.hi);
+}
+
+/* Optimized Comparison */
+
+inline constexpr bool operator==(const Float32x2 x, const fp32 y) {
+	return (x.hi == y && x.lo == static_cast<fp32>(0.0));
+}
+inline constexpr bool operator!=(const Float32x2 x, const fp32 y) {
+	return (x.hi != y || x.lo != static_cast<fp32>(0.0));
+}
+inline constexpr bool operator<(const Float32x2 x, const fp32 y) {
+	return (x.hi == y) ? (x.lo < static_cast<fp32>(0.0)) : (x.hi < y);
+}
+inline constexpr bool operator<=(const Float32x2 x, const fp32 y) {
+	return (x.hi == y) ? (x.lo <= static_cast<fp32>(0.0)) : (x.hi < y);
+}
+inline constexpr bool operator>(const Float32x2 x, const fp32 y) {
+	return (x.hi == y) ? (x.lo > static_cast<fp32>(0.0)) : (x.hi > y);
+}
+inline constexpr bool operator>=(const Float32x2 x, const fp32 y) {
+	return (x.hi == y) ? (x.lo >= static_cast<fp32>(0.0)) : (x.hi > y);
+}
+
+inline constexpr bool operator==(const fp32 x, const Float32x2 y) {
+	return (x == y.hi && static_cast<fp32>(0.0) == y.lo);
+}
+inline constexpr bool operator!=(const fp32 x, const Float32x2 y) {
+	return (x != y.hi || static_cast<fp32>(0.0) != y.lo);
+}
+inline constexpr bool operator<(const fp32 x, const Float32x2 y) {
+	return (x == y.hi) ? (static_cast<fp32>(0.0) < y.lo) : (x < y.hi);
+}
+inline constexpr bool operator<=(const fp32 x, const Float32x2 y) {
+	return (x == y.hi) ? (static_cast<fp32>(0.0) <= y.lo) : (x < y.hi);
+}
+inline constexpr bool operator>(const fp32 x, const Float32x2 y) {
+	return (x == y.hi) ? (static_cast<fp32>(0.0) > y.lo) : (x > y.hi);
+}
+inline constexpr bool operator>=(const fp32 x, const Float32x2 y) {
+	return (x == y.hi) ? (static_cast<fp32>(0.0) >= y.lo) : (x > y.hi);
+}
+
+/* Compare to Zero */
+
+/** @brief Assumes that if x.hi is zero then x.lo is also zero */
+inline constexpr bool dekker_equal_zero(const Float32x2 x) {
+	return (x.hi == static_cast<fp32>(0.0));
+}
+/** @brief Assumes that if x.hi is zero then x.lo is also zero */
+inline constexpr bool dekker_notequal_zero(const Float32x2 x) {
+	return (x.hi != static_cast<fp32>(0.0));
+}
+/** @brief Assumes that if x.hi is zero then x.lo is also zero */
+inline constexpr bool dekker_less_zero(const Float32x2 x) {
+	return (x.hi < static_cast<fp32>(0.0));
+}
+/** @brief Assumes that if x.hi is zero then x.lo is also zero */
+inline constexpr bool dekker_lessequal_zero(const Float32x2 x) {
+	return (x.hi <= static_cast<fp32>(0.0));
+}
+/** @brief Assumes that if x.hi is zero then x.lo is also zero */
+inline constexpr bool dekker_greater_zero(const Float32x2 x) {
+	return (x.hi > static_cast<fp32>(0.0));
+}
+/** @brief Assumes that if x.hi is zero then x.lo is also zero */
+inline constexpr bool dekker_greaterequal_zero(const Float32x2 x) {
+	return (x.hi >= static_cast<fp32>(0.0));
+}
+
+
+//------------------------------------------------------------------------------
+// Float32x2 Basic Arithmetic
+//------------------------------------------------------------------------------
+
+/* Negation */
+
+inline constexpr Float32x2 operator-(const Float32x2 x) {
+	return {-x.hi, -x.lo};
+}
+
+inline Float32x2 operator+(const Float32x2 x, const Float32x2 y) {
+	fp32 r_hi = x.hi + y.hi;
+	fp32 r_lo = static_cast<fp32>(0.0);
+	if (fabs(x.hi) > fabs(y.hi)) {
+		r_lo = x.hi - r_hi + y.hi + y.lo + x.lo;
+	} else {
+		r_lo = y.hi - r_hi + x.hi + x.lo + y.lo;
 	}
 
-	static inline Float32x2 Dekker_Sub(
-		const Float32x2& x, const Float32x2& y
-	) {
-		fp32 r_hi = x.hi - y.hi;
-		fp32 r_lo = static_cast<fp32>(0.0);
-		if (fabsf(x.hi) > fabsf(y.hi)) {
-			r_lo = x.hi - r_hi - y.hi - y.lo + x.lo;
-		} else {
-			r_lo = -y.hi - r_hi + x.hi + x.lo - y.lo;
-		}
+	Float32x2 c;
+	c.hi = r_hi + r_lo;
+	c.lo = r_hi - c.hi + r_lo;
+	return c;
+}
 
-		Float32x2 c;
-		c.hi = r_hi + r_lo;
-		c.lo = r_hi - c.hi + r_lo;
-		return c;
+inline Float32x2 operator-(const Float32x2 x, const Float32x2 y) {
+	fp32 r_hi = x.hi - y.hi;
+	fp32 r_lo = static_cast<fp32>(0.0);
+	if (fabs(x.hi) > fabs(y.hi)) {
+		r_lo = x.hi - r_hi - y.hi - y.lo + x.lo;
+	} else {
+		r_lo = -y.hi - r_hi + x.hi + x.lo - y.lo;
 	}
 
-	static constexpr fp32 Dekker_Scale = 4097.0f; // (2^ceil(24 / 2) + 1)
-	
-	static inline Float32x2 Dekker_Split(const fp32& x) {
+	Float32x2 c;
+	c.hi = r_hi + r_lo;
+	c.lo = r_hi - c.hi + r_lo;
+	return c;
+}
+
+
+#if defined(FLOATNX2_BITWISE_SPLIT) || defined(FLOAT32X2_BITWISE_SPLIT)
+	/**
+	 * @brief Splits the mantissa bits of a floating point value via bitwise
+	 * operations for use in the dekker_mul12 function.
+	 * @note This function might not work at the moment.
+	 */
+	inline Float32x2 dekker_split(const fp32 x) {
+		Bitwise_Float32x2 r;
+		const uint64_t Dekker_Split_Mask = ~((uint64_t)0x3FFFFFF);
+		r.float_part.hi = x;
+		r.binary_part.hi &= Dekker_Split_Mask;
+		r.float_part.lo = x - r.float_part.hi;
+		return r.float_part;
+	}
+#else
+	/**
+	 * @brief Splits the mantissa bits of a floating point value via
+	 * multiplication for use in the dekker_mul12 function.
+	 */
+	inline Float32x2 dekker_split(const fp32 x) {
+		constexpr fp32 Dekker_Scale = 4097.0f; // (2^ceil(24 / 2) + 1)
 		fp32 p = x * Dekker_Scale;
 		Float32x2 r;
 		r.hi = (x - p) + p;
 		r.lo = x - r.hi;
 		return r;
 	}
-	
-	// static constexpr uint64_t Dekker_Split_Mask = ~((uint64_t)0xFFF);
+#endif
 
-	// static inline Float32x2 Dekker_Split(const fp32& x) {
-	// 	Float32x2 r;
-	// 	uint64_t temp = (*(uint64_t*)((void*)&x)) & Dekker_Split_Mask;
-	// 	r.hi = (*(fp32*)((void*)&temp));
-	// 	r.lo = x - r.hi;
-	// 	return r;
-	// }
+/**
+ * @brief Multiplies two fp32 values with result stored as a Float32x2
+ */
+inline Float32x2 dekker_mul12(const fp32 x, const fp32 y) {
+	Float32x2 a = dekker_split(x);
+	Float32x2 b = dekker_split(y);
+	fp32 p = a.hi * b.hi;
+	fp32 q = a.hi * b.lo + a.lo * b.hi;
 
-	static inline Float32x2 Dekker_Mul12(
-		const fp32& x, const fp32& y
-	) {
-		Float32x2 a = Dekker_Split(x);
-		Float32x2 b = Dekker_Split(y);
-		fp32 p = a.hi * b.hi;
-		fp32 q = a.hi * b.lo + a.lo * b.hi;
+	Float32x2 r;
+	r.hi = p + q;
+	r.lo = p - r.hi + q + a.lo * b.lo;
+	return r;
+}
 
-		Float32x2 r;
-		r.hi = p + q;
-		r.lo = p - r.hi + q + a.lo * b.lo;
-		return r;
+inline Float32x2 operator*(const Float32x2 x, const Float32x2 y) {
+	Float32x2 t = dekker_mul12(x.hi, y.hi);
+	fp32 c = x.hi * y.lo + x.lo * y.hi + t.lo;
+
+	Float32x2 r;
+	r.hi = t.hi + c;
+	r.lo = t.hi - r.hi + c;
+	return r;
+}
+
+inline Float32x2 operator/(const Float32x2 x, const Float32x2 y) {
+	fp32 u = x.hi / y.hi;
+	Float32x2 t = dekker_mul12(u, y.hi);
+	fp32 l = (x.hi - t.hi - t.lo + x.lo - u * y.lo) / y.hi;
+
+	Float32x2 r;
+	r.hi = u + l;
+	r.lo = u - r.hi + l;
+	return r;
+}
+
+/**
+ * @brief Squares a fp32 value with the result stored as a Float32x2
+ */
+inline Float32x2 dekker_square12(const fp32 x) {
+	Float32x2 a = dekker_split(x);
+	fp32 p = a.hi * a.hi;
+	fp32 q = static_cast<fp32>(2.0) * (a.hi * a.lo);
+
+	Float32x2 r;
+	r.hi = p + q;
+	r.lo = ((p - r.hi) + q) + (a.lo * a.lo);
+	return r;
+}
+
+inline Float32x2 square(const Float32x2 x) {
+	Float32x2 t = dekker_square12(x.hi);
+	fp32 c = (static_cast<fp32>(2.0) * (x.hi * x.lo)) + t.lo;
+
+	Float32x2 r;
+	r.hi = t.hi + c;
+	r.lo = (t.hi - r.hi) + c;
+	return r;
+}
+
+inline Float32x2 recip(const Float32x2 y) {
+	fp32 u = static_cast<fp32>(1.0) / y.hi;
+	Float32x2 t = dekker_mul12(u, y.hi);
+	fp32 l = (((static_cast<fp32>(1.0) - t.hi) - t.lo) - (u * y.lo)) / y.hi;
+
+	Float32x2 r;
+	r.hi = u + l;
+	r.lo = (u - r.hi) + l;
+	return r;
+}
+
+//------------------------------------------------------------------------------
+// Float32x2 optimized arithmetic
+//------------------------------------------------------------------------------
+
+inline Float32x2 operator+(const Float32x2 x, const fp32 y) {
+	fp32 r_hi = x.hi + y;
+	fp32 r_lo = static_cast<fp32>(0.0);
+	if (fabs(x.hi) > fabs(y)) {
+		r_lo = x.hi - r_hi + y + x.lo;
+	} else {
+		r_lo = y - r_hi + x.hi + x.lo;
 	}
 
-	static inline Float32x2 Dekker_Mul(
-		const Float32x2& x, const Float32x2& y
-	) {
-		Float32x2 t = Dekker_Mul12(x.hi, y.hi);
-		fp32 c = x.hi * y.lo + x.lo * y.hi + t.lo;
+	Float32x2 c;
+	c.hi = r_hi + r_lo;
+	c.lo = r_hi - c.hi + r_lo;
+	return c;
+}
 
-		Float32x2 r;
-		r.hi = t.hi + c;
-		r.lo = t.hi - r.hi + c;
-		return r;
+inline Float32x2 operator+(const fp32 x, const Float32x2 y) {
+	fp32 r_hi = x + y.hi;
+	fp32 r_lo = static_cast<fp32>(0.0);
+	if (fabs(x) > fabs(y.hi)) {
+		r_lo = x - r_hi + y.hi + y.lo;
+	} else {
+		r_lo = y.hi - r_hi + x + y.lo;
 	}
 
-	static inline Float32x2 Dekker_Div(
-		const Float32x2& x, const Float32x2& y
-	) {
-		Float32x2 u;
-		u.hi = x.hi / y.hi;
-		Float32x2 t = Dekker_Mul12(u.hi, y.hi);
-		fp32 l = (x.hi - t.hi - t.lo + x.lo - u.hi * y.lo) / y.hi;
+	Float32x2 c;
+	c.hi = r_hi + r_lo;
+	c.lo = r_hi - c.hi + r_lo;
+	return c;
+}
 
-		Float32x2 r;
-		r.hi = u.hi + l;
-		r.lo = u.hi - r.hi + l;
-		return r;
+/**
+ * @brief Adds two fp32 values with the result stored as a Float32x2
+ */
+inline Float32x2 dekker_add12(const fp32 x, const fp32 y) {
+	fp32 r_hi = x + y;
+	fp32 r_lo = static_cast<fp32>(0.0);
+	if (fabs(x) > fabs(y)) {
+		r_lo = x - r_hi + y;
+	} else {
+		r_lo = y - r_hi + x;
 	}
 
-	static inline Float32x2 Dekker_Sqr12(
-		const fp32& x
-	) {
-		Float32x2 a = Dekker_Split(x);
-		fp32 p = a.hi * a.hi;
-		fp32 q = static_cast<fp32>(2.0) * a.hi * a.lo;
+	Float32x2 c;
+	c.hi = r_hi + r_lo;
+	c.lo = r_hi - c.hi + r_lo;
+	return c;
+}
 
-		Float32x2 r;
-		r.hi = p + q;
-		r.lo = p - r.hi + q + a.lo * a.lo;
-		return r;
+inline Float32x2 operator-(const Float32x2 x, const fp32 y) {
+	fp32 r_hi = x.hi - y;
+	fp32 r_lo = static_cast<fp32>(0.0);
+	if (fabs(x.hi) > fabs(y)) {
+		r_lo = x.hi - r_hi - y + x.lo;
+	} else {
+		r_lo = -y - r_hi + x.hi + x.lo;
 	}
 
-	static inline Float32x2 Dekker_Sqr(
-		const Float32x2& x
-	) {
-		Float32x2 t = Dekker_Sqr12(x.hi);
-		fp32 c = static_cast<fp32>(2.0) * x.hi * x.lo + t.lo;
+	Float32x2 c;
+	c.hi = r_hi + r_lo;
+	c.lo = r_hi - c.hi + r_lo;
+	return c;
+}
 
-		Float32x2 r;
-		r.hi = t.hi + c;
-		r.lo = t.hi - r.hi + c;
-		return r;
+inline Float32x2 operator-(const fp32 x, const Float32x2 y) {
+	fp32 r_hi = x - y.hi;
+	fp32 r_lo = static_cast<fp32>(0.0);
+	if (fabs(x) > fabs(y.hi)) {
+		r_lo = x - r_hi - y.hi - y.lo;
+	} else {
+		r_lo = -y.hi - r_hi + x - y.lo;
 	}
 
-	/* Double-Single Arithmetic */
+	Float32x2 c;
+	c.hi = r_hi + r_lo;
+	c.lo = r_hi - c.hi + r_lo;
+	return c;
+}
 
-	static inline Float32x2 Dekker_Add_Float32(
-		const Float32x2& x, const fp32& y
-	) {
-		fp32 r_hi = x.hi + y;
-		fp32 r_lo = static_cast<fp32>(0.0);
-		if (fabsf(x.hi) > fabsf(y)) {
-			r_lo = x.hi - r_hi + y + x.lo;
-		} else {
-			r_lo = y - r_hi + x.hi + x.lo;
-		}
-
-		Float32x2 c;
-		c.hi = r_hi + r_lo;
-		c.lo = r_hi - c.hi + r_lo;
-		return c;
+/**
+ * @brief Subtracts two fp32 values with the result stored as a Float32x2
+ */
+inline Float32x2 dekker_sub12(const fp32 x, const fp32 y) {
+	fp32 r_hi = x - y;
+	fp32 r_lo = static_cast<fp32>(0.0);
+	if (fabs(x) > fabs(y)) {
+		r_lo = x - r_hi - y;
+	} else {
+		r_lo = -y - r_hi + x;
 	}
 
-	static inline Float32x2 Dekker_Sub_Float32(
-		const Float32x2& x, const fp32& y
-	) {
-		fp32 r_hi = x.hi - y;
-		fp32 r_lo = static_cast<fp32>(0.0);
-		if (fabsf(x.hi) > fabsf(y)) {
-			r_lo = x.hi - r_hi - y + x.lo;
-		} else {
-			r_lo = -y - r_hi + x.hi + x.lo;
-		}
+	Float32x2 c;
+	c.hi = r_hi + r_lo;
+	c.lo = r_hi - c.hi + r_lo;
+	return c;
+}
 
-		Float32x2 c;
-		c.hi = r_hi + r_lo;
-		c.lo = r_hi - c.hi + r_lo;
-		return c;
-	}
+inline Float32x2 operator*(const Float32x2 x, const fp32 y) {
+	Float32x2 t = dekker_mul12(x.hi, y);
+	fp32 c = (x.lo * y) + t.lo;
 
-	static inline Float32x2 Dekker_Mul_Float32(
-		const Float32x2& x, const fp32& y
-	) {
-		Float32x2 t = Dekker_Mul12(x.hi, y);
-		fp32 c = x.lo * y + t.lo;
+	Float32x2 r;
+	r.hi = t.hi + c;
+	r.lo = (t.hi - r.hi) + c;
+	return r;
+}
 
-		Float32x2 r;
-		r.hi = t.hi + c;
-		r.lo = t.hi - r.hi + c;
-		return r;
-	}
+inline Float32x2 operator*(const fp32 x, const Float32x2 y) {
+	Float32x2 t = dekker_mul12(x, y.hi);
+	fp32 c = (x * y.lo) + t.lo;
 
-	static inline Float32x2 Dekker_Div_Float32(
-		const Float32x2& x, const fp32& y
-	) {
-		Float32x2 u;
-		u.hi = x.hi / y;
-		Float32x2 t = Dekker_Mul12(u.hi, y);
-		fp32 l = (x.hi - t.hi - t.lo + x.lo) / y;
+	Float32x2 r;
+	r.hi = t.hi + c;
+	r.lo = (t.hi - r.hi) + c;
+	return r;
+}
 
-		Float32x2 r;
-		r.hi = u.hi + l;
-		r.lo = u.hi - r.hi + l;
-		return r;
-	}
+inline Float32x2 operator/(const Float32x2 x, const fp32 y) {
+	fp32 u = x.hi / y;
+	Float32x2 t = dekker_mul12(u, y);
+	fp32 l = (((x.hi - t.hi) - t.lo) + x.lo) / y;
 
-	static inline Float32x2 Float32_Div_Dekker(
-		const fp32& x, const Float32x2& y
-	) {
-		Float32x2 u;
-		u.hi = x / y.hi;
-		Float32x2 t = Dekker_Mul12(u.hi, y.hi);
-		fp32 l = (x - t.hi - t.lo - u.hi * y.lo) / y.hi;
+	Float32x2 r;
+	r.hi = u + l;
+	r.lo = (u - r.hi) + l;
+	return r;
+}
 
-		Float32x2 r;
-		r.hi = u.hi + l;
-		r.lo = u.hi - r.hi + l;
-		return r;
-	}
+inline Float32x2 operator/(const fp32 x, const Float32x2 y) {
+	fp32 u = x / y.hi;
+	Float32x2 t = dekker_mul12(u, y.hi);
+	fp32 l = (((x - t.hi) - t.lo) - (u * y.lo)) / y.hi;
 
-/* Arithmetic */
+	Float32x2 r;
+	r.hi = u + l;
+	r.lo = (u - r.hi) + l;
+	return r;
+}
 
-	inline Float32x2 operator+(const Float32x2 &value) const {
-		return Dekker_Add(*this, value);
-	}
+/**
+ * @brief Divides two fp32 values with the result stored as a Float32x2
+ */
+inline Float32x2 dekker_div12(const fp32 x, const fp32 y) {
+	fp32 u = x / y;
+	Float32x2 t = dekker_mul12(u, y);
+	fp32 l = ((x - t.hi) - t.lo) / y;
 
-	inline Float32x2 operator-(const Float32x2 &value) const {
-		return Dekker_Sub(*this, value);
-	}
+	Float32x2 r;
+	r.hi = u + l;
+	r.lo = (u - r.hi) + l;
+	return r;
+}
 
-	inline Float32x2 operator*(const Float32x2 &value) const {
-		return Dekker_Mul(*this, value);
-	}
+/**
+ * @brief Calculates the reciprocal of a fp32 value with the result stored
+ * as a Float32x2
+ */
 
-	inline Float32x2 operator/(const Float32x2 &value) const {
-		return Dekker_Div(*this, value);
-	}
+inline Float32x2 dekker_recip12(const fp32 y) {
+	fp32 u = static_cast<fp32>(1.0) / y;
+	Float32x2 t = dekker_mul12(u, y);
+	fp32 l = ((static_cast<fp32>(1.0) - t.hi) - t.lo) / y;
 
-	inline Float32x2 operator+(const fp32 &value) const {
-		return Dekker_Add_Float32(*this, value);
-	}
+	Float32x2 r;
+	r.hi = u + l;
+	r.lo = (u - r.hi) + l;
+	return r;
+}
 
-	inline Float32x2 operator-(const fp32 &value) const {
-		return Dekker_Sub_Float32(*this, value);
-	}
+//------------------------------------------------------------------------------
+// Float32x2 specialized arithmetic
+//------------------------------------------------------------------------------
 
-	inline Float32x2 operator*(const fp32 &value) const {
-		return Dekker_Mul_Float32(*this, value);
-	}
+/**
+ * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero
+ */
+inline Float32x2 mul_pwr2(const Float32x2 x, const fp32 y) {
+	Float32x2 ret;
+	ret.hi = x.hi * y;
+	ret.lo = x.lo * y;
+	return ret;
+}
 
-	inline Float32x2 operator/(const fp32 &value) const {
-		return Dekker_Div_Float32(*this, value);
-	}
+/**
+ * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero
+ */
+inline Float32x2 mul_pwr2(const fp32 x, const Float32x2 y) {
+	Float32x2 ret;
+	ret.hi = x * y.hi;
+	ret.lo = x * y.lo;
+	return ret;
+}
 
-	inline Float32x2 operator-() const {
-		Float32x2 value = *this;
-		value.hi = -value.hi;
-		value.lo = -value.lo;
-		return value;
-	}
+/**
+ * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero.
+ * The result is stored as a Float32x2
+ */
+inline Float32x2 dekker_mul12_pwr2(const fp32 x, const fp32 y) {
+	Float32x2 ret;
+	ret.hi = x * y;
+	ret.lo = static_cast<fp32>(0.0);
+	return ret;
+}
 
-/* Increment/Decrement */
+//------------------------------------------------------------------------------
+// Float32x2 bitwise operators
+//------------------------------------------------------------------------------
 
-	inline Float32x2& operator++() {
-		*this = Dekker_Add(*this, static_cast<Float32x2>(1.0));
-		return *this;
-	}
+inline Float32x2 bitwise_not(Float32x2 x) {
+	uint32_t* binary_part = reinterpret_cast<uint32_t*>(&x);
+	binary_part[0] = ~binary_part[0];
+	binary_part[1] = ~binary_part[1];
+	return x;
+}
 
-	inline Float32x2& operator--() {
-		*this = Dekker_Sub(*this, static_cast<Float32x2>(1.0));
-		return *this;
-	}
+inline Float32x2 bitwise_and(Float32x2 x, const Float32x2 y) {
+	uint32_t* x_bin = reinterpret_cast<uint32_t*>(&x);
+	const uint32_t* y_bin = reinterpret_cast<const uint32_t*>(&y);
+	x_bin[0] &= y_bin[0];
+	x_bin[1] &= y_bin[1];
+	return x;
+}
 
-	inline Float32x2 operator++(int) {
-		Float32x2 temp = *this;
-		*this = Dekker_Add(*this, static_cast<Float32x2>(1.0));
-		return temp;
-	}
+inline Float32x2 bitwise_andnot(Float32x2 x, const Float32x2 y) {
+	uint32_t* x_bin = reinterpret_cast<uint32_t*>(&x);
+	const uint32_t* y_bin = reinterpret_cast<const uint32_t*>(&y);
+	x_bin[0] &= ~y_bin[0];
+	x_bin[1] &= ~y_bin[1];
+	return x;
+}
 
-	inline Float32x2 operator--(int) {
-		Float32x2 temp = *this;
-		*this = Dekker_Sub(*this, static_cast<Float32x2>(1.0));
-		return temp;
-	}
+inline Float32x2 bitwise_or(Float32x2 x, const Float32x2 y) {
+	uint32_t* x_bin = reinterpret_cast<uint32_t*>(&x);
+	const uint32_t* y_bin = reinterpret_cast<const uint32_t*>(&y);
+	x_bin[0] |= y_bin[0];
+	x_bin[1] |= y_bin[1];
+	return x;
+}
+
+inline Float32x2 bitwise_xor(Float32x2 x, const Float32x2 y) {
+	uint32_t* x_bin = reinterpret_cast<uint32_t*>(&x);
+	const uint32_t* y_bin = reinterpret_cast<const uint32_t*>(&y);
+	x_bin[0] ^= y_bin[0];
+	x_bin[1] ^= y_bin[1];
+	return x;
+}
+
+//------------------------------------------------------------------------------
+// Float32x2 Operator Overloads
+//------------------------------------------------------------------------------
+
+// #if __cplusplus >= 201304L
+// 	#define FLOAT32X2_RELAXED_CONSTEXPR constexpr
+// #else
+// 	#define FLOAT32X2_RELAXED_CONSTEXPR
+// #endif
 
 /* Compound Assignment */
 
-	inline Float32x2& operator+=(const Float32x2 &value) {
-		*this = Dekker_Add(*this, value);
-		return *this;
-	}
+inline Float32x2& operator+=(Float32x2& x, const Float32x2 y) {
+	x = x + y;
+	return x;
+}
+inline Float32x2& operator-=(Float32x2& x, const Float32x2 y) {
+	x = x - y;
+	return x;
+}
+inline Float32x2& operator*=(Float32x2& x, const Float32x2 y) {
+	x = x * y;
+	return x;
+}
+inline Float32x2& operator/=(Float32x2& x, const Float32x2 y) {
+	x = x / y;
+	return x;
+}
 
-	inline Float32x2& operator-=(const Float32x2 &value) {
-		*this = Dekker_Sub(*this, value);
-		return *this;
-	}
+inline Float32x2& operator+=(Float32x2& x, const fp32 y) {
+	x = x + y;
+	return x;
+}
+inline Float32x2& operator-=(Float32x2& x, const fp32 y) {
+	x = x - y;
+	return x;
+}
+inline Float32x2& operator*=(Float32x2& x, const fp32 y) {
+	x = x * y;
+	return x;
+}
+inline Float32x2& operator/=(Float32x2& x, const fp32 y) {
+	x = x / y;
+	return x;
+}
 
-	inline Float32x2& operator*=(const Float32x2 &value) {
-		*this = Dekker_Mul(*this, value);
-		return *this;
-	}
+/* Increment/Decrement */
 
-	inline Float32x2& operator/=(const Float32x2 &value) {
-		*this = Dekker_Div(*this, value);
-		return *this;
-	}
+inline Float32x2& operator++(Float32x2& x) {
+	x += static_cast<fp32>(1.0);
+	return x;
+}
 
-/* Double-Single Compound Assignment */
+inline Float32x2& operator--(Float32x2& x) {
+	x -= static_cast<fp32>(1.0);
+	return x;
+}
 
-	inline Float32x2& operator+=(const fp32 &value) {
-		*this = Dekker_Add_Float32(*this, value);
-		return *this;
-	}
+inline Float32x2 operator++(Float32x2& x, int) {
+	Float32x2 temp = x;
+	x += static_cast<fp32>(1.0);
+	return temp;
+}
 
-	inline Float32x2& operator-=(const fp32 &value) {
-		*this = Dekker_Sub_Float32(*this, value);
-		return *this;
-	}
-
-	inline Float32x2& operator*=(const fp32 &value) {
-		*this = Dekker_Mul_Float32(*this, value);
-		return *this;
-	}
-
-	inline Float32x2& operator/=(const fp32 &value) {
-		*this = Dekker_Div_Float32(*this, value);
-		return *this;
-	}
-
-/* Comparison */
-
-	inline bool operator==(const Float32x2 &value) const {
-		return (
-			this->hi == value.hi &&
-			this->lo == value.lo
-		) ? true : false;
-	}
-	inline bool operator!=(const Float32x2 &value) const {
-		return (
-			this->hi != value.hi ||
-			this->lo != value.lo
-		) ? true : false;
-	}
-
-	inline bool operator<(const Float32x2 &value) const {
-		if (this->hi == value.hi) {
-			return (this->lo < value.lo);
-		}
-		return (this->hi < value.hi);
-	}
-
-	inline bool operator<=(const Float32x2 &value) const {
-		if (this->hi == value.hi) {
-			return (this->lo <= value.lo);
-		}
-		return (this->hi <= value.hi);
-	}
-
-	inline bool operator>(const Float32x2 &value) const {
-		if (this->hi == value.hi) {
-			return (this->lo > value.lo);
-		}
-		return (this->hi > value.hi);
-	}
-
-	inline bool operator>=(const Float32x2 &value) const {
-		if (this->hi == value.hi) {
-			return (this->lo >= value.lo);
-		}
-		return (this->hi >= value.hi);
-	}
-
-/* Constructors */
-
-	Float32x2() = default;
-
-	constexpr inline Float32x2(const fp32& value_hi, const fp32& value_lo) :
-		hi(value_hi), lo(value_lo) {}
-
-	constexpr inline Float32x2(const fp32& value) :
-		hi(value), lo(0.0f) {}
-
-	constexpr inline Float32x2(const fp64& value) :
-		hi((fp32)value), lo((fp32)(value - (fp64)this->hi)) {}
-
-	template<typename fpX>
-	constexpr inline Float32x2(const fpX& value) :
-		hi((fp32)value), lo((fp32)(value - (fpX)this->hi)) {}
-
-/* Casts */
-
-	constexpr inline operator fp32() const {
-		return this->hi;
-	}
-	constexpr inline operator fp64() const {
-		return (fp64)this->hi + (fp64)this->lo;
-	}
-
-	template<typename fpX>
-	constexpr inline operator fpX() const {
-		return (fpX)this->hi + (fpX)this->lo;
-	}
-
-};
+inline Float32x2 operator--(Float32x2& x, int) {
+	Float32x2 temp = x;
+	x -= static_cast<fp32>(1.0);
+	return temp;
+}
 
 //------------------------------------------------------------------------------
 // Float32x2 Constants
@@ -459,171 +646,346 @@ namespace std {
 }
 #endif
 
-typedef Float32x2 fp32x2;
+//------------------------------------------------------------------------------
+// Float32x2 Math Functions
+//------------------------------------------------------------------------------
 
-/* Math functions (Natively implemented) */
+/* Floating Point Classify */
 
-	/* Arithmetic */
-
-	inline fp32x2 fmax(fp32x2 x, fp32x2 y) {
-		return (x > y) ? x : y;
-	}
-	// inline fp32x2 fmax(fp32x2 x, fp32x2 y, fp32x2 z) {
-	// 	return (x > y) ?
-	// 	((x > z) ? x : z) :
-	// 	((y > z) ? y : z);
-	// }
-	inline fp32x2 fmin(fp32x2 x, fp32x2 y) {
-		return (x < y) ? x : y;
-	}
-	// inline fp32x2 fmin(fp32x2 x, fp32x2 y, fp32x2 z) {
-	// 	return (x < y) ?
-	// 	((x < z) ? x : z) :
-	// 	((y < z) ? y : z);
-	// }
-	inline fp32x2 fabs(fp32x2 x) {
-		return (x < static_cast<fp32x2>(0.0)) ? -x : x;
-	}
-	inline fp32x2 fdim(fp32x2 x, fp32x2 y) {
-		return (x > y) ? (x - y) : static_cast<fp32x2>(0.0);
-	}
-	inline fp32x2 fma(fp32x2 x, fp32x2 y, fp32x2 z) {
-		return (x * y) + z;
-	}
-	inline fp32x2 copysign(fp32x2 x, fp32x2 y) {
-		return (
-			(x.hi < static_cast<fp32>(0.0)) != (y.hi < (static_cast<fp32>(0.0)))
-		) ? -x : x;
-	}
-	/** @note This function name may change to square() or etc */
-	inline fp32x2 sqr(fp32x2 x) {
-		return Float32x2::Dekker_Sqr(x);
-	}
-	inline fp32x2 sqrt(fp32x2 x) {
-		if (x == static_cast<fp32x2>(0.0)) {
-			return x;
-		}
-		fp32x2 guess;
-		guess.hi = sqrt(x.hi);
-		guess.lo = static_cast<fp32>(0.0);
-		return (guess + x / guess) * static_cast<fp32>(0.5);
-	}
-	inline fp32x2 cbrt(fp32x2 x) {
-		if (x == static_cast<fp32x2>(0.0)) {
-			return x;
-		}
-		fp32x2 guess;
-		guess.hi = cbrt(x.hi);
-		guess.lo = static_cast<fp32>(0.0);
-		return (
-			guess * static_cast<fp32>(2.0) + (x) / Float32x2::Dekker_Sqr(guess)
-		) / static_cast<fp32>(3.0);
-	}
-	inline fp32x2 hypot(fp32x2 x, fp32x2 y) {
-		return sqrt(
-			Float32x2::Dekker_Sqr(x) + Float32x2::Dekker_Sqr(y)
-		);
-	}
-	// inline fp32x2 hypot(fp32x2 x, fp32x2 y, fp32x2 z) {
-	// 	return sqrt(
-	// 		Float32x2::Dekker_Sqr(x) + Float32x2::Dekker_Sqr(y) + Float32x2::Dekker_Sqr(z)
-	// 	);
-	// }
-
-	/* Tests */
-
-	inline bool signbit(fp32x2 x) {
-		return (x.hi < static_cast<fp32>(0.0)) ? true : false;
+	inline constexpr bool signbit(const Float32x2 x) {
+		return dekker_less_zero(x);
 	}
 	/** Returns true if both x.hi and x.lo are finite */
-	inline bool isfinite(fp32x2 x) {
+	inline constexpr bool isfinite(const Float32x2 x) {
 		return (isfinite(x.hi) && isfinite(x.lo));
 	}
 	/** Returns true if either x.hi or x.lo are infinite */
-	inline bool isinf(fp32x2 x) {
+	inline constexpr bool isinf(const Float32x2 x) {
 		return (isinf(x.hi) || isinf(x.lo));
 	}
 	/** Returns true if either x.hi or x.lo are nan */
-	inline bool isnan(fp32x2 x) {
+	inline constexpr bool isnan(const Float32x2 x) {
 		return (isnan(x.hi) || isnan(x.lo));
 	}
 	/** Returns true if both x.hi and x.lo are normal */
-	inline bool isnormal(fp32x2 x) {
+	inline constexpr bool isnormal(const Float32x2 x) {
 		return (isnormal(x.hi) && isnormal(x.lo));
 	}
 	/** Returns true if either {x.hi, y.hi} or {x.lo, y.lo} are unordered */
-	inline bool isunordered(fp32x2 x, fp32x2 y) {
+	inline constexpr bool isunordered(const Float32x2 x, const Float32x2 y) {
 		return (isunordered(x.hi, y.hi) || isunordered(x.lo, y.lo));
 	}
-	inline int fpclassify(fp32x2 x) {
-		if (isinf(x)) { return FP_INFINITE; }
-		if (isnan(x)) { return FP_NAN; }
-		if (x == static_cast<fp32x2>(0.0)) { return FP_ZERO; }
-		if (isnormal(x)) { return FP_NORMAL; }
-		return FP_SUBNORMAL;
+	inline constexpr int fpclassify(const Float32x2 x) {
+		return
+			isinf(x)             ? FP_INFINITE :
+			isnan(x)             ? FP_NAN      :
+			dekker_equal_zero(x) ? FP_ZERO     :
+			isnormal(x)          ? FP_NORMAL   :
+			FP_SUBNORMAL;
 	}
 
-	/* Comparison */
+/* Comparison */
 
-	inline bool isgreater(fp32x2 x, fp32x2 y) {
+	inline constexpr bool isgreater(const Float32x2 x, const Float32x2 y) {
 		return (x > y);
 	}
-	inline bool isgreaterequal(fp32x2 x, fp32x2 y) {
+	inline constexpr bool isgreaterequal(const Float32x2 x, const Float32x2 y) {
 		return (x >= y);
 	}
-	inline bool isless(fp32x2 x, fp32x2 y) {
+	inline constexpr bool isless(const Float32x2 x, const Float32x2 y) {
 		return (x < y);
 	}
-	inline bool islessequal(fp32x2 x, fp32x2 y) {
+	inline constexpr bool islessequal(const Float32x2 x, const Float32x2 y) {
 		return (x <= y);
 	}
-	inline bool islessgreater(fp32x2 x, fp32x2 y) {
+	inline constexpr bool islessgreater(const Float32x2 x, const Float32x2 y) {
 		return (x < y) || (x > y);
 	}
 
-	/* Rounding */
+/* fmax and fmin */
 
-	inline fp32x2 trunc(fp32x2 x) {
-		fp32x2 int_hi = trunc(x.hi);
-		fp32x2 int_lo = trunc(x.lo);
+	/**
+	 * @brief Returns the fmax of x and y. Correctly handling NaN and signed zeros.
+	 * You may use std::max as a faster alternative.
+	 */
+	inline constexpr Float32x2 fmax(const Float32x2 x, const Float32x2 y) {
+		return
+			(x < y) ? y :
+			(y < x) ? x :
+			isnan(x) ? y :
+			isnan(y) ? x :
+			signbit(x) ? y : x;
+	}
+
+	/**
+	 * @brief Returns the fmin of x and y. Correctly handling NaN and signed zeros.
+	 * You may use std::min as a faster alternative.
+	 */
+	inline constexpr Float32x2 fmin(const Float32x2 x, const Float32x2 y) {
+		return
+			(x > y) ? y :
+			(y > x) ? x :
+			isnan(x) ? y :
+			isnan(y) ? x :
+			signbit(x) ? x : y;
+	}
+
+/* Arithmetic */
+
+	inline constexpr Float32x2 fmax(const Float32x2 x, const Float32x2 y, const Float32x2 z) {
+		return fmax(fmax(x, y), z);
+	}
+	inline constexpr Float32x2 fmin(const Float32x2 x, const Float32x2 y, const Float32x2 z) {
+		return fmin(fmin(x, y), z);
+	}
+	inline constexpr Float32x2 fabs(const Float32x2 x) {
+		return (signbit(x)) ? -x : x;
+	}
+	inline constexpr Float32x2 fdim(const Float32x2 x, const Float32x2 y) {
+		return (x > y) ? (x - y) : static_cast<Float32x2>(0.0);
+	}
+	/** @note Naive implementation of fma (Fused multiply add). May lose precision */
+	inline Float32x2 fma(const Float32x2 x, const Float32x2 y, const Float32x2 z) {
+		return (x * y) + z;
+	}
+	inline constexpr Float32x2 copysign(const Float32x2 x, const Float32x2 y) {
+		return (
+			(signbit(x)) != (signbit(y))
+		) ? -x : x;
+	}
+	inline Float32x2 sqrt(const Float32x2 x) {
+		if (dekker_equal_zero(x)) {
+			return x;
+		}
+		fp32 guess = sqrt(x.hi);
+		return mul_pwr2((guess + x / guess), static_cast<fp32>(0.5));
+	}
+	inline Float32x2 cbrt(const Float32x2 x) {
+		if (dekker_equal_zero(x)) {
+			return x;
+		}
+		fp32 guess = cbrt(x.hi);
+		return (
+			(static_cast<fp32>(2.0) * guess) + (x / dekker_square12(guess))
+		) / static_cast<fp32>(3.0);
+	}
+	/** @note Naive implementation of hypot, may overflow for large inputs */
+	inline Float32x2 hypot(const Float32x2 x, const Float32x2 y) {
+		return sqrt(
+			square(x) + square(y)
+		);
+	}
+	/** @note Naive implementation of hypot, may overflow for large inputs */
+	inline Float32x2 hypot(const Float32x2 x, const Float32x2 y, const Float32x2 z) {
+		return sqrt(
+			square(x) + square(y) + square(z)
+		);
+	}
+
+/* Trigonometry */
+
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 sin(const Float32x2 x) { return static_cast<Float32x2>(sin(static_cast<Float32x2_Math>(x))); }
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 cos(const Float32x2 x) { return static_cast<Float32x2>(cos(static_cast<Float32x2_Math>(x))); }
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline void sincos(const Float32x2 x, Float32x2& p_sin, Float32x2& p_cos) {
+		p_sin = sin(x);
+		p_cos = cos(x);
+	}
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 tan(const Float32x2 x) {
+		Float32x2 sin_val, cos_val;
+		sincos(x, sin_val, cos_val);
+		return sin_val / cos_val;
+	}
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 asin(const Float32x2 x) { return static_cast<Float32x2>(asin(static_cast<Float32x2_Math>(x))); }
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 acos(const Float32x2 x) { return static_cast<Float32x2>(acos(static_cast<Float32x2_Math>(x))); }
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 atan(const Float32x2 x) { return static_cast<Float32x2>(atan(static_cast<Float32x2_Math>(x))); }
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 sinh(const Float32x2 x) { return static_cast<Float32x2>(sinh(static_cast<Float32x2_Math>(x))); }
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 cosh(const Float32x2 x) { return static_cast<Float32x2>(cosh(static_cast<Float32x2_Math>(x))); }
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 tanh(const Float32x2 x) { return static_cast<Float32x2>(tanh(static_cast<Float32x2_Math>(x))); }
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline void sinhcosh(const Float32x2 x, Float32x2& p_sinh, Float32x2& p_cosh) {
+		p_sinh = sinh(x);
+		p_cosh = cosh(x);
+	}
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 asinh(const Float32x2 x) { return static_cast<Float32x2>(asinh(static_cast<Float32x2_Math>(x))); }
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 acosh(const Float32x2 x) { return static_cast<Float32x2>(acosh(static_cast<Float32x2_Math>(x))); }
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 atanh(const Float32x2 x) { return static_cast<Float32x2>(atanh(static_cast<Float32x2_Math>(x))); }
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 atan2(const Float32x2 y, const Float32x2 x) {
+		return static_cast<Float32x2>(atan2(static_cast<Float32x2_Math>(y), static_cast<Float32x2_Math>(x)));
+	}
+
+/* Logarithms and Exponents */
+
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 log(const Float32x2 x) { return static_cast<Float32x2>(log(static_cast<Float32x2_Math>(x))); }
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 log1p(const Float32x2 x) {
+		return log(x + static_cast<fp32>(1.0));
+	}
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 log2(const Float32x2 x) {
+		return log(x) * Float32x2_log2e;
+	}
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 log10(const Float32x2 x) {
+		return log(x) * Float32x2_log10e;
+	}
+	
+	inline Float32x2 logb(const Float32x2 x) { return logb(x.hi + x.lo); }
+	
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 exp(const Float32x2 x) { return static_cast<Float32x2>(exp(static_cast<Float32x2_Math>(x))); }
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 expm1(const Float32x2 x) {
+		return exp(x) - static_cast<fp32>(1.0);
+	}
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 exp2(const Float32x2 x) {
+		return exp(x * Float32x2_ln2);
+	}
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 exp10(const Float32x2 x) {
+		return exp(x * Float32x2_ln10);
+	}
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 pow(const Float32x2 x, const Float32x2 y) {
+		return exp(y * log(x));
+	}
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 pow(const Float32x2 x, const fp32 y) {
+		return exp(y * log(x));
+	}
+	
+/* Rounding */
+
+	inline Float32x2 trunc(const Float32x2 x) {
+		Float32x2 int_hi = trunc(x.hi);
+		Float32x2 int_lo = trunc(x.lo);
 		fp32 frac_hi = x.hi - int_hi.hi;
 		fp32 frac_lo = x.lo - int_lo.hi;
 		// Sum in increasing order
-		fp32x2 trunc_all = static_cast<fp32x2>(0.0);
-		trunc_all += (
-			(fp32x2)frac_hi + (fp32x2)frac_lo >= static_cast<fp32x2>(1.0)
-		) ? static_cast<fp32x2>(1.0) : static_cast<fp32x2>(0.0);
+		Float32x2 trunc_all = (
+			dekker_add12(frac_hi, frac_lo) >= static_cast<fp32>(1.0)
+		) ? static_cast<Float32x2>(1.0) : static_cast<Float32x2>(0.0);
 		trunc_all += int_lo;
 		trunc_all += int_hi;
 		return trunc_all;
 	}
-	inline fp32x2 floor(fp32x2 x) {
-		fp32x2 int_part = trunc(x);
+	inline Float32x2 floor(const Float32x2 x) {
+		Float32x2 int_part = trunc(x);
 		return (
-			x < static_cast<fp32x2>(0.0) && int_part != x
-		) ? int_part - static_cast<fp32x2>(1.0) : int_part;
+			dekker_less_zero(x) && int_part != x
+		) ? int_part - static_cast<fp32>(1.0) : int_part;
 	}
-	inline fp32x2 ceil(fp32x2 x) {
-		fp32x2 int_part = trunc(x);
+	inline Float32x2 ceil(const Float32x2 x) {
+		Float32x2 int_part = trunc(x);
 		return (
-			x > static_cast<fp32x2>(0.0) && int_part != x
-		) ? int_part + static_cast<fp32x2>(1.0) : int_part;
+			dekker_greater_zero(x) && int_part != x
+		) ? int_part + static_cast<fp32>(1.0) : int_part;
 	}
-	inline fp32x2 round(fp32x2 x) {
-		fp32x2 int_part = trunc(x);
-		fp32x2 frac_part = x - int_part;
-		if (x >= static_cast<fp32x2>(0.0)) {
-			if (frac_part >= static_cast<fp32x2>(0.5)) {
-				return int_part + static_cast<fp32x2>(1.0);
+	inline Float32x2 round(const Float32x2 x) {
+		Float32x2 int_part = trunc(x);
+		Float32x2 frac_part = x - int_part;
+		if (dekker_greaterequal_zero(x)) {
+			if (frac_part >= static_cast<fp32>(0.5)) {
+				return int_part + static_cast<fp32>(1.0);
 			}
 			return int_part;
 		}
-		if (frac_part <= static_cast<fp32x2>(-0.5)) {
-			return int_part - static_cast<fp32x2>(1.0);
+		if (frac_part <= static_cast<fp32>(-0.5)) {
+			return int_part - static_cast<fp32>(1.0);
 		}
 		return int_part;
 	}
-	inline fp32x2 rint(fp32x2 x) {
+	inline Float32x2 rint(const Float32x2 x) {
 		switch (fegetround()) {
 			default:
 			case FE_TOWARDZERO:
@@ -636,187 +998,129 @@ typedef Float32x2 fp32x2;
 				return round(x);
 		}
 	}
-	inline long lround(fp32x2 x) {
+	inline long lround(const Float32x2 x) {
 		return static_cast<long>(round(x));
 	}
-	inline long lrint(fp32x2 x) {
+	inline long lrint(const Float32x2 x) {
 		return static_cast<long>(rint(x));
 	}
-	inline long long llround(fp32x2 x) {
+	inline long long llround(const Float32x2 x) {
 		return static_cast<long long>(round(x));
 	}
-	inline long long llrint(fp32x2 x) {
+	inline long long llrint(const Float32x2 x) {
 		return static_cast<long long>(rint(x));
 	}
 
 	/* Integer and Remainder */
 
-	inline fp32x2 modf(fp32x2 x, fp32x2* int_part) {
-		fp32x2 trunc_part = trunc(x);
-		if (int_part != nullptr) {
-			*int_part = trunc_part;
-		}
+	inline Float32x2 fmod(const Float32x2 x, const Float32x2 y) {
+		Float32x2 trunc_part = trunc(x / y);
+		return x - y * trunc_part;
+	}
+	inline Float32x2 modf(const Float32x2 x, Float32x2& int_part) {
+		Float32x2 trunc_part = trunc(x);
+		int_part = trunc_part;
 		return x - trunc_part;
 	}
-	inline fp32x2 nearbyint(fp32x2 x) {
+	inline Float32x2 nearbyint(const Float32x2 x) {
 		return rint(x);
 	}
-
-	/* Float Exponents */
-
-	inline fp32x2 ldexp(fp32x2 x, int  exp) {
-		x.hi = ldexp(x.hi, exp);
-		x.lo = isfinite(x.hi) ? ldexp(x.lo, exp) : x.hi;
-		return x;
+	inline Float32x2 remainder(const Float32x2 x, const Float32x2 y) {
+		Float32x2 round_part = round(x / y);
+		return x - y * round_part;
 	}
-	inline fp32x2 scalbn(fp32x2 x, int  exp) {
-		x.hi = scalbn(x.hi, exp);
-		x.lo = isfinite(x.hi) ? scalbn(x.lo, exp) : x.hi;
-		return x;
-	}
-	inline fp32x2 scalbln(fp32x2 x, long exp) {
-		x.hi = scalbln(x.hi, exp);
-		x.lo = isfinite(x.hi) ? scalbln(x.lo, exp) : x.hi;
-		return x;
+	inline Float32x2 remquo(const Float32x2 x, const Float32x2 y, int& quo) {
+		Float32x2 q = round(x / y);
+		Float32x2 r = x - y * q;
+		quo = static_cast<int>(q.hi + q.lo);
+		return r;
 	}
 
-/* Math overloads (Casts to other types) */
+/* Float Exponents */
 
-		/* Arithmetic */
-		// inline fp32x2 fmax(fp32x2 x, fp32x2 y) { return (fp32x2)fmax((fp32x2_Math)x, (fp32x2_Math)y); }
-		// inline fp32x2 fmin(fp32x2 x, fp32x2 y) { return (fp32x2)fmin((fp32x2_Math)x, (fp32x2_Math)y); }
-		// inline fp32x2 fabs(fp32x2 x) { return (fp32x2)fabs((fp32x2_Math)x); }
-		// inline fp32x2 fdim(fp32x2 x, fp32x2 y) { return (fp32x2)fdim((fp32x2_Math)x, (fp32x2_Math)y); }
-		// inline fp32x2 fma(fp32x2 x, fp32x2 y, fp32x2 z) { return (fp32x2)fma((fp32x2_Math)x, (fp32x2_Math)y, (fp32x2_Math)z); }
-		// inline fp32x2 copysign(fp32x2 x, fp32x2 y) { return (fp32x2)copysign((fp32x2_Math)x, (fp32x2_Math)y); }
-		// inline fp32x2 sqrt(fp32x2 x) { return (fp32x2)sqrt((fp32x2_Math)x); }
-		// inline fp32x2 cbrt(fp32x2 x) { return (fp32x2)cbrt((fp32x2_Math)x); }
-		// inline fp32x2 hypot(fp32x2 x, fp32x2 y) { return (fp32x2)hypot((fp32x2_Math)x, (fp32x2_Math)y); }
-		/* Trigonometry */
-		inline fp32x2  sin (fp32x2 x) { return (fp32x2) sin ((fp32x2_Math)x); }
-		inline fp32x2  cos (fp32x2 x) { return (fp32x2) cos ((fp32x2_Math)x); }
-		inline fp32x2  tan (fp32x2 x) { return (fp32x2) tan ((fp32x2_Math)x); }
-		inline fp32x2 asin (fp32x2 x) { return (fp32x2)asin ((fp32x2_Math)x); }
-		inline fp32x2 acos (fp32x2 x) { return (fp32x2)acos ((fp32x2_Math)x); }
-		inline fp32x2 atan (fp32x2 x) { return (fp32x2)atan ((fp32x2_Math)x); }
-		inline fp32x2  sinh(fp32x2 x) { return (fp32x2) sinh((fp32x2_Math)x); }
-		inline fp32x2  cosh(fp32x2 x) { return (fp32x2) cosh((fp32x2_Math)x); }
-		inline fp32x2  tanh(fp32x2 x) { return (fp32x2) tanh((fp32x2_Math)x); }
-		inline fp32x2 asinh(fp32x2 x) { return (fp32x2)asinh((fp32x2_Math)x); }
-		inline fp32x2 acosh(fp32x2 x) { return (fp32x2)acosh((fp32x2_Math)x); }
-		inline fp32x2 atanh(fp32x2 x) { return (fp32x2)atanh((fp32x2_Math)x); }
-		inline fp32x2 atan2(fp32x2 y, fp32x2 x) { return (fp32x2)atan2((fp32x2_Math)y, (fp32x2_Math)x); }
-		inline void sincos(fp32x2 x, fp32x2* p_sin, fp32x2* p_cos) {
-			*p_sin = sin(x);
-			*p_cos = cos(x);
-		}
-		inline void sinhcosh(fp32x2 x, fp32x2* p_sinh, fp32x2* p_cosh) {
-			*p_sinh = sinh(x);
-			*p_cosh = cosh(x);
-		}
-		/* Logarithms and Exponents */
-		inline fp32x2 log  (fp32x2 x) { return (fp32x2)log  ((fp32x2_Math)x); }
-		inline fp32x2 log1p(fp32x2 x) { return (fp32x2)log1p((fp32x2_Math)x); }
-		inline fp32x2 logb (fp32x2 x) { return (fp32x2)logb ((fp32x2_Math)x); }
-		inline fp32x2 log2 (fp32x2 x) { return (fp32x2)log2 ((fp32x2_Math)x); }
-		inline fp32x2 log10(fp32x2 x) { return (fp32x2)log10((fp32x2_Math)x); }
-		inline fp32x2 exp  (fp32x2 x) { return (fp32x2)exp  ((fp32x2_Math)x); }
-		inline fp32x2 expm1(fp32x2 x) { return (fp32x2)expm1((fp32x2_Math)x); }
-		inline fp32x2 exp2 (fp32x2 x) { return (fp32x2)exp2 ((fp32x2_Math)x); }
-		inline fp32x2 exp10(fp32x2 x) { return (fp32x2)exp((fp32x2_Math)x * (fp32x2_Math)log(static_cast<fp32x2_Math>(10.0))); }
-		inline fp32x2 pow(fp32x2 x, fp32x2 y) { return (fp32x2)pow((fp32x2_Math)x, (fp32x2_Math)y); }
-		/* Rounding */
-		// inline fp32x2 trunc(fp32x2 x) { return (fp32x2)trunc((fp32x2_Math)x); }
-		// inline fp32x2 floor(fp32x2 x) { return (fp32x2)floor((fp32x2_Math)x); }
-		// inline fp32x2 ceil (fp32x2 x) { return (fp32x2)ceil ((fp32x2_Math)x); }
-		// inline fp32x2 rint (fp32x2 x) { return (fp32x2)rint ((fp32x2_Math)x); }
-		// inline fp32x2 round(fp32x2 x) { return (fp32x2)round((fp32x2_Math)x); }
-		// inline long lrint (fp32x2 x) { return lrint ((fp32x2_Math)x); }
-		// inline long lround(fp32x2 x) { return lround((fp32x2_Math)x); }
-		// inline long long llrint (fp32x2 x) { return llrint ((fp32x2_Math)x); }
-		// inline long long llround(fp32x2 x) { return llround((fp32x2_Math)x); }
-		/* Integer and Remainder */
-		inline fp32x2 fmod(fp32x2 x, fp32x2 y) { return (fp32x2)fmod((fp32x2_Math)x, (fp32x2_Math)y); }
-		// inline fp32x2 modf(fp32x2 x, fp32x2* y) {
-		// 	fp32x2_Math y_temp;
-		// 	fp32x2 result = modf((fp32x2_Math)x, &y_temp);
-		// 	*y = (fp32x2)y_temp;
-		// 	return result;
-		// }
-		// inline fp32x2 nearbyint(fp32x2 x) { return (fp32x2)nearbyint((fp32x2_Math)x); }
-		// Incorrect Function // inline fp32x2 nextafter(fp32x2 x) { return (fp32x2)nextafter((fp32x2_Math)x); }
-		inline fp32x2 remainder(fp32x2 x, fp32x2 y) { return (fp32x2)remainder((fp32x2_Math)x, (fp32x2_Math)y); }
-		inline fp32x2 remquo(fp32x2 x, fp32x2 y, int* quo) { return (fp32x2)remquo((fp32x2_Math)x, (fp32x2_Math)y, quo); }
-		/* Float Exponents */
-		inline int ilogb(fp32x2 x) { return ilogb((fp32x2_Math)x); }
-		inline fp32x2 frexp  (fp32x2 x, int* exp) { return (fp32x2)frexp  ((fp32x2_Math)x, exp); }
-		// inline fp32x2 ldexp  (fp32x2 x, int  exp) { return (fp32x2)ldexp  ((fp32x2_Math)x, exp); }
-		// inline fp32x2 scalbn (fp32x2 x, int  exp) { return (fp32x2)scalbn ((fp32x2_Math)x, exp); }
-		// inline fp32x2 scalbln(fp32x2 x, long exp) { return (fp32x2)scalbln((fp32x2_Math)x, exp); }
-		/* Tests */
-		// inline bool signbit(fp32x2 x) { return (signbit((fp32x2_Math)x) != 0) ? true : false; }
-		// inline bool isfinite(fp32x2 x) { return (isfinite((fp32x2_Math)x) != 0) ? true : false; }
-		// inline bool isinf(fp32x2 x) { return (isinf((fp32x2_Math)x) != 0) ? true : false; }
-		// inline bool isnan(fp32x2 x) { return (isnan((fp32x2_Math)x) != 0) ? true : false; }
-		/* Transcendental Functions */
-		inline fp32x2 erf (fp32x2 x) { return (fp32x2)erf ((fp32x2_Math)x); }
-		inline fp32x2 erfc(fp32x2 x) { return (fp32x2)erfc((fp32x2_Math)x); }
-		inline fp32x2 lgamma(fp32x2 x) { return (fp32x2)lgamma((fp32x2_Math)x); }
-		inline fp32x2 tgamma(fp32x2 x) { return (fp32x2)tgamma((fp32x2_Math)x); }
+	/**
+	 * @brief Extracts the exponent of a Float32x2 value to compute the
+	 * binary logarithm.
+	 */
+	inline int ilogb(const Float32x2 x) {
+		return ilogb(x.hi + x.lo);
+	}
+	/**
+	 * @brief Returns a normalized Float32x2 value and the exponent in
+	 * the form [0.0, 1.0) * 2^expon
+	 */
+	inline Float32x2 frexp(const Float32x2 x, int& expon) {
+		Float32x2 ret;
+		expon = ilogb(x.hi + x.lo) + 1;
+		ret.hi = ldexp(x.hi, -(expon));
+		ret.lo = ldexp(x.lo, -(expon));
+		return ret;
+	}
+	/**
+	 * @brief Multiplies a Float32x2 value by 2^expon
+	 */
+	inline Float32x2 ldexp(const Float32x2 x, int expon) {
+		Float32x2 ret;
+		ret.hi = ldexp(x.hi, expon);
+		ret.lo = isfinite(x.hi) ? ldexp(x.lo, expon) : x.hi;
+		return ret;
+	}
+	/**
+	 * @brief Multiplies a Float32x2 value by FLT_RADIX^expon
+	 */
+	inline Float32x2 scalbn(const Float32x2 x, int expon) {
+		Float32x2 ret;
+		ret.hi = scalbn(x.hi, expon);
+		ret.lo = isfinite(x.hi) ? scalbn(x.lo, expon) : x.hi;
+		return ret;
+	}
+	/**
+	 * @brief Multiplies a Float32x2 value by FLT_RADIX^expon
+	 */
+	inline Float32x2 scalbln(const Float32x2 x, long expon) {
+		Float32x2 ret;
+		ret.hi = scalbln(x.hi, expon);
+		ret.lo = isfinite(x.hi) ? scalbln(x.lo, expon) : x.hi;
+		return ret;
+	}
 
-	/* Strings */
-
-		#include "../FloatNxN/FloatNxN_stringTo.hpp"
-
-		inline Float32x2 stringTo_Float32x2(const char* nPtr, char** endPtr = nullptr) {
-			internal_FloatNxN_stringTo<Float32x2, fp32> stringTo_func;
-			return stringTo_func.stringTo_FloatNxN(nPtr, endPtr);
-		}
-
-		/**
-		 * @brief Wrapper for stringTo_Float32x2
-		 */
-		inline std::istream& operator>>(std::istream& stream, Float32x2& value) {
-			internal_FloatNxN_stringTo<Float32x2, fp32> func_cin;
-			return func_cin.cin_FloatNxN(stream, value);
-		}
-
-		#include "../FloatNxN/FloatNxN_snprintf.hpp"
-
-		#include "Float32/Float32.h"
-
-		#define PRIFloat32x2 "D"
-
-		/**
-		 * @brief snprintf a singular Float32x2/fp32x2.
-		 * Similar in functionallity to quadmath_snprintf.
-		 * @note $ not supported. This function ignore additional
-		 * format specifiers.
-		 * @return -1 on encoding failure. Otherwise the total length of the
-		 * string excluding the \0 terminator and ignoring the buffer size.
-		 */
-		inline int Float32x2_snprintf(
-			char* buf, size_t len,
-			const char* format, ...
-		) {
-			va_list args;
-			va_start(args, format);
-			internal_FloatNxN_snprintf<Float32x2, fp32> func_snprintf;
-			int ret_val = func_snprintf.FloatNxN_snprintf(
-				PRIFloat32x2, PRIFloat32,
-				buf, len,
-				format, args
-			);
-			va_end(args);
-			return ret_val;
-		}
-
-		/**
-		 * @brief Wrapper for Float32x2_snprintf
-		 */
-		inline std::ostream& operator<<(std::ostream& stream, const Float32x2& value) {
-			internal_FloatNxN_snprintf<Float32x2, fp32> func_cout;
-			return func_cout.FloatNxN_cout(PRIFloat32x2, PRIFloat32, stream, value);
-		}
+/* Transcendental Functions */
+	
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 erf(const Float32x2 x) {
+		return static_cast<Float32x2>(
+			erf(static_cast<Float32x2_Math>(x))
+		);
+	}
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 erfc(const Float32x2 x) {
+		return static_cast<Float32x2>(
+			erfc(static_cast<Float32x2_Math>(x))
+		);
+	}
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 lgamma(const Float32x2 x) {
+		return static_cast<Float32x2>(
+			lgamma(static_cast<Float32x2_Math>(x))
+		);
+	}
+	/** 
+	 * @note casts to Float32x2_Math for calculation as this function is not
+	 * currently implemeneted.
+	 */
+	inline Float32x2 tgamma(const Float32x2 x) {
+		return static_cast<Float32x2>(
+			tgamma(static_cast<Float32x2_Math>(x))
+		);
+	}
 
 #endif /* FLOAT32X2_HPP */

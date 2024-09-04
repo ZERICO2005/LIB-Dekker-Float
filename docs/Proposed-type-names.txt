@@ -1,15 +1,17 @@
 Proposed type and namespace names:
 
+Currently, these are used for PRIFloatNxN. The letters A, E, F, G, L, can't be at the end, otherwise they would conflict with pre-existing printf specifiers. Additionally, watch out for H, L, or U followed by D, I, O, or X depending on the printf implementation.
+
 Some of these can't mathematically exist (Due to the exponent range), or are slower than arbritrary arithmetic.
 
-FP_SF::Float32     // Single - float
-FP_DF::Float32x2   // Double - float
-FP_TF::Float32x3   // Triple - float
-FP_QF::Float32x4   // Quad   - float
-FP_HF::Float32x6   // Hexa   - float
-FP_OF::Float32x8   // Octo   - float
-FP_ZF::Float32x12  // doZen  - float
-FP_XF::Float32x16  // heXa   - float
+FP_SS::Float32     // Single - float
+FP_DS::Float32x2   // Double - float
+FP_TS::Float32x3   // Triple - float
+FP_QS::Float32x4   // Quad   - float
+FP_HS::Float32x6   // Hexa   - float
+FP_OS::Float32x8   // Octo   - float
+FP_ZS::Float32x12  // doZen  - float
+FP_XS::Float32x16  // heXa   - float
 
 FP_SD::Float64     // Single - double
 FP_DD::Float64x2   // Double - double
@@ -20,14 +22,14 @@ FP_OD::Float64x8   // Octo   - double
 FP_ZD::Float64x12  // doZen  - double
 FP_XD::Float64x16  // heXa   - double
 
-FP_SL::Float80     // Single - long double
-FP_DL::Float80x2   // Double - long double
-FP_TL::Float80x3   // Triple - long double
-FP_QL::Float80x4   // Quad   - long double
-FP_HL::Float80x6   // Hexa   - long double
-FP_OL::Float80x8   // Octo   - long double
-FP_ZL::Float80x12  // doZen  - long double
-FP_XL::Float80x16  // heXa   - long double
+FP_SX::Float80     // Single - (extended) long double
+FP_DX::Float80x2   // Double - (extended) long double
+FP_TX::Float80x3   // Triple - (extended) long double
+FP_QX::Float80x4   // Quad   - (extended) long double
+FP_HX::Float80x6   // Hexa   - (extended) long double
+FP_OX::Float80x8   // Octo   - (extended) long double
+FP_ZX::Float80x12  // doZen  - (extended) long double
+FP_XX::Float80x16  // heXa   - (extended) long double
 
 FP_SQ::Float128    // Single - quad
 FP_DQ::Float128x2  // Double - quad

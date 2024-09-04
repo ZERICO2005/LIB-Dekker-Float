@@ -9,13 +9,11 @@
 #ifndef FLOAT32X2_DEF_H
 #define FLOAT32X2_DEF_H
 
-#include "Float32x2.hpp"
-
-#if 0
-
 /**
  * @brief defines the Float32x2 struct
  */
+
+#include "Float32/Float32.h"
 
 typedef float fp32;
 
@@ -37,12 +35,15 @@ typedef struct Float32x2 {
 	constexpr inline Float32x2(const fp32 values[2]) :
 		hi(values[0]), lo(values[1]) {}
 
+	constexpr inline Float32x2(const fp32 (&values)[2]) :
+		hi(values[0]), lo(values[1]) {}
+
 	constexpr inline Float32x2(const fp32 value) :
 		hi(value), lo(0.0f) {}
 
 	template<typename fpX>
 	constexpr inline Float32x2(const fpX& value) :
-		hi(static_cast<fp32>(value)), lo(static_cast<fp32>(value - static_cast<fpX>this->hi)) {}
+		hi(static_cast<fp32>(value)), lo(static_cast<fp32>(value - static_cast<fpX>(this->hi))) {}
 
 /* Casts */
 
@@ -57,7 +58,5 @@ typedef struct Float32x2 {
 
 #endif
 } Float32x2;
-
-#endif
 
 #endif /* FLOAT32X2_DEF_H */

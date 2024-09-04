@@ -6,10 +6,11 @@
 **	this project. If not, see https://opensource.org/license/MIT
 */
 
-#ifndef FLOATNX2_TEST_FUNCTION_HPP
-#define FLOATNX2_TEST_FUNCTION_HPP
+#ifndef FLOATNXN_TEST_FUNCTION_HPP
+#define FLOATNXN_TEST_FUNCTION_HPP
 
 #include <cstdio>
+#include <cmath>
 
 // #include "Float64x2/Float64x2.hpp"
 #ifdef Enable_Float80
@@ -63,7 +64,7 @@ void test_function(void) {
 		fp80 x = (fp80)(fp64)linearInterpolation((fp80)i, 0.0L, (fp80)points, offset - EP,  offset + EP);
 		// 6.2831 * ((fp64)i / (fp64)(points)) - (12345678901234567891.0 * 0.5 * TAU);
 
-		Float64x2 y = sin((Float64x2)x);
+		Float64x2 y = sin(static_cast<Float64x2>(x));
 
 		y0 = (FloatMPFR)y.hi + (FloatMPFR)y.lo;
 		y1 = sin((FloatMPFR)x);
@@ -96,4 +97,4 @@ void test_function(void) {
 }
 
 
-#endif /* FLOATNX2_TEST_FUNCTION_HPP */
+#endif /* FLOATNXN_TEST_FUNCTION_HPP */

@@ -35,6 +35,9 @@ typedef struct Float32x4 {
     constexpr inline Float32x4(const fp32 values[4])
         : val{values[0], values[1], values[2], values[3]} {}
 
+	constexpr inline Float32x4(const fp32 (&values)[4]) :
+		val{values[0], values[1], values[2], values[3]} {}
+
 	constexpr inline Float32x4(const Float32x2 value) :
 		val{value.hi, value.lo, 0.0f, 0.0f} {}
 	

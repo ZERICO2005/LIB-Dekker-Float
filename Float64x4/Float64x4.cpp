@@ -22,6 +22,7 @@
 // The sin and cos tables were quite large
 #include "Float64x4_LUT.hpp"
 #include "Float64x4_def.h"
+#include "Float64x4_string.h"
 
 #include <cmath>
 #include <limits>
@@ -547,11 +548,11 @@ Float64x4 atan(const Float64x4& y) {
 	}
 
 	if (y == static_cast<fp64>(1.0)) {
-		return Float64x2_pi4;
+		return Float64x4_pi4;
 	}
 
 	if (y == static_cast<fp64>(-1.0)) {
-		return -Float64x2_pi4;
+		return -Float64x4_pi4;
 	}
 
 	Float64x4 r = sqrt(static_cast<fp64>(1.0) + square(y));
@@ -862,4 +863,43 @@ Float64x4 Float64x4_tanh(Float64x4 x) {
 }
 void Float64x4_sinhcosh(Float64x4 theta, Float64x4* p_sinh, Float64x4* p_cosh) {
 	sinhcosh(theta, *p_sinh, *p_cosh);
+}
+
+//------------------------------------------------------------------------------
+// Float64x4 from string
+//------------------------------------------------------------------------------
+
+#include "FloatNxN/FloatNxN_stringTo.hpp"
+
+Float64x4 stringTo_Float64x4(const char* nPtr, char** endPtr) {
+	internal_FloatNxN_stringTo<Float64x4, fp64> stringTo_func;
+	return stringTo_func.stringTo_FloatNxN(nPtr, endPtr);
+}
+
+std::istream& operator>>(std::istream& stream, Float64x4& value) {
+	internal_FloatNxN_stringTo<Float64x4, fp64> func_cin;
+	return func_cin.cin_FloatNxN(stream, value);
+}
+
+//------------------------------------------------------------------------------
+// Float64x4 to string
+//------------------------------------------------------------------------------
+
+#include "FloatNxN/FloatNxN_snprintf.hpp"
+
+int Float64x4_snprintf(char* buf, size_t len, const char* format, ...) {
+	va_list args;
+	va_start(args, format);
+	internal_FloatNxN_snprintf<Float64x4, fp64, 2> func_snprintf;
+	int ret_val = func_snprintf.FloatNxN_snprintf(
+		PRIFloat64x4, PRIFloat64,
+		buf, len, format, args
+	);
+	va_end(args);
+	return ret_val;
+}
+
+inline std::ostream& operator<<(std::ostream& stream, const Float64x4& value) {
+	internal_FloatNxN_snprintf<Float64x4, fp64, 2> func_cout;
+	return func_cout.FloatNxN_cout(PRIFloat64x4, PRIFloat64, stream, value);
 }
