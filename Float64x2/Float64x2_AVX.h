@@ -1412,6 +1412,114 @@ static inline __m256dx2 _mm256x2_fmod_pdx2(__m256dx2 x, __m256dx2 y) {
 }
 
 //------------------------------------------------------------------------------
+// __m256dx2 ilogb
+//------------------------------------------------------------------------------
+
+/**
+ * @brief Computes ilogb(x) on a __m256dx2 value
+ * @returns sign extended __m256i int64_t
+ */
+static inline __m256i _mm256x2_ilogb_pdx2_epi64(__m256dx2 x) {
+	return _mm256_ilogb_pd_epi64(x.hi);
+}
+
+/**
+ * @brief Computes ilogb(x) on a __m256dx2 value
+ * @returns sign extended __m128i int32_t
+ */
+static inline __m128i _mm256x2_ilogb_pdx2_epi32(__m256dx2 x) {
+	return _mm256_ilogb_pd_epi32(x.hi);
+}
+
+/**
+ * @brief Computes ilogb(x) on a __m256dx2 value
+ * @returns zero extended __m256i uint64_t
+ */
+static inline __m256i _mm256x2_ilogb_pdx2_epu64(__m256dx2 x) {
+	return _mm256_ilogb_pd_epu64(x.hi);
+}
+	
+/**
+ * @brief Computes ilogb(x) on a __m256dx2 value
+ * @returns zero extended __m128i uint32_t
+ */
+static inline __m128i _mm256x2_ilogb_pdx2_epu32(__m256dx2 x) {
+	return _mm256_ilogb_pd_epu32(x.hi);
+}
+
+//------------------------------------------------------------------------------
+// __m256dx2 ldexp
+//------------------------------------------------------------------------------
+
+/**
+ * @brief This is an internal funciton, do NOT call it directly.
+ */
+static inline __m256dx2 _internal_mm256x2_ldexp_pdx2(__m256dx2 x, __m256d x_mult) {
+	__m256dx2 ret;
+	ret.hi = _internal_mm256_ldexp_pd(x.hi, x_mult);
+	ret.lo = _mm256_blendv_pd(
+		ret.hi, _internal_mm256_ldexp_pd(x.lo, x_mult),
+		_mm256_isfinite_pd(ret.hi)
+	);
+	return ret;
+}
+
+/**
+ * @brief Computes ldexp(x, expon)
+ * @note The result may be undefined if expon is >= 1024 or if expon <= -1024
+ */
+static inline __m256dx2 _mm256x2_ldexp_pdx2_epi64(__m256dx2 x, __m256i expon) {
+	__m256d x_mult = _mm256_ldexp1_pd_epi64(expon);
+	return _internal_mm256x2_ldexp_pdx2(x, x_mult);
+}
+
+/**
+ * @brief Computes ldexp(x, expon)
+ * @note The result may be undefined if expon is >= 1024 or if expon <= -1024
+ */
+static inline __m256dx2 _mm256x2_ldexp_pdx2_epi32(__m256dx2 x, __m128i expon) {
+	__m256d x_mult = _mm256_ldexp1_pd_epi32(expon);
+	return _internal_mm256x2_ldexp_pdx2(x, x_mult);
+}
+
+/**
+ * @brief Computes ldexp(x, expon) where expon is truncated to an integer
+ * @note The result may be undefined if expon is >= 1024 or if expon <= -1024
+ */
+static inline __m256dx2 _mm256x2_ldexp_pdx2_pd(__m256dx2 x, __m256d expon) {
+	__m256d x_mult = _mm256_ldexp1_pd_pd(expon);
+	return _internal_mm256x2_ldexp_pdx2(x, x_mult);
+}
+
+//------------------------------------------------------------------------------
+// __m256dx2 frexp
+//------------------------------------------------------------------------------
+
+/**
+ * @brief Computes frexp(x, expon) on a __m256dx2 value
+ * @returns sign extended __m256i int64_t
+ */
+static inline __m256dx2 _mm256x2_frexp_pdx2_epi64(__m256dx2 x, __m256i* const expon) {
+	__m256dx2 ret;
+	__m256i neg_logb;
+	ret.hi = _internal_mm256_frexp_pd_epi64(x.hi, expon, &neg_logb);
+	ret.lo = _mm256_ldexp_pd_epi64(x.lo, neg_logb);
+	return ret;
+}
+
+/**
+ * @brief Computes frexp(x, expon) on a __m256dx2 value
+ * @returns sign extended __m128i int32_t
+ */
+static inline __m256dx2 _mm256x2_frexp_pdx2_epi32(__m256dx2 x, __m128i* const expon) {
+	__m256dx2 ret;
+	__m128i neg_logb;
+	ret.hi = _internal_mm256_frexp_pd_epi32(x.hi, expon, &neg_logb);
+	ret.lo = _mm256_ldexp_pd_epi32(x.lo, neg_logb);
+	return ret;
+}
+
+//------------------------------------------------------------------------------
 // __m256dx2 exponents and logarithms
 //------------------------------------------------------------------------------
 

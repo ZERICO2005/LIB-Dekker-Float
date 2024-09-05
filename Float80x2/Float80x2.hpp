@@ -604,29 +604,36 @@ namespace std {
 
 /* Floating Point Classify */
 
+	/** @brief Returns true if x is negative */
 	inline constexpr bool signbit(const Float80x2& x) {
-		return dekker_less_zero(x);
+		return std::signbit(x.hi);
 	}
-	/** Returns true if both x.hi and x.lo are finite */
+
+	/** @brief Returns true if x is finite */
 	inline constexpr bool isfinite(const Float80x2& x) {
-		return (isfinite(x.hi) && isfinite(x.lo));
+		return std::isfinite(x.hi);
 	}
-	/** Returns true if either x.hi or x.lo are infinite */
+
+	/** @brief Returns true if x is +-infinity */
 	inline constexpr bool isinf(const Float80x2& x) {
-		return (isinf(x.hi) || isinf(x.lo));
+		return std::isinf(x.hi);
 	}
-	/** Returns true if either x.hi or x.lo are nan */
+
+	/** @brief Returns true if x is any kind of NaN */
 	inline constexpr bool isnan(const Float80x2& x) {
-		return (isnan(x.hi) || isnan(x.lo));
+		return std::isnan(x.hi);
 	}
-	/** Returns true if both x.hi and x.lo are normal */
+
+	/** @brief Returns true if x is normal */
 	inline constexpr bool isnormal(const Float80x2& x) {
-		return (isnormal(x.hi) && isnormal(x.lo));
+		return (std::isnormal(x.hi) && std::isnormal(x.lo));
 	}
-	/** Returns true if either {x.hi, y.hi} or {x.lo, y.lo} are unordered */
+	
+	/** @brief Returns true if x and y are unordered */
 	inline constexpr bool isunordered(const Float80x2& x, const Float80x2& y) {
-		return (isunordered(x.hi, y.hi) || isunordered(x.lo, y.lo));
+		return std::isunordered(x.hi, y.hi);
 	}
+
 	inline constexpr int fpclassify(const Float80x2& x) {
 		return
 			isinf(x)             ? FP_INFINITE :

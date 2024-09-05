@@ -48,13 +48,13 @@ void func(void) {
 
 		_mm256x2_store_pdx2(val, result);
 		char buf[999];
-		Float64x2_snprintf(buf, sizeof(buf), "%+44.40Df", val[0]);
+		Float64x2_snprintf(buf, sizeof(buf), "%+54.50" PRIFloat64x2 "f", val[0]);
 		printf("[%s]\n", buf);
-		Float64x2_snprintf(buf, sizeof(buf), "%+44.40Df", val[1]);
+		Float64x2_snprintf(buf, sizeof(buf), "%+54.50" PRIFloat64x2 "f", val[1]);
 		printf("[%s]\n", buf);
-		Float64x2_snprintf(buf, sizeof(buf), "%+44.40Df", val[2]);
+		Float64x2_snprintf(buf, sizeof(buf), "%+54.50" PRIFloat64x2 "f", val[2]);
 		printf("[%s]\n", buf);
-		Float64x2_snprintf(buf, sizeof(buf), "%+44.40Df", val[3]);
+		Float64x2_snprintf(buf, sizeof(buf), "%+54.50" PRIFloat64x2 "f", val[3]);
 		printf("[%s]\n", buf);
 	#else
 		Float64x4 val[4] = {
@@ -75,7 +75,8 @@ void func(void) {
 int main(void) {
 	// __attribute__((unused)) char buf[999];
 	// Float64x2 x = {1.0, DBL_MIN};
-	// Float64x2_snprintf(buf, sizeof(buf), "%+9.320Df", x);
+	// // x = Float64x2_exp(x);
+	// Float64x2_snprintf(buf, sizeof(buf), "%+-9.320" PRIFloat64x2 "f", x);
 	// printf("[%s]\n", buf);
 	// printf("%g %g\n", x.hi, x.lo);
 	

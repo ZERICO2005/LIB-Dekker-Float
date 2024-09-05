@@ -9,6 +9,8 @@
 #ifndef FLOAT32_H
 #define FLOAT32_H
 
+typedef float fp32;
+
 #ifndef PRIFloat32
 	#define PRIFloat32 ""
 #endif

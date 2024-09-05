@@ -995,45 +995,38 @@ static inline bool Float64x2_cmpge_d_dx2(const fp64 x, const Float64x2 y) {
 // Float64x2 floating point classify
 //------------------------------------------------------------------------------
 
-
 /** @brief Returns true if x is negative */
 static inline bool Float64x2_signbit(const Float64x2 x) {
-	return Float64x2_cmplt_zero(x);
+	return Float64_signbit(x.hi);
 }
-
-// isinf calls a type generic fpclassify which should call __fpclassify(double), but it appears to be getting -Wfloat-conversion warnings.
-#if 0
-/** @brief Returns true if both x.hi and x.lo are finite */
+/** @brief Returns true if x is finite */
 static inline bool Float64x2_isfinite(const Float64x2 x) {
-	return (isfinite(x.hi) && isfinite(x.lo));
+	return Float64_isfinite(x.hi);
 }
-/** @brief Returns true if either x.hi or x.lo are infinite */
+/** @brief Returns true if x is +-infinity */
 static inline bool Float64x2_isinf(const Float64x2 x) {
-	return (isinf(x.hi) || isinf(x.lo));
+	return Float64_isinf(x.hi);
 }
-/** @brief Returns true if either x.hi or x.lo are nan */
+/** @brief Returns true if x is any kind of NaN */
 static inline bool Float64x2_isnan(const Float64x2 x) {
-	return (isnan(x.hi) || isnan(x.lo));
+	return Float64_isnan(x.hi);
 }
-/** @brief Returns true if both x.hi and x.lo are normal */
+/** @brief Returns true if x is normal */
 static inline bool Float64x2_isnormal(const Float64x2 x) {
-	return (isnormal(x.hi) && isnormal(x.lo));
+	return (Float64_isnormal(x.hi) && Float64_isnormal(x.lo));
 }
-/** @brief Returns true if either {x.hi, y.hi} or {x.lo, y.lo} are unordered */
-static inline bool Float64x2_isunordered(
-	const Float64x2 x, const Float64x2 y
-) {
-	return (isunordered(x.hi, y.hi) || isunordered(x.lo, y.lo));
+/** @brief Returns true if x and y are unordered */
+static inline bool Float64x2_isunordered(const Float64x2 x, const Float64x2 y) {
+	return Float64_isunordered(x.hi, y.hi);
 }
 static inline int Float64x2_fpclassify(const Float64x2 x) {
 	return
 		Float64x2_isinf(x)             ? FP_INFINITE :
 		Float64x2_isnan(x)             ? FP_NAN      :
-		Float64x2_cmpeq_zero(x) ? FP_ZERO     :
+		Float64x2_cmpeq_zero(x)        ? FP_ZERO     :
 		Float64x2_isnormal(x)          ? FP_NORMAL   :
 		FP_SUBNORMAL;
 }
-#endif
 
 //------------------------------------------------------------------------------
 // Float64x2 max/min functions
@@ -1047,8 +1040,8 @@ static inline int Float64x2_fpclassify(const Float64x2 x) {
 static inline Float64x2 Float64x2_fmax(const Float64x2 x, const Float64x2 y) {
 	if (Float64x2_cmplt(x, y)) { return y; }
 	if (Float64x2_cmplt(y, x)) { return x; }
-	// if (Float64x2_isnan(x)) { return y; }
-	// if (Float64x2_isnan(y)) { return x; }
+	if (Float64x2_isnan(x)) { return y; }
+	if (Float64x2_isnan(y)) { return x; }
 	return Float64x2_signbit(x) ? y : x;
 }
 
@@ -1060,8 +1053,8 @@ static inline Float64x2 Float64x2_fmax(const Float64x2 x, const Float64x2 y) {
 static inline Float64x2 Float64x2_fmin(const Float64x2 x, const Float64x2 y) {
 	if (Float64x2_cmpgt(x, y)) { return y; }
 	if (Float64x2_cmpgt(y, x)) { return x; }
-	// if (Float64x2_isnan(x)) { return y; }
-	// if (Float64x2_isnan(y)) { return x; }
+	if (Float64x2_isnan(x)) { return y; }
+	if (Float64x2_isnan(y)) { return x; }
 	return Float64x2_signbit(x) ? x : y;
 }
 
@@ -1243,14 +1236,14 @@ static inline Float64x2 Float64x2_remquo(const Float64x2 x, const Float64x2 y, i
  * @brief Extracts the exponent of a Float64x2 value to compute the
  * binary logarithm.
  */
-inline int Float64x2_ilogb(const Float64x2 x) {
+static inline int Float64x2_ilogb(const Float64x2 x) {
 	return ilogb(x.hi + x.lo);
 }
 /**
  * @brief Returns a normalized Float64x2 value and the exponent in
  * the form [0.0, 1.0) * 2^expon
  */
-inline Float64x2 Float64x2_frexp(const Float64x2 x, int* const expon) {
+static inline Float64x2 Float64x2_frexp(const Float64x2 x, int* const expon) {
 	Float64x2 ret;
 	*expon = ilogb(x.hi + x.lo) + 1;
 	ret.hi = ldexp(x.hi, -(*expon));
@@ -1260,28 +1253,28 @@ inline Float64x2 Float64x2_frexp(const Float64x2 x, int* const expon) {
 /**
  * @brief Multiplies a Float64x2 value by 2^expon
  */
-inline Float64x2 Float64x2_ldexp(const Float64x2 x, const int expon) {
+static inline Float64x2 Float64x2_ldexp(const Float64x2 x, const int expon) {
 	Float64x2 ret;
 	ret.hi = ldexp(x.hi, expon);
-	ret.lo = isfinite(x.hi) ? ldexp(x.lo, expon) : x.hi;
+	ret.lo = Float64_isfinite(x.hi) ? ldexp(x.lo, expon) : x.hi;
 	return ret;
 }
 /**
  * @brief Multiplies a Float64x2 value by FLT_RADIX^expon
  */
-inline Float64x2 Float64x2_scalbn(const Float64x2 x, const int expon) {
+static inline Float64x2 Float64x2_scalbn(const Float64x2 x, const int expon) {
 	Float64x2 ret;
 	ret.hi = scalbn(x.hi, expon);
-	ret.lo = isfinite(x.hi) ? scalbn(x.lo, expon) : x.hi;
+	ret.lo = Float64_isfinite(x.hi) ? scalbn(x.lo, expon) : x.hi;
 	return ret;
 }
 /**
  * @brief Multiplies a Float64x2 value by FLT_RADIX^expon
  */
-inline Float64x2 Float64x2_scalbln(const Float64x2 x, const long expon) {
+static inline Float64x2 Float64x2_scalbln(const Float64x2 x, const long expon) {
 	Float64x2 ret;
 	ret.hi = scalbln(x.hi, expon);
-	ret.lo = isfinite(x.hi) ? scalbln(x.lo, expon) : x.hi;
+	ret.lo = Float64_isfinite(x.hi) ? scalbln(x.lo, expon) : x.hi;
 	return ret;
 }
 

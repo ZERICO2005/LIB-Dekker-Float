@@ -14,13 +14,14 @@
 static inline __m256dx2 _mm256x2_taylor_expm1_pdx2(
 	const __m256dx2 x, __m128i* m_bin
 ) {
-	const __m256dx2 inv_fact[6] = {
-		_mm256x2_set1_pd_pd(0x1.5555555555555p-3 ,+0x1.5555555555555p-57),
-		_mm256x2_set1_pd_pd(0x1.5555555555555p-5 ,+0x1.5555555555555p-59),
-		_mm256x2_set1_pd_pd(0x1.1111111111111p-7 ,+0x1.1111111111111p-63),
-		_mm256x2_set1_pd_pd(0x1.6c16c16c16c17p-10,-0x1.f49f49f49f49fp-65),
-		_mm256x2_set1_pd_pd(0x1.a01a01a01a01ap-13,+0x1.a01a01a01a01ap-73),
-		_mm256x2_set1_pd_pd(0x1.a01a01a01a01ap-16,+0x1.a01a01a01a01ap-76)
+	const __m256dx2 inv_fact[7] = {
+	/* 3! */ _mm256x2_set1_pd_pd(0x1.5555555555555p-3 ,+0x1.5555555555555p-57),
+	/* 4! */ _mm256x2_set1_pd_pd(0x1.5555555555555p-5 ,+0x1.5555555555555p-59),
+	/* 5! */ _mm256x2_set1_pd_pd(0x1.1111111111111p-7 ,+0x1.1111111111111p-63),
+	/* 6! */ _mm256x2_set1_pd_pd(0x1.6c16c16c16c17p-10,-0x1.f49f49f49f49fp-65),
+	/* 7! */ _mm256x2_set1_pd_pd(0x1.a01a01a01a01ap-13,+0x1.a01a01a01a01ap-73),
+	/* 8! */ _mm256x2_set1_pd_pd(0x1.a01a01a01a01ap-16,+0x1.a01a01a01a01ap-76),
+	/* 9! */ _mm256x2_set1_pd_pd(0x1.71de3a556c733p-19,-0x1.c154f8ddc6c00p-73)
 	};
 	/* Strategy:  We first reduce the size of x by noting that
 		
@@ -52,12 +53,13 @@ static inline __m256dx2 _mm256x2_taylor_expm1_pdx2(
 	p = _mm256x2_mul_pdx2(p, r);
 	t = _mm256x2_mul_pdx2(p, inv_fact[0]);
 	size_t i = 0;
+	// Originally set to `i < 5`, adding another term will sometimes improve precision.
 	do {
 		s = _mm256x2_add_pdx2(s, t);
 		p = _mm256x2_mul_pdx2(p, r);
 		++i;
-		t = _mm256x2_mul_pdx2(p, inv_fact[1]);
-	} while (i < 5);
+		t = _mm256x2_mul_pdx2(p, inv_fact[i]);
+	} while (i < 6);
 
 	s = _mm256x2_add_pdx2(s, t);
 
@@ -84,7 +86,7 @@ __m256dx2 _mm256x2_exp_pdx2(const __m256dx2 x) {
 	__m256dx2 ret = _mm256x2_taylor_expm1_pdx2(x, &m_bin);
 	ret = _mm256x2_add_pdx2_pd(ret, _mm256_set1_pd(1.0));
 	
-	return _mm256x2_mul_pdx2_pd(ret, _mm256_ldexp1_pd_epi32(m_bin));
+	return _mm256x2_ldexp_pdx2_epi32(ret, m_bin);
 }
 
 __m256dx2 _mm256x2_expm1_pdx2(const __m256dx2 x) {
@@ -93,7 +95,7 @@ __m256dx2 _mm256x2_expm1_pdx2(const __m256dx2 x) {
 
 	__m256dx2 ret = _mm256x2_add_pdx2_pd(ret_expm1, _mm256_set1_pd(1.0));
 	
-	ret = _mm256x2_mul_pdx2_pd(ret, _mm256_ldexp1_pd_epi32(m_bin));
+	ret = _mm256x2_ldexp_pdx2_epi32(ret, m_bin);
 	ret = _mm256x2_sub_pdx2_pd(ret, _mm256_set1_pd(1.0));
 
 	// Check if x was in range

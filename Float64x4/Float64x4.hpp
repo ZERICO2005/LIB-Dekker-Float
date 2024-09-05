@@ -686,46 +686,41 @@ constexpr Float64x4 Float64x4_tau  = Float64x4_2pi; /**< ~6.283185307 */
 // Float64x4 math.h functions
 //------------------------------------------------------------------------------
 
-/* Tests */
+/* Floating Point Classify */
 
+	/** @brief Returns true if x is negative */
 	inline constexpr bool signbit(const Float64x4& x) {
-		return dekker_less_zero(x) ? true : false;
+		return std::signbit(x.val[0]);
 	}
-	/** Returns true if both x.hi and x.lo are finite */
+
+	/** @brief Returns true if x is finite */
 	inline constexpr bool isfinite(const Float64x4& x) {
-		return (
-			isfinite(x.val[0]) && isfinite(x.val[1]) &&
-			isfinite(x.val[2]) && isfinite(x.val[3])
-		);
+		return std::isfinite(x.val[0]);
 	}
-	/** Returns true if either x.hi or x.lo are infinite */
+
+	/** @brief Returns true if x is +-infinity */
 	inline constexpr bool isinf(const Float64x4& x) {
-		return (
-			isinf(x.val[0]) || isinf(x.val[1]) ||
-			isinf(x.val[2]) || isinf(x.val[3])
-		);
+		return std::isinf(x.val[0]);
 	}
-	/** Returns true if either x.hi or x.lo are nan */
+
+	/** @brief Returns true if x is any kind of NaN */
 	inline constexpr bool isnan(const Float64x4& x) {
-		return (
-			isnan(x.val[0]) || isnan(x.val[1]) ||
-			isnan(x.val[2]) || isnan(x.val[3])
-		);
+		return std::isnan(x.val[0]);
 	}
-	/** Returns true if both x.hi and x.lo are normal */
+
+	/** @brief Returns true if x is normal */
 	inline constexpr bool isnormal(const Float64x4& x) {
 		return (
-			isnormal(x.val[0]) && isnormal(x.val[1]) &&
-			isnormal(x.val[2]) && isnormal(x.val[3])
+			std::isnormal(x.val[0]) && std::isnormal(x.val[1]) &&
+			std::isnormal(x.val[2]) && std::isnormal(x.val[3])
 		);
 	}
-	/** Returns true if either {x.hi, y.hi} or {x.lo, y.lo} are unordered */
+
+	/** @brief Returns true if x and y are unordered */
 	inline constexpr bool isunordered(const Float64x4& x, const Float64x4& y) {
-		return (
-			isunordered(x.val[0], y.val[0]) || isunordered(x.val[1], y.val[1]) ||
-			isunordered(x.val[2], y.val[2]) || isunordered(x.val[3], y.val[3])
-		);
+		return std::isunordered(x.val[0], y.val[0]);
 	}
+
 	inline constexpr int fpclassify(const Float64x4& x) {
 		return
 			isinf(x)             ? FP_INFINITE :

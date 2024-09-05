@@ -652,30 +652,37 @@ namespace std {
 
 /* Floating Point Classify */
 
-	inline constexpr bool signbit(const Float32x2 x) {
-		return dekker_less_zero(x);
+	/** @brief Returns true if x is negative */
+	inline constexpr bool signbit(const Float32x2& x) {
+		return std::signbit(x.hi);
 	}
-	/** Returns true if both x.hi and x.lo are finite */
-	inline constexpr bool isfinite(const Float32x2 x) {
-		return (isfinite(x.hi) && isfinite(x.lo));
+
+	/** @brief Returns true if x is finite */
+	inline constexpr bool isfinite(const Float32x2& x) {
+		return std::isfinite(x.hi);
 	}
-	/** Returns true if either x.hi or x.lo are infinite */
-	inline constexpr bool isinf(const Float32x2 x) {
-		return (isinf(x.hi) || isinf(x.lo));
+
+	/** @brief Returns true if x is +-infinity */
+	inline constexpr bool isinf(const Float32x2& x) {
+		return std::isinf(x.hi);
 	}
-	/** Returns true if either x.hi or x.lo are nan */
-	inline constexpr bool isnan(const Float32x2 x) {
-		return (isnan(x.hi) || isnan(x.lo));
+
+	/** @brief Returns true if x is any kind of NaN */
+	inline constexpr bool isnan(const Float32x2& x) {
+		return std::isnan(x.hi);
 	}
-	/** Returns true if both x.hi and x.lo are normal */
-	inline constexpr bool isnormal(const Float32x2 x) {
-		return (isnormal(x.hi) && isnormal(x.lo));
+
+	/** @brief Returns true if x is normal */
+	inline constexpr bool isnormal(const Float32x2& x) {
+		return (std::isnormal(x.hi) && std::isnormal(x.lo));
 	}
-	/** Returns true if either {x.hi, y.hi} or {x.lo, y.lo} are unordered */
-	inline constexpr bool isunordered(const Float32x2 x, const Float32x2 y) {
-		return (isunordered(x.hi, y.hi) || isunordered(x.lo, y.lo));
+	
+	/** @brief Returns true if x and y are unordered */
+	inline constexpr bool isunordered(const Float32x2& x, const Float32x2& y) {
+		return std::isunordered(x.hi, y.hi);
 	}
-	inline constexpr int fpclassify(const Float32x2 x) {
+
+	inline constexpr int fpclassify(const Float32x2& x) {
 		return
 			isinf(x)             ? FP_INFINITE :
 			isnan(x)             ? FP_NAN      :

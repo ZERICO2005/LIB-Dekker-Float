@@ -16,8 +16,8 @@
  * @brief defines the Float128x2 struct
  */
 
-typedef float fp32;
-typedef double fp64;
+#include "Float32/Float32.h"
+#include "Float64/Float64.h"
 
 //------------------------------------------------------------------------------
 // Float128x2 struct
