@@ -227,17 +227,19 @@ static inline Float64x2 taylor_expm1(const Float64x2& x, fp64& m) {
 }
 
 Float64x2 exp(const Float64x2& x) {
-	if (x.hi <= -709.0) {
-		return static_cast<Float64x2>(0.0);
+	if (x.hi <= -709.79) {
+		// Gives a better approximation near extreme values
+		return exp(x.hi);
 	}
-	if (x.hi >= 709.0) {
+	/* ln(2^1023 * (1 + (1 - 2^-52)))) = ~709.782712893 */
+	if (x.lo >= 709.79) {
 		return std::numeric_limits<Float64x2>::infinity();
 	}
 	if (dekker_equal_zero(x)) {
 		return static_cast<Float64x2>(1.0);
 	}
 	if (x == 1.0) {
-		return Float64x2_euler;
+		return Float64x2_e;
 	}
 
 	fp64 m;
@@ -248,7 +250,7 @@ Float64x2 exp(const Float64x2& x) {
 
 Float64x2 expm1(const Float64x2& x) {
 	if (x.hi <= -709.0) {
-		return static_cast<Float64x2>(0.0);
+		return static_cast<Float64x2>(-1.0);
 	}
 	if (x.hi >= 709.0) {
 		return std::numeric_limits<Float64x2>::infinity();

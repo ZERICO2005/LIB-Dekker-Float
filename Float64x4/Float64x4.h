@@ -2791,13 +2791,19 @@ static inline Float64x4 Float64x4_log10(const Float64x4 x) {
 }
 
 static inline Float64x4 Float64x4_pow(const Float64x4 x, const Float64x4 y) {
-	return Float64x4_exp(Float64x4_mul(Float64x4_log(x), y));
+	return Float64x4_cmpeq_zero(x) ? (
+		Float64x4_cmpeq_zero(y) ? Float64x4_set_d(1.0) : Float64x4_set_d(0.0)
+	) : Float64x4_exp(Float64x4_mul(Float64x4_log(x), y));	
 }
 static inline Float64x4 Float64x4_pow_dx4_dx2(const Float64x4 x, const Float64x2 y) {
-	return Float64x4_exp(Float64x4_mul_dx4_dx2(Float64x4_log(x), y));
+	return Float64x4_cmpeq_zero(x) ? (
+		Float64x2_cmpeq_zero(y) ? Float64x4_set_d(1.0) : Float64x4_set_d(0.0)
+	) : Float64x4_exp(Float64x4_mul_dx4_dx2(Float64x4_log(x), y));
 }
 static inline Float64x4 Float64x4_pow_dx4_d(const Float64x4 x, const fp64 y) {
-	return Float64x4_exp(Float64x4_mul_dx4_d(Float64x4_log(x), y));
+	return Float64x4_cmpeq_zero(x) ? (
+		(y == 0.0) ? Float64x4_set_d(1.0) : Float64x4_set_d(0.0)
+	) : Float64x4_exp(Float64x4_mul_dx4_d(Float64x4_log(x), y));
 }
 
 //------------------------------------------------------------------------------

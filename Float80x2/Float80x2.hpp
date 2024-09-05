@@ -885,15 +885,19 @@ namespace std {
 	 * @note casts to Float80x2_Math for calculation as this function is not
 	 * currently implemeneted.
 	 */
-	inline Float80x2 pow(const Float80x2 x, const Float80x2 y) {
-		return exp(y * log(x));
+	inline Float80x2 pow(const Float80x2& x, const Float80x2& y) {
+		return dekker_equal_zero(x) ? (
+			dekker_equal_zero(y) ? static_cast<Float80x2>(1.0) : static_cast<Float80x2>(0.0)
+		) : exp(y * log(x));
 	}
 	/** 
 	 * @note casts to Float80x2_Math for calculation as this function is not
 	 * currently implemeneted.
 	 */
-	inline Float80x2 pow(const Float80x2 x, const fp80 y) {
-		return exp(y * log(x));
+	inline Float80x2 pow(const Float80x2& x, const fp80 y) {
+		return dekker_equal_zero(x) ? (
+			(y == static_cast<fp80>(0.0)) ? static_cast<Float80x2>(1.0) : static_cast<Float80x2>(0.0)
+		) : exp(y * log(x));
 	}
 	
 /* Rounding */

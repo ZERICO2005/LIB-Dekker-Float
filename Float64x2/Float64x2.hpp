@@ -919,11 +919,15 @@ namespace std {
 		return exp(x * Float64x2_ln10);
 	}
 
-	inline Float64x2 pow(const Float64x2 x, const Float64x2 y) {
-		return exp(y * log(x));
+	inline Float64x2 pow(const Float64x2& x, const Float64x2& y) {
+		return dekker_equal_zero(x) ? (
+			dekker_equal_zero(y) ? static_cast<Float64x2>(1.0) : static_cast<Float64x2>(0.0)
+		) : exp(y * log(x));
 	}
-	inline Float64x2 pow(const Float64x2 x, const fp64 y) {
-		return exp(y * log(x));
+	inline Float64x2 pow(const Float64x2& x, const fp64 y) {
+		return dekker_equal_zero(x) ? (
+			(y == static_cast<fp64>(0.0)) ? static_cast<Float64x2>(1.0) : static_cast<Float64x2>(0.0)
+		) : exp(y * log(x));
 	}
 	
 /* Rounding */

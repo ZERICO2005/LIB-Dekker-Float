@@ -934,16 +934,20 @@ namespace std {
 	 * currently implemeneted.
 	 */
 	inline Float32x2 pow(const Float32x2 x, const Float32x2 y) {
-		return exp(y * log(x));
+		return dekker_equal_zero(x) ? (
+			dekker_equal_zero(y) ? static_cast<Float32x2>(1.0) : static_cast<Float32x2>(0.0)
+		) : exp(y * log(x));
 	}
 	/** 
 	 * @note casts to Float32x2_Math for calculation as this function is not
 	 * currently implemeneted.
 	 */
 	inline Float32x2 pow(const Float32x2 x, const fp32 y) {
-		return exp(y * log(x));
+		return dekker_equal_zero(x) ? (
+			(y == static_cast<fp32>(0.0)) ? static_cast<Float32x2>(1.0) : static_cast<Float32x2>(0.0)
+		) : exp(y * log(x));
 	}
-	
+
 /* Rounding */
 
 	inline Float32x2 trunc(const Float32x2 x) {

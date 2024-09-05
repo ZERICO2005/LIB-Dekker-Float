@@ -166,16 +166,20 @@ int main(void) {
 	// Float32x2_snprintf(buf, sizeof(buf), "%+.50Df", x);
 	// printf("FLT_MAX + FLT_MIN = [%s]\n", buf);
 
+	#if 1
 	__attribute__((unused)) char buf[999];
 	
-	Float64x2 x ="2.718281828459045235360287471352662497757247093699959574966967627724076630353547594571382"_FP64X2;
+	Float64x2 x = "2.718281828459045235360287471352662497757247093699959574966967627724076630353547594571382"_FP64X2;
 	fp64 y = x;
 	int exp_x, exp_y;
 	x = frexp(x, exp_x);
 	y = frexp(y, &exp_y);
 	Float64x2_snprintf(buf, sizeof(buf), "%+.50" PRIFloat64x2 "f", x);
-	printf("%s * 2^%d\n%+.50f * 2^%d\n", buf, exp_x, y, exp_y);
-	
+	printf(
+		"Float64x2: %s * 2^%d\nFloat64  : %+.50f * 2^%d\n",
+		buf, exp_x, y, exp_y
+	);
+	#endif
 	#if 0
 		// Testing the accuracy of modf
 		printf("\n");

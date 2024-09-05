@@ -12,7 +12,9 @@
 #include <emmintrin.h>
 #include <immintrin.h>
 
-static inline __m256dx2 _mm256x2_taylor_expm1_pdx2(const __m256dx2 x, __m128i* m_bin) {
+static inline __m256dx2 _mm256x2_taylor_expm1_pdx2(
+	const __m256dx2 x, __m128i* m_bin
+) {
 	const __m256dx2 inv_fact[6] = {
 		_mm256x2_set1_pd_pd(0x1.5555555555555p-3 ,+0x1.5555555555555p-57),
 		_mm256x2_set1_pd_pd(0x1.5555555555555p-5 ,+0x1.5555555555555p-59),
@@ -33,14 +35,17 @@ static inline __m256dx2 _mm256x2_taylor_expm1_pdx2(const __m256dx2 x, __m128i* m
 	// const __m256d k = _mm256_set1_pd(0x1.0p+9);
 	const __m256d inv_k = _mm256_set1_pd(0x1.0p-9);
 
+	const __m256d const_log2e = _mm256_const_log2e_pd();
 	const __m256dx2 const_ln2 = _mm256x2_const_ln2_pdx2();
 
 	__m256d m = _mm256_floor_pd(
-		_mm256_add_pd(_mm256_mul_pd(x.hi, const_ln2.hi), _mm256_set1_pd(0.5))
+		_mm256_add_pd(_mm256_mul_pd(x.hi, const_log2e), _mm256_set1_pd(0.5))
 	);
 	*m_bin = _mm256_cvttpd_epi32(m);
 
-	__m256dx2 r = _mm256x2_mul_power2_pdx2_pd(_mm256x2_sub_pdx2(x, _mm256x2_mul_pdx2_pd(const_ln2, m)), inv_k);
+	__m256dx2 r = _mm256x2_mul_power2_pdx2_pd(
+		_mm256x2_sub_pdx2(x, _mm256x2_mul_pdx2_pd(const_ln2, m)), inv_k
+	);
 	__m256dx2 s, t, p;
 
 	p = _mm256x2_square_pdx2(r);

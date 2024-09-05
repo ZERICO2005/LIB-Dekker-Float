@@ -1312,12 +1312,16 @@ static inline Float64x2 Float64x2_log10(const Float64x2 x) {
 }
 
 static inline Float64x2 Float64x2_pow(const Float64x2 x, const Float64x2 y) {
-	return Float64x2_exp(Float64x2_mul(Float64x2_log(x), y));
+	return Float64x2_cmpeq_zero(x) ? (
+		Float64x2_cmpeq_zero(y) ? Float64x2_set_d(1.0) : Float64x2_set_d(0.0)
+	) : Float64x2_exp(Float64x2_mul(Float64x2_log(x), y));	
+}
+static inline Float64x2 Float64x2_pow_dx2_d(const Float64x2 x, const fp64 y) {
+	return Float64x2_cmpeq_zero(x) ? (
+		(y == 0.0) ? Float64x2_set_d(1.0) : Float64x2_set_d(0.0)
+	) : Float64x2_exp(Float64x2_mul_dx2_d(Float64x2_log(x), y));
 }
 
-static inline Float64x2 Float64x2_pow_dx2_d(const Float64x2 x, const fp64 y) {
-	return Float64x2_exp(Float64x2_mul_dx2_d(Float64x2_log(x), y));
-}
 
 //------------------------------------------------------------------------------
 // Float64x2 trigonometry

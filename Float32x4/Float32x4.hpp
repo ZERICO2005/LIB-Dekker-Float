@@ -244,31 +244,6 @@ namespace std {
 // Float32x4 math.h functions
 //------------------------------------------------------------------------------
 
-/* Arithmetic */
-
-	inline constexpr Float32x4 fmax(const Float32x4& x, const Float32x4& y) {
-		return (x > y) ? x : y;
-	}
-	inline constexpr Float32x4 fmax(const Float32x4& x, const Float32x4& y, const Float32x4& z) {
-		return (x > y) ?
-		((x > z) ? x : z) :
-		((y > z) ? y : z);
-	}
-	inline constexpr Float32x4 fmin(const Float32x4& x, const Float32x4& y) {
-		return (x < y) ? x : y;
-	}
-	inline constexpr Float32x4 fmin(const Float32x4& x, const Float32x4& y, const Float32x4& z) {
-		return (x < y) ?
-		((x < z) ? x : z) :
-		((y < z) ? y : z);
-	}
-	inline constexpr Float32x4 fabs(const Float32x4& x) {
-		return (dekker_less_zero(x)) ? -x : x;
-	}
-	inline constexpr Float32x4 copysign(const Float32x4& x, const Float32x4& y) {
-		return (dekker_less_zero(x)) != (dekker_less_zero(y)) ? -x : x;
-	}
-
 /* Tests */
 
 	inline constexpr bool signbit(const Float32x4& x) {
@@ -316,6 +291,49 @@ namespace std {
 			dekker_equal_zero(x) ? FP_ZERO     :
 			isnormal(x)          ? FP_NORMAL   :
 			FP_SUBNORMAL;
+	}
+
+/* fmax and fmin */
+
+	/**
+	 * @brief Returns the fmax of x and y. Correctly handling NaN and signed zeros.
+	 * You may use std::max as a faster alternative.
+	 */
+	inline constexpr Float32x4 fmax(const Float32x4& x, const Float32x4& y) {
+		return
+			(x < y) ? y :
+			(y < x) ? x :
+			isnan(x) ? y :
+			isnan(y) ? x :
+			signbit(x) ? y : x;
+	}
+
+	/**
+	 * @brief Returns the fmin of x and y. Correctly handling NaN and signed zeros.
+	 * You may use std::min as a faster alternative.
+	 */
+	inline constexpr Float32x4 fmin(const Float32x4& x, const Float32x4& y) {
+		return
+			(x > y) ? y :
+			(y > x) ? x :
+			isnan(x) ? y :
+			isnan(y) ? x :
+			signbit(x) ? x : y;
+	}
+
+/* Arithmetic */
+
+	inline constexpr Float32x4 fmax(const Float32x4& x, const Float32x4& y, const Float32x4& z) {
+		return fmax(fmax(x, y), z);
+	}
+	inline constexpr Float32x4 fmin(const Float32x4& x, const Float32x4& y, const Float32x4& z) {
+		return fmin(fmin(x, y), z);
+	}
+	inline constexpr Float32x4 fabs(const Float32x4& x) {
+		return (dekker_less_zero(x)) ? -x : x;
+	}
+	inline constexpr Float32x4 copysign(const Float32x4& x, const Float32x4& y) {
+		return (dekker_less_zero(x)) != (dekker_less_zero(y)) ? -x : x;
 	}
 
 /* Comparison */
