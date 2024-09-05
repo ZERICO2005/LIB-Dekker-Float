@@ -12,6 +12,8 @@
  * @brief defines the Float64x2 struct
  */
 
+#include "../Float64/Float64.h"
+
 typedef float fp32;
 typedef double fp64;
 
@@ -31,6 +33,9 @@ typedef struct Float64x2 {
 		hi(value_hi), lo(value_lo) {}
 
 	constexpr inline Float64x2(const fp64 values[2]) :
+		hi(values[0]), lo(values[1]) {}
+
+	constexpr inline Float64x2(const fp64 (&values)[2]) :
 		hi(values[0]), lo(values[1]) {}
 
 	constexpr inline Float64x2(const fp32 value) :

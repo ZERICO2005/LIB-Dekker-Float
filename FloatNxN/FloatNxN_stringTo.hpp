@@ -6,16 +6,18 @@
 **	this project. If not, see https://opensource.org/license/MIT
 */
 
-#ifndef DOUBLE_FLOATN_TOSTRING_HPP
-#define DOUBLE_FLOATN_TOSTRING_HPP
+#ifndef FLOATNXN_TOSTRING_HPP
+#define FLOATNXN_TOSTRING_HPP
 
+#include <cstring>
 #include <istream>
 #include <climits>
 #include <cmath>
 #include <limits>
+#include <istream>
 
-template<typename FloatNx2, typename FloatN>
-class internal_double_FloatN_stringTo {
+template<typename FloatNxN, typename FloatN>
+class internal_FloatNxN_stringTo {
 	private:
 
 	/** Case insensitive, returns false on nullptr */
@@ -64,19 +66,19 @@ class internal_double_FloatN_stringTo {
 		return ptr;
 	}
 
-	static void mult_exp(FloatNx2& value, int exponent) {
+	static void mult_exp(FloatNxN& value, int exponent) {
 		if (exponent == 0) {
 			return; // 10^0 == 1.0
 		}
 		unsigned int repeat = (unsigned int)abs(exponent);
 		if (exponent < 0) {
 			for (unsigned int i = 0; i < repeat; i++) {
-				value /= static_cast<FloatNx2>(10.0);
+				value /= static_cast<FloatNxN>(10.0);
 			}
 			return;
 		}
 		for (unsigned int i = 0; i < repeat; i++) {
-			value *= static_cast<FloatNx2>(10.0);
+			value *= static_cast<FloatNxN>(10.0);
 		}
 	}
 
@@ -86,13 +88,13 @@ class internal_double_FloatN_stringTo {
 	 * @remarks memcpy(endPtr, &nPtr, sizeof(*endPtr)) is used
 	 * since *endPtr = (char*)ptr triggers -Wcast-qual
 	 */
-	static FloatNx2 stringTo_FloatNx2(const char* const nPtr, char** const endPtr = nullptr) {
+	static FloatNxN stringTo_FloatNxN(const char* const nPtr, char** const endPtr = nullptr) {
 		if (nPtr == nullptr) {
 			if (endPtr != nullptr) { *endPtr = nullptr; }
-			return static_cast<FloatNx2>(0.0);
+			return static_cast<FloatNxN>(0.0);
 		}
 		if (*nPtr == '\0') {
-			return static_cast<FloatNx2>(0.0);
+			return static_cast<FloatNxN>(0.0);
 			if (endPtr != nullptr) { memcpy(endPtr, &nPtr, sizeof(*endPtr)); }
 		}
 		const char* ptr = nPtr;
@@ -105,29 +107,25 @@ class internal_double_FloatN_stringTo {
 		}
 		if (compare_text(ptr, "INFINITY")) {
 			ptr += sizeof("INFINITY");
-			FloatNx2 value;
-			value.hi = std::numeric_limits<FloatN>::infinity();
-			value.lo = std::numeric_limits<FloatN>::infinity();
-			value.hi = sign ? -value.hi : value.hi;
-			value.lo = sign ? -value.lo : value.lo;
+			FloatNxN value;
+			value = std::numeric_limits<FloatNxN>::infinity();
+			value = sign ? -value : value;
 			if (endPtr != nullptr) { memcpy(endPtr, &nPtr, sizeof(*endPtr)); }
 			return value;
 		}
 		if (compare_text(ptr, "NAN")) {
 			ptr += sizeof("NAN");
-			FloatNx2 value;
-			value.hi = std::numeric_limits<FloatN>::quiet_NaN();
-			value.lo = std::numeric_limits<FloatN>::quiet_NaN();
-			value.hi = sign ? -value.hi : value.hi;
-			value.lo = sign ? -value.lo : value.lo;
+			FloatNxN value;
+			value = std::numeric_limits<FloatNxN>::quiet_NaN();
+			value = sign ? -value : value;
 			if (endPtr != nullptr) { memcpy(endPtr, &nPtr, sizeof(*endPtr)); }
 			return value;
 		}
 
-		FloatNx2 int_part = static_cast<FloatNx2>(0.0);
+		FloatNxN int_part = static_cast<FloatN>(0.0);
 		while (*ptr >= '0' && *ptr <= '9') {
-			int_part *= static_cast<FloatNx2>(10.0);
-			int_part += (FloatNx2)(*ptr - '0');
+			int_part *= static_cast<FloatN>(10.0);
+			int_part += static_cast<FloatN>(*ptr - '0');
 			ptr++;
 		}
 		
@@ -136,22 +134,21 @@ class internal_double_FloatN_stringTo {
 			int exponent;
 			ptr = get_exponent(ptr, exponent);
 			mult_exp(int_part, exponent);
-			int_part.hi = sign ? -int_part.hi : int_part.hi;
-			int_part.lo = sign ? -int_part.lo : int_part.lo;
+			int_part = sign ? -int_part : int_part;
 			if (endPtr != nullptr) { memcpy(endPtr, &nPtr, sizeof(*endPtr)); }
 			return int_part;
 		}
 		ptr++; // character after '.'
 
-		FloatNx2 frac_part = static_cast<FloatNx2>(0.0);
-		FloatNx2 pow10_div = static_cast<FloatNx2>(10.0);
+		FloatNxN frac_part = static_cast<FloatN>(0.0);
+		FloatNxN pow10_div = static_cast<FloatN>(10.0);
 		while (*ptr >= '0' && *ptr <= '9') {
-			FloatNx2 temp_digit = (FloatNx2)(*ptr - '0') / pow10_div;
+			FloatNxN temp_digit = static_cast<FloatN>(*ptr - '0') / pow10_div;
 			if (isfinite(temp_digit) == false) {
 				break;
 			}
 			frac_part += temp_digit;
-			pow10_div *= static_cast<FloatNx2>(10.0);
+			pow10_div *= static_cast<FloatN>(10.0);
 			ptr++;
 		}
 		while (*ptr >= '0' && *ptr <= '9') {
@@ -161,17 +158,16 @@ class internal_double_FloatN_stringTo {
 		int exponent;
 		ptr = get_exponent(ptr, exponent);
 		mult_exp(frac_part, exponent);
-		frac_part.hi = sign ? -frac_part.hi : frac_part.hi;
-		frac_part.lo = sign ? -frac_part.lo : frac_part.lo;
+		frac_part = sign ? -frac_part : frac_part;
 		if (endPtr != nullptr) { memcpy(endPtr, &nPtr, sizeof(*endPtr)); }
 		return frac_part;
 	}
 	
-	static std::istream& cin_FloatNx2(std::istream& stream, FloatNx2& value) {
+	static std::istream& cin_FloatNxN(std::istream& stream, FloatNxN& value) {
 		std::istream::sentry sentry(stream);
 
 		if (!sentry) {
-			value = static_cast<FloatNx2>(0.0);
+			value = static_cast<FloatN>(0.0);
 			return stream;
 		}
 
@@ -179,16 +175,16 @@ class internal_double_FloatN_stringTo {
 		stream >> num_str;
 
 		if (num_str.empty()) {
-			value = static_cast<FloatNx2>(0.0);
+			value = static_cast<FloatN>(0.0);
 			stream.setstate(std::ios::failbit);
 			return stream;
 		}
 
 		char* endPtr = nullptr;
-		value = stringTo_FloatNx2(num_str.c_str(), &endPtr);
+		value = stringTo_FloatNxN(num_str.c_str(), &endPtr);
 
 		if (endPtr == num_str.c_str()) {
-			value = static_cast<FloatNx2>(0.0);
+			value = static_cast<FloatN>(0.0);
 			stream.setstate(std::ios::failbit);
 		}
 
@@ -196,4 +192,4 @@ class internal_double_FloatN_stringTo {
 	}
 };
 
-#endif /* DOUBLE_FLOATN_TOSTRING_HPP */
+#endif /* FLOATNXN_TOSTRING_HPP */

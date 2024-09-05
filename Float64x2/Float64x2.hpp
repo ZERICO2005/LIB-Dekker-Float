@@ -16,7 +16,6 @@
  * @warning -Ofast may break this library. -O3 compiles okay on gcc and clang.
  */
 
-#include "Float64x2.h"
 #include "Float64x2_def.h"
 
 #include <cfloat>
@@ -27,7 +26,34 @@
 #include <cfenv>
 
 //------------------------------------------------------------------------------
-// Float64x2 Arithmetic
+// Float64x2 String Operations
+//------------------------------------------------------------------------------
+
+#include "Float64x2_string.h"
+
+#if __cplusplus >= 200809L
+/**
+ * @brief Wrapper for stringTo_Float64x2
+ */
+inline Float64x2 operator""_FP64X2(const char* str, std::size_t) {
+	return stringTo_Float64x2(str, nullptr);
+}
+#endif
+
+#include <istream>
+/**
+ * @brief Wrapper for stringTo_Float64x2
+ */
+inline std::istream& operator>>(std::istream& stream, Float64x2& value);
+
+#include <ostream>
+/**
+ * @brief Wrapper for Float64x2_snprintf
+ */
+inline std::ostream& operator<<(std::ostream& stream, const Float64x2& value);
+
+//------------------------------------------------------------------------------
+// Float64x2 Comparison
 //------------------------------------------------------------------------------
 
 /* Comparison */
@@ -54,72 +80,72 @@ inline constexpr bool operator>=(const Float64x2& x, const Float64x2& y) {
 /* Optimized Comparison */
 
 inline constexpr bool operator==(const Float64x2& x, const fp64 y) {
-	return (x.hi == y && x.lo == 0.0);
+	return (x.hi == y && x.lo == static_cast<fp64>(0.0));
 }
 inline constexpr bool operator!=(const Float64x2& x, const fp64 y) {
-	return (x.hi != y || x.lo != 0.0);
+	return (x.hi != y || x.lo != static_cast<fp64>(0.0));
 }
 inline constexpr bool operator<(const Float64x2& x, const fp64 y) {
-	return (x.hi == y) ? (x.lo < 0.0) : (x.hi < y);
+	return (x.hi == y) ? (x.lo < static_cast<fp64>(0.0)) : (x.hi < y);
 }
 inline constexpr bool operator<=(const Float64x2& x, const fp64 y) {
-	return (x.hi == y) ? (x.lo <= 0.0) : (x.hi < y);
+	return (x.hi == y) ? (x.lo <= static_cast<fp64>(0.0)) : (x.hi < y);
 }
 inline constexpr bool operator>(const Float64x2& x, const fp64 y) {
-	return (x.hi == y) ? (x.lo > 0.0) : (x.hi > y);
+	return (x.hi == y) ? (x.lo > static_cast<fp64>(0.0)) : (x.hi > y);
 }
 inline constexpr bool operator>=(const Float64x2& x, const fp64 y) {
-	return (x.hi == y) ? (x.lo >= 0.0) : (x.hi > y);
+	return (x.hi == y) ? (x.lo >= static_cast<fp64>(0.0)) : (x.hi > y);
 }
 
 inline constexpr bool operator==(const fp64 x, const Float64x2& y) {
-	return (x == y.hi && 0.0 == y.lo);
+	return (x == y.hi && static_cast<fp64>(0.0) == y.lo);
 }
 inline constexpr bool operator!=(const fp64 x, const Float64x2& y) {
-	return (x != y.hi || 0.0 != y.lo);
+	return (x != y.hi || static_cast<fp64>(0.0) != y.lo);
 }
 inline constexpr bool operator<(const fp64 x, const Float64x2& y) {
-	return (x == y.hi) ? (0.0 < y.lo) : (x < y.hi);
+	return (x == y.hi) ? (static_cast<fp64>(0.0) < y.lo) : (x < y.hi);
 }
 inline constexpr bool operator<=(const fp64 x, const Float64x2& y) {
-	return (x == y.hi) ? (0.0 <= y.lo) : (x < y.hi);
+	return (x == y.hi) ? (static_cast<fp64>(0.0) <= y.lo) : (x < y.hi);
 }
 inline constexpr bool operator>(const fp64 x, const Float64x2& y) {
-	return (x == y.hi) ? (0.0 > y.lo) : (x > y.hi);
+	return (x == y.hi) ? (static_cast<fp64>(0.0) > y.lo) : (x > y.hi);
 }
 inline constexpr bool operator>=(const fp64 x, const Float64x2& y) {
-	return (x == y.hi) ? (0.0 >= y.lo) : (x > y.hi);
+	return (x == y.hi) ? (static_cast<fp64>(0.0) >= y.lo) : (x > y.hi);
 }
 
 /* Compare to Zero */
 
 /** @brief Assumes that if x.hi is zero then x.lo is also zero */
 inline constexpr bool dekker_equal_zero(const Float64x2& x) {
-	return (x.hi == 0.0);
+	return (x.hi == static_cast<fp64>(0.0));
 }
 /** @brief Assumes that if x.hi is zero then x.lo is also zero */
 inline constexpr bool dekker_notequal_zero(const Float64x2& x) {
-	return (x.hi != 0.0);
+	return (x.hi != static_cast<fp64>(0.0));
 }
 /** @brief Assumes that if x.hi is zero then x.lo is also zero */
 inline constexpr bool dekker_less_zero(const Float64x2& x) {
-	return (x.hi < 0.0);
+	return (x.hi < static_cast<fp64>(0.0));
 }
 /** @brief Assumes that if x.hi is zero then x.lo is also zero */
 inline constexpr bool dekker_lessequal_zero(const Float64x2& x) {
-	return (x.hi <= 0.0);
+	return (x.hi <= static_cast<fp64>(0.0));
 }
 /** @brief Assumes that if x.hi is zero then x.lo is also zero */
 inline constexpr bool dekker_greater_zero(const Float64x2& x) {
-	return (x.hi > 0.0);
+	return (x.hi > static_cast<fp64>(0.0));
 }
 /** @brief Assumes that if x.hi is zero then x.lo is also zero */
 inline constexpr bool dekker_greaterequal_zero(const Float64x2& x) {
-	return (x.hi >= 0.0);
+	return (x.hi >= static_cast<fp64>(0.0));
 }
 
 //------------------------------------------------------------------------------
-// Float64x4 Basic Arithmetic
+// Float64x2 Basic Arithmetic
 //------------------------------------------------------------------------------
 
 /* Negation */
@@ -130,7 +156,7 @@ inline constexpr Float64x2 operator-(const Float64x2& x) {
 
 inline Float64x2 operator+(const Float64x2& x, const Float64x2& y) {
 	fp64 r_hi = x.hi + y.hi;
-	fp64 r_lo = 0.0;
+	fp64 r_lo = static_cast<fp64>(0.0);
 	if (fabs(x.hi) > fabs(y.hi)) {
 		r_lo = x.hi - r_hi + y.hi + y.lo + x.lo;
 	} else {
@@ -145,7 +171,7 @@ inline Float64x2 operator+(const Float64x2& x, const Float64x2& y) {
 
 inline Float64x2 operator-(const Float64x2& x, const Float64x2& y) {
 	fp64 r_hi = x.hi - y.hi;
-	fp64 r_lo = 0.0;
+	fp64 r_lo = static_cast<fp64>(0.0);
 	if (fabs(x.hi) > fabs(y.hi)) {
 		r_lo = x.hi - r_hi - y.hi - y.lo + x.lo;
 	} else {
@@ -160,12 +186,12 @@ inline Float64x2 operator-(const Float64x2& x, const Float64x2& y) {
 
 #if defined(FLOATNX2_BITWISE_SPLIT) || defined(FLOAT64X2_BITWISE_SPLIT)
 	/**
-	* @brief Splits the mantissa bits of a floating point value via bitwise
-	* operations for use in the dekker_mul12 function.
-	*/
+	 * @brief Splits the mantissa bits of a floating point value via bitwise
+	 * operations for use in the dekker_mul12 function.
+	 */
 	inline Float64x2 dekker_split(const fp64 x) {
 		Bitwise_Float64x2 r;
-		const uint64_t Dekker_Split_Mask = ~((uint64_t)0x3FFFFFF);
+		constexpr uint64_t Dekker_Split_Mask = ~((uint64_t)0x3FFFFFF);
 		r.float_part.hi = x;
 		r.binary_part.hi &= Dekker_Split_Mask;
 		r.float_part.lo = x - r.float_part.hi;
@@ -173,11 +199,11 @@ inline Float64x2 operator-(const Float64x2& x, const Float64x2& y) {
 	}
 #else
 	/**
-	* @brief Splits the mantissa bits of a floating point value via
-	* multiplication for use in the dekker_mul12 function.
-	*/
+	 * @brief Splits the mantissa bits of a floating point value via
+	 * multiplication for use in the dekker_mul12 function.
+	 */
 	inline Float64x2 dekker_split(const fp64 x) {
-		const fp64 Dekker_Scale = 134217729.0; // (2^ceil(53 / 2) + 1)
+		constexpr fp64 Dekker_Scale = 134217729.0; // (2^ceil(53 / 2) + 1)
 		fp64 p = x * Dekker_Scale;
 		Float64x2 r;
 		r.hi = (x - p) + p;
@@ -228,35 +254,32 @@ inline Float64x2 operator/(const Float64x2& x, const Float64x2& y) {
 inline Float64x2 dekker_square12(const fp64 x) {
 	Float64x2 a = dekker_split(x);
 	fp64 p = a.hi * a.hi;
-	fp64 q = 2.0 * (a.hi * a.lo);
+	fp64 q = static_cast<fp64>(2.0) * (a.hi * a.lo);
 
 	Float64x2 r;
 	r.hi = p + q;
-	r.lo = (
-		((p - r.hi) + q) +
-		(a.lo + a.lo)
-	);
+	r.lo = ((p - r.hi) + q) + (a.lo * a.lo);
 	return r;
 }
 
 inline Float64x2 square(const Float64x2 x) {
 	Float64x2 t = dekker_square12(x.hi);
-	fp64 c = ((2.0 * (x.hi * x.lo)) + t.lo);
+	fp64 c = (static_cast<fp64>(2.0) * (x.hi * x.lo)) + t.lo;
 
 	Float64x2 r;
-	r.hi = (t.hi + c);
-	r.lo = ((t.hi - r.hi) + c);
+	r.hi = t.hi + c;
+	r.lo = (t.hi - r.hi) + c;
 	return r;
 }
 
 inline Float64x2 recip(const Float64x2 y) {
-	fp64 u = (1.0 / y.hi);
+	fp64 u = static_cast<fp64>(1.0) / y.hi;
 	Float64x2 t = dekker_mul12(u, y.hi);
-	fp64 l = ((((1.0 - t.hi) - t.lo) - (u * y.lo)) / y.hi);
+	fp64 l = (((static_cast<fp64>(1.0) - t.hi) - t.lo) - (u * y.lo)) / y.hi;
 
 	Float64x2 r;
-	r.hi = (u + l);
-	r.lo = ((u - r.hi) + l);
+	r.hi = u + l;
+	r.lo = (u - r.hi) + l;
 	return r;
 }
 
@@ -266,7 +289,7 @@ inline Float64x2 recip(const Float64x2 y) {
 
 inline Float64x2 operator+(const Float64x2& x, const fp64 y) {
 	fp64 r_hi = x.hi + y;
-	fp64 r_lo = 0.0;
+	fp64 r_lo = static_cast<fp64>(0.0);
 	if (fabs(x.hi) > fabs(y)) {
 		r_lo = x.hi - r_hi + y + x.lo;
 	} else {
@@ -281,7 +304,7 @@ inline Float64x2 operator+(const Float64x2& x, const fp64 y) {
 
 inline Float64x2 operator+(const fp64 x, const Float64x2& y) {
 	fp64 r_hi = x + y.hi;
-	fp64 r_lo = 0.0;
+	fp64 r_lo = static_cast<fp64>(0.0);
 	if (fabs(x) > fabs(y.hi)) {
 		r_lo = x - r_hi + y.hi + y.lo;
 	} else {
@@ -299,7 +322,7 @@ inline Float64x2 operator+(const fp64 x, const Float64x2& y) {
  */
 inline Float64x2 dekker_add12(const fp64 x, const fp64 y) {
 	fp64 r_hi = x + y;
-	fp64 r_lo = 0.0;
+	fp64 r_lo = static_cast<fp64>(0.0);
 	if (fabs(x) > fabs(y)) {
 		r_lo = x - r_hi + y;
 	} else {
@@ -314,7 +337,7 @@ inline Float64x2 dekker_add12(const fp64 x, const fp64 y) {
 
 inline Float64x2 operator-(const Float64x2& x, const fp64 y) {
 	fp64 r_hi = x.hi - y;
-	fp64 r_lo = 0.0;
+	fp64 r_lo = static_cast<fp64>(0.0);
 	if (fabs(x.hi) > fabs(y)) {
 		r_lo = x.hi - r_hi - y + x.lo;
 	} else {
@@ -329,7 +352,7 @@ inline Float64x2 operator-(const Float64x2& x, const fp64 y) {
 
 inline Float64x2 operator-(const fp64 x, const Float64x2& y) {
 	fp64 r_hi = x - y.hi;
-	fp64 r_lo = 0.0;
+	fp64 r_lo = static_cast<fp64>(0.0);
 	if (fabs(x) > fabs(y.hi)) {
 		r_lo = x - r_hi - y.hi - y.lo;
 	} else {
@@ -347,7 +370,7 @@ inline Float64x2 operator-(const fp64 x, const Float64x2& y) {
  */
 inline Float64x2 dekker_sub12(const fp64 x, const fp64 y) {
 	fp64 r_hi = x - y;
-	fp64 r_lo = 0.0;
+	fp64 r_lo = static_cast<fp64>(0.0);
 	if (fabs(x) > fabs(y)) {
 		r_lo = x - r_hi - y;
 	} else {
@@ -362,21 +385,21 @@ inline Float64x2 dekker_sub12(const fp64 x, const fp64 y) {
 
 inline Float64x2 operator*(const Float64x2& x, const fp64 y) {
 	Float64x2 t = dekker_mul12(x.hi, y);
-	fp64 c = ((x.lo * y) + t.lo);
+	fp64 c = (x.lo * y) + t.lo;
 
 	Float64x2 r;
-	r.hi = (t.hi + c);
-	r.lo = ((t.hi - r.hi) + c);
+	r.hi = t.hi + c;
+	r.lo = (t.hi - r.hi) + c;
 	return r;
 }
 
 inline Float64x2 operator*(const fp64 x, const Float64x2& y) {
 	Float64x2 t = dekker_mul12(x, y.hi);
-	fp64 c = ((x * y.lo) + t.lo);
+	fp64 c = (x * y.lo) + t.lo;
 
 	Float64x2 r;
-	r.hi = (t.hi + c);
-	r.lo = ((t.hi - r.hi) + c);
+	r.hi = t.hi + c;
+	r.lo = (t.hi - r.hi) + c;
 	return r;
 }
 
@@ -422,13 +445,13 @@ inline Float64x2 dekker_div12(const fp64 x, const fp64 y) {
  */
 
 inline Float64x2 dekker_recip12(const fp64 y) {
-	fp64 u = (1.0 / y);
+	fp64 u = static_cast<fp64>(1.0) / y;
 	Float64x2 t = dekker_mul12(u, y);
-	fp64 l = (((1.0 - t.hi) - t.lo) / y);
+	fp64 l = ((static_cast<fp64>(1.0) - t.hi) - t.lo) / y;
 
 	Float64x2 r;
-	r.hi = (u + l);
-	r.lo = ((u - r.hi) + l);
+	r.hi = u + l;
+	r.lo = (u - r.hi) + l;
 	return r;
 }
 
@@ -463,7 +486,7 @@ inline Float64x2 mul_pwr2(const fp64 x, const Float64x2& y) {
 inline Float64x2 dekker_mul12_pwr2(const fp64 x, const fp64 y) {
 	Float64x2 ret;
 	ret.hi = x * y;
-	ret.lo = 0.0;
+	ret.lo = static_cast<fp64>(0.0);
 	return ret;
 }
 
@@ -522,36 +545,36 @@ inline Float64x2 bitwise_xor(Float64x2 x, const Float64x2 y) {
 
 /* Compound Assignment */
 
-inline Float64x2& operator+=(Float64x2 &x, const Float64x2 &y) {
+inline Float64x2& operator+=(Float64x2& x, const Float64x2& y) {
 	x = x + y;
 	return x;
 }
-inline Float64x2& operator-=(Float64x2 &x, const Float64x2 &y) {
+inline Float64x2& operator-=(Float64x2& x, const Float64x2& y) {
 	x = x - y;
 	return x;
 }
-inline Float64x2& operator*=(Float64x2 &x, const Float64x2 &y) {
+inline Float64x2& operator*=(Float64x2& x, const Float64x2& y) {
 	x = x * y;
 	return x;
 }
-inline Float64x2& operator/=(Float64x2 &x, const Float64x2 &y) {
+inline Float64x2& operator/=(Float64x2& x, const Float64x2& y) {
 	x = x / y;
 	return x;
 }
 
-inline Float64x2& operator+=(Float64x2 &x, const fp64 y) {
+inline Float64x2& operator+=(Float64x2& x, const fp64 y) {
 	x = x + y;
 	return x;
 }
-inline Float64x2& operator-=(Float64x2 &x, const fp64 y) {
+inline Float64x2& operator-=(Float64x2& x, const fp64 y) {
 	x = x - y;
 	return x;
 }
-inline Float64x2& operator*=(Float64x2 &x, const fp64 y) {
+inline Float64x2& operator*=(Float64x2& x, const fp64 y) {
 	x = x * y;
 	return x;
 }
-inline Float64x2& operator/=(Float64x2 &x, const fp64 y) {
+inline Float64x2& operator/=(Float64x2& x, const fp64 y) {
 	x = x / y;
 	return x;
 }
@@ -559,24 +582,24 @@ inline Float64x2& operator/=(Float64x2 &x, const fp64 y) {
 /* Increment/Decrement */
 
 inline Float64x2& operator++(Float64x2& x) {
-	x += 1.0;
+	x += static_cast<fp64>(1.0);
 	return x;
 }
 
 inline Float64x2& operator--(Float64x2& x) {
-	x -= 1.0;
+	x -= static_cast<fp64>(1.0);
 	return x;
 }
 
 inline Float64x2 operator++(Float64x2& x, int) {
 	Float64x2 temp = x;
-	x += 1.0;
+	x += static_cast<fp64>(1.0);
 	return temp;
 }
 
 inline Float64x2 operator--(Float64x2& x, int) {
 	Float64x2 temp = x;
-	x -= 1.0;
+	x -= static_cast<fp64>(1.0);
 	return temp;
 }
 
@@ -616,19 +639,19 @@ namespace std {
 			 * normalized, although I am not sure if this is the best
 			 * definition to use for min()
 			 */
-			return {std::numeric_limits<fp64>::min() * 0x1.0p+53, std::numeric_limits<fp64>::min()};
-			// return {std::numeric_limits<fp64>::min(), 0.0};
+			return {std::numeric_limits<fp64>::min() * static_cast<fp64>(0x1.0p+53), std::numeric_limits<fp64>::min()};
+			// return {std::numeric_limits<fp64>::min(), static_cast<fp64>(0.0)};
 		}
 	
 		inline static constexpr Float64x2 max() {
 			return {
 				std::numeric_limits<fp64>::max(),
-				std::numeric_limits<fp64>::max() * 0x1.0p-54
+				std::numeric_limits<fp64>::max() * static_cast<fp64>(0x1.0p-54)
 			};
 		}
 		inline static constexpr Float64x2 lowest() { return -max(); }
-		inline static constexpr Float64x2 epsilon() { return {0x1.0p-104, 0.0}; }
-		inline static constexpr Float64x2 round_error() { return {0.5, 0.0}; }
+		inline static constexpr Float64x2 epsilon() { return {static_cast<fp64>(0x1.0p-104), static_cast<fp64>(0.0)}; }
+		inline static constexpr Float64x2 round_error() { return {static_cast<fp64>(0.5), static_cast<fp64>(0.0)}; }
 		inline static constexpr Float64x2 infinity() {
 			return {
 				std::numeric_limits<fp64>::infinity(),
@@ -648,7 +671,7 @@ namespace std {
 			};
 		}
 		inline static constexpr Float64x2 denorm_min() {
-			return {std::numeric_limits<fp64>::denorm_min(), 0.0};
+			return {std::numeric_limits<fp64>::denorm_min(), static_cast<fp64>(0.0)};
 		}
 	};
 }
@@ -696,14 +719,14 @@ namespace std {
 
 /* Other constants */
 
-	constexpr Float64x2 Float64x2_inv_e = {+0x1.78b56362cef370p-2, +0x1.8d5d6f63c14820p-55}; /**< ~0.367879 */
+	constexpr Float64x2 Float64x2_inv_e = {0x1.78b56362cef37p-2,+0x1.8d5d6f63c14820p-55}; /**< ~0.367879 */
 
-	constexpr Float64x2 Float64x2_2pi  = {+0x1.921fb54442d180p+2, +0x1.1a62633145c060p-52}; /**< ~6.283185 */
-	constexpr Float64x2 Float64x2_pi2  = {+0x1.921fb54442d180p+0, +0x1.1a62633145c060p-54}; /**< ~1.570796 */
-	constexpr Float64x2 Float64x2_pi4  = {+0x1.921fb54442d180p-1, +0x1.1a62633145c060p-55}; /**< ~0.785398 */
-	constexpr Float64x2 Float64x2_pi8  = {+0x1.921fb54442d180p-2, +0x1.1a62633145c060p-56}; /**< ~0.392699 */
-	constexpr Float64x2 Float64x2_pi16 = {+0x1.921fb54442d180p-3, +0x1.1a62633145c060p-57}; /**< ~0.196350 */
-	constexpr Float64x2 Float64x2_3pi4 = {+0x1.2d97c7f3321d20p+0, +0x1.a79394c9e8a0a0p-55}; /**< ~2.356194 */
+	constexpr Float64x2 Float64x2_2pi  = {0x1.921fb54442d18p+2,+0x1.1a62633145c06p-52}; /**< ~6.283185 */
+	constexpr Float64x2 Float64x2_pi2  = {0x1.921fb54442d18p+0,+0x1.1a62633145c06p-54}; /**< ~1.570796 */
+	constexpr Float64x2 Float64x2_pi4  = {0x1.921fb54442d18p-1,+0x1.1a62633145c06p-55}; /**< ~0.785398 */
+	constexpr Float64x2 Float64x2_pi8  = {0x1.921fb54442d18p-2,+0x1.1a62633145c06p-56}; /**< ~0.392699 */
+	constexpr Float64x2 Float64x2_pi16 = {0x1.921fb54442d18p-3,+0x1.1a62633145c06p-57}; /**< ~0.196350 */
+	constexpr Float64x2 Float64x2_3pi4 = {0x1.2d97c7f3321d2p+0,+0x1.a79394c9e8a0ap-55}; /**< ~2.356194 */
 
 /* Constant Aliases */
 
@@ -717,7 +740,9 @@ namespace std {
 	constexpr Float64x2 Float64x2_tau32 = Float64x2_pi16; /**< ~0.196350 */
 	constexpr Float64x2 Float64x2_3tau8 = Float64x2_3pi4; /**< ~2.356194 */
 
-/* Math functions */
+//------------------------------------------------------------------------------
+// Float64x2 Math Functions
+//------------------------------------------------------------------------------
 
 /* Floating Point Classify */
 
@@ -808,7 +833,7 @@ namespace std {
 		return fmin(fmin(x, y), z);
 	}
 	inline constexpr Float64x2 fabs(const Float64x2& x) {
-		return (dekker_less_zero(x)) ? -x : x;
+		return (signbit(x)) ? -x : x;
 	}
 	inline constexpr Float64x2 fdim(const Float64x2& x, const Float64x2& y) {
 		return (x > y) ? (x - y) : static_cast<Float64x2>(0.0);
@@ -819,7 +844,7 @@ namespace std {
 	}
 	inline constexpr Float64x2 copysign(const Float64x2& x, const Float64x2& y) {
 		return (
-			(dekker_less_zero(x)) != (dekker_less_zero(y))
+			(signbit(x)) != (signbit(y))
 		) ? -x : x;
 	}
 	inline Float64x2 sqrt(const Float64x2& x) {
@@ -894,11 +919,15 @@ namespace std {
 		return exp(x * Float64x2_ln10);
 	}
 
-	inline Float64x2 pow(const Float64x2 x, const Float64x2 y) {
-		return exp(y * log(x));
+	inline Float64x2 pow(const Float64x2& x, const Float64x2& y) {
+		return dekker_equal_zero(x) ? (
+			dekker_equal_zero(y) ? static_cast<Float64x2>(1.0) : static_cast<Float64x2>(0.0)
+		) : exp(y * log(x));
 	}
-	inline Float64x2 pow(const Float64x2 x, const fp64 y) {
-		return exp(y * log(x));
+	inline Float64x2 pow(const Float64x2& x, const fp64 y) {
+		return dekker_equal_zero(x) ? (
+			(y == static_cast<fp64>(0.0)) ? static_cast<Float64x2>(1.0) : static_cast<Float64x2>(0.0)
+		) : exp(y * log(x));
 	}
 	
 /* Rounding */
@@ -968,17 +997,15 @@ namespace std {
 		return static_cast<long long>(rint(x));
 	}
 
-	/* Integer and Remainder */
+/* Integer and Remainder */
 
 	inline Float64x2 fmod(const Float64x2& x, const Float64x2& y) {
 		Float64x2 trunc_part = trunc(x / y);
 		return x - y * trunc_part;
 	}
-	inline Float64x2 modf(const Float64x2& x, Float64x2* int_part) {
+	inline Float64x2 modf(const Float64x2& x, Float64x2& int_part) {
 		Float64x2 trunc_part = trunc(x);
-		if (int_part != nullptr) {
-			*int_part = trunc_part;
-		}
+		int_part = trunc_part;
 		return x - trunc_part;
 	}
 	inline Float64x2 nearbyint(const Float64x2& x) {
@@ -988,35 +1015,59 @@ namespace std {
 		Float64x2 round_part = round(x / y);
 		return x - y * round_part;
 	}
-	inline Float64x2 remquo(const Float64x2& x, const Float64x2& y, int* quo) {
+	inline Float64x2 remquo(const Float64x2& x, const Float64x2& y, int& quo) {
 		Float64x2 q = round(x / y);
 		Float64x2 r = x - y * q;
-		*quo = static_cast<int>(q.hi + q.lo);
+		quo = static_cast<int>(q.hi + q.lo);
 		return r;
 	}
-	/* Float Exponents */
-	/** @brief ilogb(x.hi) */
+
+/* Float Exponents */
+
+	/**
+	 * @brief Extracts the exponent of a Float64x2 value to compute the
+	 * binary logarithm.
+	 */
 	inline int ilogb(const Float64x2& x) {
-		return ilogb(x.hi);
+		return ilogb(x.hi + x.lo);
 	}
-	/** @brief frexp(x.hi, exp) */
-	inline Float64x2 frexp(const Float64x2& x, int* exp) {
-		return frexp(x.hi, exp);
+	/**
+	 * @brief Returns a normalized Float64x2 value and the exponent in
+	 * the form [0.0, 1.0) * 2^expon
+	 */
+	inline Float64x2 frexp(const Float64x2& x, int& expon) {
+		Float64x2 ret;
+		expon = ilogb(x.hi + x.lo) + 1;
+		ret.hi = ldexp(x.hi, -(expon));
+		ret.lo = ldexp(x.lo, -(expon));
+		return ret;
 	}
-	inline Float64x2 ldexp(Float64x2 x, int exp) {
-		x.hi = ldexp(x.hi, exp);
-		x.lo = isfinite(x.hi) ? ldexp(x.lo, exp) : x.hi;
-		return x;
+	/**
+	 * @brief Multiplies a Float64x2 value by 2^expon
+	 */
+	inline Float64x2 ldexp(const Float64x2& x, int expon) {
+		Float64x2 ret;
+		ret.hi = ldexp(x.hi, expon);
+		ret.lo = isfinite(x.hi) ? ldexp(x.lo, expon) : x.hi;
+		return ret;
 	}
-	inline Float64x2 scalbn(Float64x2 x, int exp) {
-		x.hi = scalbn(x.hi, exp);
-		x.lo = isfinite(x.hi) ? scalbn(x.lo, exp) : x.hi;
-		return x;
+	/**
+	 * @brief Multiplies a Float64x2 value by FLT_RADIX^expon
+	 */
+	inline Float64x2 scalbn(const Float64x2& x, int expon) {
+		Float64x2 ret;
+		ret.hi = scalbn(x.hi, expon);
+		ret.lo = isfinite(x.hi) ? scalbn(x.lo, expon) : x.hi;
+		return ret;
 	}
-	inline Float64x2 scalbln(Float64x2 x, long exp) {
-		x.hi = scalbln(x.hi, exp);
-		x.lo = isfinite(x.hi) ? scalbln(x.lo, exp) : x.hi;
-		return x;
+	/**
+	 * @brief Multiplies a Float64x2 value by FLT_RADIX^expon
+	 */
+	inline Float64x2 scalbln(const Float64x2& x, long expon) {
+		Float64x2 ret;
+		ret.hi = scalbln(x.hi, expon);
+		ret.lo = isfinite(x.hi) ? scalbln(x.lo, expon) : x.hi;
+		return ret;
 	}
 
 /* Transcendental Functions */
@@ -1057,21 +1108,5 @@ namespace std {
 			tgamma(static_cast<long double>(x))
 		);
 	}
-
-//------------------------------------------------------------------------------
-// Float64x2 String Operations
-//------------------------------------------------------------------------------
-
-	#include <istream>
-	/**
-	* @brief Wrapper for stringTo_Float64x2
-	*/
-	inline std::istream& operator>>(std::istream& stream, Float64x2& value);
-	
-	#include <ostream>
-	/**
-	* @brief Wrapper for Float64x2_snprintf
-	*/
-	inline std::ostream& operator<<(std::ostream& stream, const Float64x2& value);
 
 #endif /* FLOAT64X2_HPP */

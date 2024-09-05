@@ -55,6 +55,12 @@ typedef union Bitwise_Float64x4 {
 } Bitwise_Float64x4;
 
 //------------------------------------------------------------------------------
+// Float64x4 string operations
+//------------------------------------------------------------------------------
+
+#include "Float64x4_string.h"
+
+//------------------------------------------------------------------------------
 // Float64x4 constants
 //------------------------------------------------------------------------------
 
@@ -2669,6 +2675,10 @@ static inline Float64x4 Float64x4_cbrt(const Float64x4 x) {
 	), 3.0);
 }
 
+//------------------------------------------------------------------------------
+// Float64x4 Integer and Remainder
+//------------------------------------------------------------------------------
+
 /**
 * @brief returns the fraction part of a Float64x4 value. int_part may be NULL
 */
@@ -2684,7 +2694,76 @@ static inline Float64x4 Float64x4_fmod(const Float64x4 x, const Float64x4 y) {
 	Float64x4 trunc_part = Float64x4_trunc(Float64x4_div(x, y));
 	return Float64x4_sub(x, Float64x4_mul(y, trunc_part));
 }
-	
+
+static inline Float64x4 Float64x4_remainder(const Float64x4 x, const Float64x4 y) {
+	Float64x4 round_part = Float64x4_round(Float64x4_div(x, y));
+	return Float64x4_sub(x, Float64x4_mul(y, round_part));
+}
+static inline Float64x4 Float64x4_remquo(const Float64x4 x, const Float64x4 y, int* const quo) {
+	Float64x4 q = Float64x4_round(Float64x4_div(x, y));
+	Float64x4 r = Float64x4_sub(x, Float64x4_mul(y, q));
+	*quo = (int)(q.val[0] + q.val[1]);
+	return r;
+}
+
+//------------------------------------------------------------------------------
+// Float64x2 Float Exponents
+//------------------------------------------------------------------------------
+
+/**
+ * @brief Extracts the exponent of a Float64x4 value to compute the
+ * binary logarithm.
+ */
+inline int Float64x4_ilogb(const Float64x4 x) {
+	return ilogb(x.val[0] + (x.val[1] + (x.val[2] + x.val[3])));
+}
+/**
+ * @brief Returns a normalized Float64x4 value and the exponent in
+ * the form [0.0, 1.0) * 2^expon
+ */
+inline Float64x4 Float64x4_frexp(const Float64x4 x, int* const expon) {
+	Float64x4 ret;
+	*expon = ilogb(x.val[0] + (x.val[1] + (x.val[2] + x.val[3]))) + 1;
+	ret.val[0] = ldexp(x.val[0], -(*expon));
+	ret.val[1] = ldexp(x.val[1], -(*expon));
+	ret.val[2] = ldexp(x.val[2], -(*expon));
+	ret.val[3] = ldexp(x.val[3], -(*expon));
+	return ret;
+}
+/**
+ * @brief Multiplies a Float64x4 value by 2^expon
+ */
+inline Float64x4 Float64x4_ldexp(const Float64x4 x, const int expon) {
+	Float64x4 ret;
+	ret.val[0] = ldexp(x.val[0], expon);
+	ret.val[1] = isfinite(x.val[0]) ? ldexp(x.val[1], expon) : x.val[0];
+	ret.val[2] = isfinite(x.val[0]) ? ldexp(x.val[2], expon) : x.val[0];
+	ret.val[3] = isfinite(x.val[0]) ? ldexp(x.val[3], expon) : x.val[0];
+	return ret;
+}
+/**
+ * @brief Multiplies a Float64x4 value by FLT_RADIX^expon
+ */
+inline Float64x4 Float64x4_scalbn(const Float64x4 x, const int expon) {
+	Float64x4 ret;
+	ret.val[0] = scalbn(x.val[0], expon);
+	ret.val[1] = isfinite(x.val[0]) ? scalbn(x.val[1], expon) : x.val[0];
+	ret.val[2] = isfinite(x.val[0]) ? scalbn(x.val[2], expon) : x.val[0];
+	ret.val[3] = isfinite(x.val[0]) ? scalbn(x.val[3], expon) : x.val[0];
+	return ret;
+}
+/**
+ * @brief Multiplies a Float64x4 value by FLT_RADIX^expon
+ */
+inline Float64x4 Float64x4_scalbln(const Float64x4 x, const long expon) {
+	Float64x4 ret;
+	ret.val[0] = scalbln(x.val[0], expon);
+	ret.val[1] = isfinite(x.val[0]) ? scalbln(x.val[1], expon) : x.val[0];
+	ret.val[2] = isfinite(x.val[0]) ? scalbln(x.val[2], expon) : x.val[0];
+	ret.val[3] = isfinite(x.val[0]) ? scalbln(x.val[3], expon) : x.val[0];
+	return ret;
+}
+
 //------------------------------------------------------------------------------
 // Float64x4 exponents and logarithms
 //------------------------------------------------------------------------------
@@ -2712,13 +2791,19 @@ static inline Float64x4 Float64x4_log10(const Float64x4 x) {
 }
 
 static inline Float64x4 Float64x4_pow(const Float64x4 x, const Float64x4 y) {
-	return Float64x4_exp(Float64x4_mul(Float64x4_log(x), y));
+	return Float64x4_cmpeq_zero(x) ? (
+		Float64x4_cmpeq_zero(y) ? Float64x4_set_d(1.0) : Float64x4_set_d(0.0)
+	) : Float64x4_exp(Float64x4_mul(Float64x4_log(x), y));	
 }
 static inline Float64x4 Float64x4_pow_dx4_dx2(const Float64x4 x, const Float64x2 y) {
-	return Float64x4_exp(Float64x4_mul_dx4_dx2(Float64x4_log(x), y));
+	return Float64x4_cmpeq_zero(x) ? (
+		Float64x2_cmpeq_zero(y) ? Float64x4_set_d(1.0) : Float64x4_set_d(0.0)
+	) : Float64x4_exp(Float64x4_mul_dx4_dx2(Float64x4_log(x), y));
 }
 static inline Float64x4 Float64x4_pow_dx4_d(const Float64x4 x, const fp64 y) {
-	return Float64x4_exp(Float64x4_mul_dx4_d(Float64x4_log(x), y));
+	return Float64x4_cmpeq_zero(x) ? (
+		(y == 0.0) ? Float64x4_set_d(1.0) : Float64x4_set_d(0.0)
+	) : Float64x4_exp(Float64x4_mul_dx4_d(Float64x4_log(x), y));
 }
 
 //------------------------------------------------------------------------------
@@ -2776,7 +2861,7 @@ static inline Float64x4 Float64x4_atanh(const Float64x4 x) {
 #endif
 
 #ifdef __cplusplus
-#include "Float64x4.hpp"
+	#include "Float64x4.hpp"
 #endif
 
 #endif /* FLOAT64X4_H */ 

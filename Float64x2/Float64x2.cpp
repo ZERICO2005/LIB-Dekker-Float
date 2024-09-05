@@ -22,9 +22,10 @@
 #include <stdlib.h>
 #include <cstdlib>
 
-#include "Float64x2.hpp"
 #include "Float64x2_def.h"
-
+#include "Float64x2.h"
+#include "Float64x2.hpp"
+#include "Float64x2_string.h"
 
 //------------------------------------------------------------------------------
 // Float64x2 math.h functions
@@ -226,17 +227,19 @@ static inline Float64x2 taylor_expm1(const Float64x2& x, fp64& m) {
 }
 
 Float64x2 exp(const Float64x2& x) {
-	if (x.hi <= -709.0) {
-		return static_cast<Float64x2>(0.0);
+	if (x.hi <= -709.79) {
+		// Gives a better approximation near extreme values
+		return exp(x.hi);
 	}
-	if (x.hi >= 709.0) {
+	/* ln(2^1023 * (1 + (1 - 2^-52)))) = ~709.782712893 */
+	if (x.lo >= 709.79) {
 		return std::numeric_limits<Float64x2>::infinity();
 	}
 	if (dekker_equal_zero(x)) {
 		return static_cast<Float64x2>(1.0);
 	}
 	if (x == 1.0) {
-		return Float64x2_euler;
+		return Float64x2_e;
 	}
 
 	fp64 m;
@@ -247,7 +250,7 @@ Float64x2 exp(const Float64x2& x) {
 
 Float64x2 expm1(const Float64x2& x) {
 	if (x.hi <= -709.0) {
-		return static_cast<Float64x2>(0.0);
+		return static_cast<Float64x2>(-1.0);
 	}
 	if (x.hi >= 709.0) {
 		return std::numeric_limits<Float64x2>::infinity();
@@ -1024,45 +1027,6 @@ Float64x2 atanh(const Float64x2& a) {
 }
 
 //------------------------------------------------------------------------------
-// Float64x2 from string
-//------------------------------------------------------------------------------
-
-#include "../FloatNx2/FloatNx2_stringTo.hpp"
-
-Float64x2 stringTo_Float64x2(const char* nPtr, char** endPtr) {
-	internal_double_FloatN_stringTo<Float64x2, fp64> stringTo_func;
-	return stringTo_func.stringTo_FloatNx2(nPtr, endPtr);
-}
-
-std::istream& operator>>(std::istream& stream, Float64x2& value) {
-	internal_double_FloatN_stringTo<Float64x2, fp64> func_cin;
-	return func_cin.cin_FloatNx2(stream, value);
-}
-
-//------------------------------------------------------------------------------
-// Float64x2 to string
-//------------------------------------------------------------------------------
-
-#include "../FloatNx2/FloatNx2_snprintf.hpp"
-
-int Float64x2_snprintf(char* buf, size_t len, const char* format, ...) {
-	va_list args;
-	va_start(args, format);
-	internal_double_FloatN_snprintf<Float64x2, fp64> func_snprintf;
-	int ret_val = func_snprintf.FloatNx2_snprintf(
-		PRIFloat64x2, buf, len,
-		format, args
-	);
-	va_end(args);
-	return ret_val;
-}
-
-inline std::ostream& operator<<(std::ostream& stream, const Float64x2& value) {
-	internal_double_FloatN_snprintf<Float64x2, fp64> func_cout;
-	return func_cout.FloatNx2_cout(PRIFloat64x2, stream, value);
-}
-
-//------------------------------------------------------------------------------
 // Float64x2 math.h wrapper functions
 //------------------------------------------------------------------------------
 
@@ -1078,6 +1042,7 @@ Float64x2 Float64x2_log(Float64x2 x) {
 Float64x2 Float64x2_log1p(Float64x2 x) {
 	return log1p(x);
 }
+
 Float64x2 Float64x2_sin(Float64x2 x) {
 	return sin(x);
 }
@@ -1115,4 +1080,56 @@ Float64x2 Float64x2_tanh(Float64x2 x) {
 }
 void Float64x2_sinhcosh(Float64x2 theta, Float64x2* p_sinh, Float64x2* p_cosh) {
 	sinhcosh(theta, *p_sinh, *p_cosh);
+}
+
+Float64x2 Float64x2_erf(Float64x2 x) {
+	return erf(x);
+}
+Float64x2 Float64x2_erfc(Float64x2 x) {
+	return erfc(x);
+}
+Float64x2 Float64x2_tgamma(Float64x2 x) {
+	return tgamma(x);
+}
+Float64x2 Float64x2_lgamma(Float64x2 x) {
+	return lgamma(x);
+}
+
+//------------------------------------------------------------------------------
+// Float64x2 from string
+//------------------------------------------------------------------------------
+
+#include "../FloatNxN/FloatNxN_stringTo.hpp"
+
+Float64x2 stringTo_Float64x2(const char* nPtr, char** endPtr) {
+	internal_FloatNxN_stringTo<Float64x2, fp64> stringTo_func;
+	return stringTo_func.stringTo_FloatNxN(nPtr, endPtr);
+}
+
+std::istream& operator>>(std::istream& stream, Float64x2& value) {
+	internal_FloatNxN_stringTo<Float64x2, fp64> func_cin;
+	return func_cin.cin_FloatNxN(stream, value);
+}
+
+//------------------------------------------------------------------------------
+// Float64x2 to string
+//------------------------------------------------------------------------------
+
+#include "../FloatNxN/FloatNxN_snprintf.hpp"
+
+int Float64x2_snprintf(char* buf, size_t len, const char* format, ...) {
+	va_list args;
+	va_start(args, format);
+	internal_FloatNxN_snprintf<Float64x2, fp64, 2> func_snprintf;
+	int ret_val = func_snprintf.FloatNxN_snprintf(
+		PRIFloat64x2, PRIFloat64,
+		buf, len, format, args
+	);
+	va_end(args);
+	return ret_val;
+}
+
+inline std::ostream& operator<<(std::ostream& stream, const Float64x2& value) {
+	internal_FloatNxN_snprintf<Float64x2, fp64, 2> func_cout;
+	return func_cout.FloatNxN_cout(PRIFloat64x2, PRIFloat64, stream, value);
 }

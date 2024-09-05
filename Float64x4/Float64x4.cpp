@@ -22,6 +22,7 @@
 // The sin and cos tables were quite large
 #include "Float64x4_LUT.hpp"
 #include "Float64x4_def.h"
+#include "Float64x4_string.h"
 
 #include <cmath>
 #include <limits>
@@ -30,37 +31,21 @@
  * @author Taken from libQD qd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-static inline Float64x4 taylor_expm1(const Float64x4& a, fp64& m) {
+static inline Float64x4 taylor_expm1(const Float64x4& x, fp64& m) {
 	/* Strategy:  We first reduce the size of x by noting that
 		 
 					exp(kr + m * log(2)) = 2^m * exp(r)^k
 
 		 where m and k are integers.  By choosing m appropriately
-		 we can make |kr| <= log(2) / 2 = 0.347.  Then exp(r) is 
+		 we can make |kr| <= log(2) / 2 = 0.346574.  Then exp(r) is 
 		 evaluated using the familiar Taylor series.  Reducing the 
 		 argument substantially speeds up the convergence.       */
 
-	constexpr fp64 k = 65536.0;
-	constexpr fp64 recip_k = 1.0 / k;
+	// constexpr fp64 k = 0x1.0p+16;
+	constexpr fp64 recip_k = 0x1.0p-16;
 
-	if (a.val[0] <= -709.0) {
-		return 0.0;
-	}
-
-	if (a.val[0] >=  709.0) {
-		return std::numeric_limits<Float64x4>::infinity();
-	}
-
-	if (a == -1.0) {
-		return 1.0;
-	}
-
-	if (dekker_equal_zero(a)) {
-		return Float64x4_e;
-	}
-
-	m = std::floor(a.val[0] / Float64x4_ln2.val[0] + 0.5);
-	Float64x4 r = mul_pwr2(a - Float64x4_ln2 * m, recip_k);
+	m = std::floor(x.val[0] * Float64x4_log2e.val[0] + 0.5);
+	Float64x4 r = mul_pwr2(x - Float64x4_ln2 * m, recip_k);
 	Float64x4 s, p, t;
 	fp64 thresh = recip_k * std::numeric_limits<Float64x4>::epsilon().val[0];
 
@@ -97,6 +82,21 @@ static inline Float64x4 taylor_expm1(const Float64x4& a, fp64& m) {
 }
 
 Float64x4 exp(const Float64x4& x) {
+	if (x.val[0] <= -709.79) {
+		// Gives a better approximation near extreme values
+		return exp(x.val[0]);
+	}
+	/* ln(2^1023 * (1 + (1 - 2^-52)))) = ~709.782712893 */
+	if (x.val[0] >= 709.79) {
+		return std::numeric_limits<Float64x4>::infinity();
+	}
+	if (dekker_equal_zero(x)) {
+		return static_cast<Float64x4>(1.0);
+	}
+	if (x == 1.0) {
+		return Float64x4_e;
+	}
+
 	fp64 m;
 	Float64x4 ret = taylor_expm1(x, m);
 	ret += 1.0;
@@ -104,6 +104,16 @@ Float64x4 exp(const Float64x4& x) {
 }
 
 Float64x4 expm1(const Float64x4& x) {
+	if (x.val[0] <= -709.79) {
+		return static_cast<Float64x4>(-1.0);
+	}
+	if (x.val[0] >= 709.79) {
+		return std::numeric_limits<Float64x4>::infinity();
+	}
+	if (dekker_equal_zero(x)) {
+		return static_cast<Float64x4>(0.0);
+	}
+
 	fp64 m;
 	Float64x4 ret = taylor_expm1(x, m);
 	if (fabs(x) < static_cast<fp64>(0.5) * Float64x4_ln2) {
@@ -181,7 +191,7 @@ Float64x4 log1p(const Float64x4& x) {
 
 static constexpr Float64x4 taylor_pi1024 = {0x1.921fb54442d18p-9,+0x1.1a62633145c07p-63,-0x1.f1976b7ed8fbcp-119,+0x1.4cf98e804177dp-173};
 
-/** 
+/**
  * @brief Computes sin(a) and cos(a) using Taylor series.
  * @note Assumes |a| <= pi/2048.
  *
@@ -547,11 +557,11 @@ Float64x4 atan(const Float64x4& y) {
 	}
 
 	if (y == static_cast<fp64>(1.0)) {
-		return Float64x2_pi4;
+		return Float64x4_pi4;
 	}
 
 	if (y == static_cast<fp64>(-1.0)) {
-		return -Float64x2_pi4;
+		return -Float64x4_pi4;
 	}
 
 	Float64x4 r = sqrt(static_cast<fp64>(1.0) + square(y));
@@ -817,7 +827,7 @@ Float64x4 Float64x4_exp(Float64x4 x) {
 	return exp(x);
 }
 Float64x4 Float64x4_expm1(Float64x4 x) {
-	return exp(x);
+	return expm1(x);
 }
 Float64x4 Float64x4_log(Float64x4 x) {
 	return log(x);
@@ -862,4 +872,43 @@ Float64x4 Float64x4_tanh(Float64x4 x) {
 }
 void Float64x4_sinhcosh(Float64x4 theta, Float64x4* p_sinh, Float64x4* p_cosh) {
 	sinhcosh(theta, *p_sinh, *p_cosh);
+}
+
+//------------------------------------------------------------------------------
+// Float64x4 from string
+//------------------------------------------------------------------------------
+
+#include "FloatNxN/FloatNxN_stringTo.hpp"
+
+Float64x4 stringTo_Float64x4(const char* nPtr, char** endPtr) {
+	internal_FloatNxN_stringTo<Float64x4, fp64> stringTo_func;
+	return stringTo_func.stringTo_FloatNxN(nPtr, endPtr);
+}
+
+std::istream& operator>>(std::istream& stream, Float64x4& value) {
+	internal_FloatNxN_stringTo<Float64x4, fp64> func_cin;
+	return func_cin.cin_FloatNxN(stream, value);
+}
+
+//------------------------------------------------------------------------------
+// Float64x4 to string
+//------------------------------------------------------------------------------
+
+#include "FloatNxN/FloatNxN_snprintf.hpp"
+
+int Float64x4_snprintf(char* buf, size_t len, const char* format, ...) {
+	va_list args;
+	va_start(args, format);
+	internal_FloatNxN_snprintf<Float64x4, fp64, 2> func_snprintf;
+	int ret_val = func_snprintf.FloatNxN_snprintf(
+		PRIFloat64x4, PRIFloat64,
+		buf, len, format, args
+	);
+	va_end(args);
+	return ret_val;
+}
+
+inline std::ostream& operator<<(std::ostream& stream, const Float64x4& value) {
+	internal_FloatNxN_snprintf<Float64x4, fp64, 2> func_cout;
+	return func_cout.FloatNxN_cout(PRIFloat64x4, PRIFloat64, stream, value);
 }

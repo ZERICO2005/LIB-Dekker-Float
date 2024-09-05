@@ -37,6 +37,9 @@ typedef struct Float128x2 {
 	constexpr inline Float128x2(const fp128 values[2]) :
 		hi(values[0]), lo(values[1]) {}
 
+	constexpr inline Float128x2(const fp128 (&values)[2]) :
+		hi(values[0]), lo(values[1]) {}
+
 	constexpr inline Float128x2(const fp32 value) :
 		hi(static_cast<fp128>(value)), lo(0.0Q) {}
 

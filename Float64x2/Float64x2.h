@@ -45,6 +45,12 @@ typedef union Bitwise_Float64x2 {
 } Bitwise_Float64x2;
 
 //------------------------------------------------------------------------------
+// Float64x2 string operations
+//------------------------------------------------------------------------------
+
+#include "Float64x2_string.h"
+
+//------------------------------------------------------------------------------
 // Float64x2 constants
 //------------------------------------------------------------------------------
 
@@ -322,10 +328,7 @@ static inline Float64x2 Float64x2_dekker_square12(const fp64 x) {
 
 	Float64x2 r;
 	r.hi = p + q;
-	r.lo = (
-		((p - r.hi) + q) +
-		(a.lo * a.lo)
-	);
+	r.lo = ((p - r.hi) + q) + (a.lo * a.lo);
 	return r;
 }
 
@@ -334,11 +337,11 @@ static inline Float64x2 Float64x2_dekker_square12(const fp64 x) {
  */
 static inline Float64x2 Float64x2_square(const Float64x2 x) {
 	Float64x2 t = Float64x2_dekker_square12(x.hi);
-	fp64 c = ((2.0 * (x.hi * x.lo)) + t.lo);
+	fp64 c = (2.0 * (x.hi * x.lo)) + t.lo;
 
 	Float64x2 r;
-	r.hi = (t.hi + c);
-	r.lo = ((t.hi - r.hi) + c);
+	r.hi = t.hi + c;
+	r.lo = (t.hi - r.hi) + c;
 	return r;
 }
 
@@ -346,13 +349,13 @@ static inline Float64x2 Float64x2_square(const Float64x2 x) {
  * @brief `1 / x` Calculates the reciprocal of a Float64x2 value.
  */
 static inline Float64x2 Float64x2_recip(const Float64x2 y) {
-	fp64 u = (1.0 / y.hi);
+	fp64 u = 1.0 / y.hi;
 	Float64x2 t = Float64x2_dekker_mul12(u, y.hi);
-	fp64 l = ((((1.0 - t.hi) - t.lo) - (u * y.lo)) / y.hi);
+	fp64 l = (((1.0 - t.hi) - t.lo) - (u * y.lo)) / y.hi;
 
 	Float64x2 r;
-	r.hi = (u + l);
-	r.lo = ((u - r.hi) + l);
+	r.hi = u + l;
+	r.lo = (u - r.hi) + l;
 	return r;
 }
 
@@ -566,13 +569,13 @@ static inline Float64x2 Float64x2_square_d(const fp64 x) {
  * as a Float64x2 value.
  */
 static inline Float64x2 Float64x2_recip_d(const fp64 y) {
-	fp64 u = (1.0 / y);
+	fp64 u = 1.0 / y;
 	Float64x2 t = Float64x2_dekker_mul12(u, y);
-	fp64 l = (((1.0 - t.hi) - t.lo) / y);
+	fp64 l = ((1.0 - t.hi) - t.lo) / y;
 
 	Float64x2 r;
-	r.hi = (u + l);
-	r.lo = ((u - r.hi) + l);
+	r.hi = u + l;
+	r.lo = (u - r.hi) + l;
 	return r;
 }
 
@@ -1154,6 +1157,9 @@ static inline long long Float64x2_llrint(const Float64x2 x) {
 	Float64x2 ret = Float64x2_rint(x);
 	return (long long)(ret.hi + ret.lo);
 }
+static inline Float64x2 Float64x2_nearbyint(const Float64x2 x) {
+	return Float64x2_rint(x);
+}
 
 //------------------------------------------------------------------------------
 // Float64x2 math.h functions
@@ -1198,6 +1204,10 @@ static inline Float64x2 Float64x2_cbrt(const Float64x2 x) {
 	), 3.0);
 }
 
+//------------------------------------------------------------------------------
+// Float64x2 Integer and Remainder
+//------------------------------------------------------------------------------
+
 /**
  * @brief returns the fraction part of a Float64x2 value. int_part may be NULL
  */
@@ -1212,6 +1222,67 @@ static inline Float64x2 Float64x2_modf(const Float64x2 x, Float64x2* const int_p
 static inline Float64x2 Float64x2_fmod(const Float64x2 x, const Float64x2 y) {
 	Float64x2 trunc_part = Float64x2_trunc(Float64x2_div(x, y));
 	return Float64x2_sub(x, Float64x2_mul(y, trunc_part));
+}
+
+static inline Float64x2 Float64x2_remainder(const Float64x2 x, const Float64x2 y) {
+	Float64x2 round_part = Float64x2_round(Float64x2_div(x, y));
+	return Float64x2_sub(x, Float64x2_mul(y, round_part));
+}
+static inline Float64x2 Float64x2_remquo(const Float64x2 x, const Float64x2 y, int* const quo) {
+	Float64x2 q = Float64x2_round(Float64x2_div(x, y));
+	Float64x2 r = Float64x2_sub(x, Float64x2_mul(y, q));
+	*quo = (int)(q.hi + q.lo);
+	return r;
+}
+
+//------------------------------------------------------------------------------
+// Float64x2 Float Exponents
+//------------------------------------------------------------------------------
+
+/**
+ * @brief Extracts the exponent of a Float64x2 value to compute the
+ * binary logarithm.
+ */
+inline int Float64x2_ilogb(const Float64x2 x) {
+	return ilogb(x.hi + x.lo);
+}
+/**
+ * @brief Returns a normalized Float64x2 value and the exponent in
+ * the form [0.0, 1.0) * 2^expon
+ */
+inline Float64x2 Float64x2_frexp(const Float64x2 x, int* const expon) {
+	Float64x2 ret;
+	*expon = ilogb(x.hi + x.lo) + 1;
+	ret.hi = ldexp(x.hi, -(*expon));
+	ret.lo = ldexp(x.lo, -(*expon));
+	return ret;
+}
+/**
+ * @brief Multiplies a Float64x2 value by 2^expon
+ */
+inline Float64x2 Float64x2_ldexp(const Float64x2 x, const int expon) {
+	Float64x2 ret;
+	ret.hi = ldexp(x.hi, expon);
+	ret.lo = isfinite(x.hi) ? ldexp(x.lo, expon) : x.hi;
+	return ret;
+}
+/**
+ * @brief Multiplies a Float64x2 value by FLT_RADIX^expon
+ */
+inline Float64x2 Float64x2_scalbn(const Float64x2 x, const int expon) {
+	Float64x2 ret;
+	ret.hi = scalbn(x.hi, expon);
+	ret.lo = isfinite(x.hi) ? scalbn(x.lo, expon) : x.hi;
+	return ret;
+}
+/**
+ * @brief Multiplies a Float64x2 value by FLT_RADIX^expon
+ */
+inline Float64x2 Float64x2_scalbln(const Float64x2 x, const long expon) {
+	Float64x2 ret;
+	ret.hi = scalbln(x.hi, expon);
+	ret.lo = isfinite(x.hi) ? scalbln(x.lo, expon) : x.hi;
+	return ret;
 }
 
 //------------------------------------------------------------------------------
@@ -1241,12 +1312,16 @@ static inline Float64x2 Float64x2_log10(const Float64x2 x) {
 }
 
 static inline Float64x2 Float64x2_pow(const Float64x2 x, const Float64x2 y) {
-	return Float64x2_exp(Float64x2_mul(Float64x2_log(x), y));
+	return Float64x2_cmpeq_zero(x) ? (
+		Float64x2_cmpeq_zero(y) ? Float64x2_set_d(1.0) : Float64x2_set_d(0.0)
+	) : Float64x2_exp(Float64x2_mul(Float64x2_log(x), y));	
+}
+static inline Float64x2 Float64x2_pow_dx2_d(const Float64x2 x, const fp64 y) {
+	return Float64x2_cmpeq_zero(x) ? (
+		(y == 0.0) ? Float64x2_set_d(1.0) : Float64x2_set_d(0.0)
+	) : Float64x2_exp(Float64x2_mul_dx2_d(Float64x2_log(x), y));
 }
 
-static inline Float64x2 Float64x2_pow_dx2_d(const Float64x2 x, const fp64 y) {
-	return Float64x2_exp(Float64x2_mul_dx2_d(Float64x2_log(x), y));
-}
 
 //------------------------------------------------------------------------------
 // Float64x2 trigonometry
@@ -1298,34 +1373,38 @@ static inline Float64x2 Float64x2_atanh(const Float64x2 x) {
 	)), 0.5);
 }
 
+
 //------------------------------------------------------------------------------
-// Float64x2 string operations
+// Float64x2 Transcendental Functions
 //------------------------------------------------------------------------------
-
-#ifdef __cplusplus
-	Float64x2 stringTo_Float64x2(const char* nPtr, char** endPtr = nullptr);
-#else
-	Float64x2 stringTo_Float64x2(const char* nPtr, char** endPtr);
-#endif
-
-#define PRIFloat64x2 "D"
-#define PRIfp64x2 PRIFloat64x2
-
-/**
- * @brief snprintf a singular Float64x2/fp64x2.
- * Similar in functionallity to quadmath_snprintf.
- * @note $ not supported. This function ignores additional format specifiers.
- * @return -1 on encoding failure. Otherwise the total length of the
- * string excluding the \0 terminator and ignoring the buffer size.
+	
+/** 
+ * @note casts to long double for calculation as this function is not
+ * currently implemeneted.
  */
-int Float64x2_snprintf(char* buf, size_t len, const char* format, ...);
+Float64x2 Float64x2_erf(Float64x2 x);
+/** 
+ * @note casts to long double for calculation as this function is not
+ * currently implemeneted.
+ */
+Float64x2 Float64x2_erfc(Float64x2 x);
+/** 
+ * @note casts to long double for calculation as this function is not
+ * currently implemeneted.
+ */
+Float64x2 Float64x2_tgamma(Float64x2 x);
+/** 
+ * @note casts to long double for calculation as this function is not
+ * currently implemeneted.
+ */
+Float64x2 Float64x2_lgamma(Float64x2 x);
 
 #ifdef __cplusplus
-	}
+}
 #endif
 
 #ifdef __cplusplus
-#include "Float64x2.hpp"
+	#include "Float64x2.hpp"
 #endif
 
 #endif /* FLOAT64X2_H */ 
