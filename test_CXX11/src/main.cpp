@@ -14,6 +14,9 @@
 #include <ios>
 #include <numbers>
 
+#include "Float32/Float32.h"
+#include "Float64/Float64.h"
+
 #if 1
 #include "Float32x2/Float32x2.hpp"
 #endif
@@ -153,8 +156,28 @@ void run_generate_constants(void) {
 
 #endif
 
-int main(void) {
+fp64 Float64_log(fp64 x) {
+	fp64 guess = (fp64)logb(x) * 0.69314718055994530942;
+	printf("%9.6lf, ", guess);
+	guess = guess + x * exp(-guess) - 1.0;
+	printf("%9.6lf, ", guess);
+	guess = guess + x * exp(-guess) - 1.0;
+	printf("%9.6lf, ", guess);
+	guess = guess + x * exp(-guess) - 1.0;
+	printf("%9.6lf, ", guess);
+	printf("[%9.6lf]\n", log(x));
+	return guess;
+}
 
+int main(void) {
+	Float64_log(-1.0);
+	Float64_log(0.0);
+	Float64_log(0.25);
+	Float64_log(0.5);
+	Float64_log(1.0);
+	Float64_log(1.5);
+	Float64_log(3.5);
+	Float64_log(10.5);
 	// run_demo();
 	// run_math_demo(123456);
 	// test_function();

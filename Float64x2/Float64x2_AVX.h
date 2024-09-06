@@ -1376,7 +1376,6 @@ static inline __m256dx2 _mm256x2_sqrt_pdx2(__m256dx2 x) {
 	);
 }
 
-/** @note This function may or may not use AVX for calculations */
 static inline __m256dx2 _mm256x2_cbrt_pdx2(__m256dx2 x) {
 	__m256d guess = _mm256_cbrt_pd(x.hi);
 	return _mm256x2_and_pdx2(
@@ -1446,6 +1445,15 @@ static inline __m256i _mm256x2_ilogb_pdx2_epu64(__m256dx2 x) {
 static inline __m128i _mm256x2_ilogb_pdx2_epu32(__m256dx2 x) {
 	return _mm256_ilogb_pd_epu32(x.hi);
 }
+
+/**
+ * @brief Computes ilogb(x) on a __m256dx2 value
+ * @returns __m256d double
+ */
+static inline __m256d _mm256x2_ilogb_pdx2_pd(__m256dx2 x) {
+	return _mm256_ilogb_pd_pd(x.hi);
+}
+
 
 //------------------------------------------------------------------------------
 // __m256dx2 ldexp

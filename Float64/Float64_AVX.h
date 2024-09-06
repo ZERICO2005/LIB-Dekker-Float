@@ -288,6 +288,17 @@ static inline __m256d _mm256_fabs_pd(__m256d x) {
 }
 #endif
 
+static inline __m256d _mm256_copysign_pd(__m256d x, __m256d y) {
+	__m256d negate_mask = _mm256_xor_pd(
+		_mm256_cmp_pd(x, _mm256_setzero_pd(), _CMP_LT_OQ),
+		_mm256_cmp_pd(y, _mm256_setzero_pd(), _CMP_LT_OQ)
+	);
+	__m256d negate_mul = _mm256_blendv_pd(
+		_mm256_set1_pd(1.0), _mm256_set1_pd(-1.0), negate_mask
+	);
+	return _mm256_mul_pd(x, negate_mul);
+}
+
 #ifndef _mm256_fmax_pd
 /**
  * @brief Returns the fmax of x and y. Correctly handling NaN and signed zeros.
@@ -413,6 +424,14 @@ static inline __m128i _internal_mm256_convert_epi64_epi32(const __m256i x) {
 		return _internal_mm256_convert_epi64_epi32(_mm256_ilogb_pd_epu64(x));
 	}
 
+	/**
+	 * @brief Computes ilogb(x) using AVX2 integer operations
+	 * @returns __m256d doubles
+	 */
+	static inline __m256d _mm256_ilogb_pd_pd(__m256d x) {
+		return _mm256_cvtepi32_pd(_mm256_ilogb_pd_epi32(x));
+	}
+
 #else
 
 	/**
@@ -449,6 +468,16 @@ static inline __m128i _internal_mm256_convert_epi64_epi32(const __m256i x) {
 	 */
 	static inline __m128i _mm256_ilogb_pd_epu32(__m256d x) {
 		return _internal_mm256_convert_epi64_epi32(_mm256_ilogb_pd_epu64(x));
+	}
+
+	/**
+	 * @brief Computes ilogb(x) using SSE2 integer operations
+	 * @returns __m256d doubles
+	 */
+	static inline __m256d _mm256_ilogb_pd_pd(__m256d x) {
+		return _mm256_cvtepi32_pd(
+			_internal_mm256_convert_epi64_epi32(_mm256_ilogb_pd_epi64(x))
+		);
 	}
 
 #endif
@@ -684,14 +713,8 @@ static inline __m256d _mm256_invsqrt_pd(const __m256d x) {
 	return _mm256_recip_pd(_mm256_sqrt_pd(x));
 }
 
-/**
- * @note This function doesn't use AVX for calculations
- */
 __m256d _mm256_cbrt_pd(__m256d x);
 
-/**
- * @note This function doesn't use AVX for calculations
- */
 static inline __m256d _mm256_invcbrt_pd(const __m256d x) {
 	return _mm256_recip_pd(_mm256_cbrt_pd(x));
 }
@@ -707,46 +730,35 @@ __m256d _mm256_hypot_pd(const __m256d x, const __m256d y);
 // __m256d SVML exponents and logarithms
 //------------------------------------------------------------------------------
 
-/** @note This function doesn't use AVX for calculations */
 __m256d _mm256_exp_pd(__m256d x);
 
-/** @note This function doesn't use AVX for calculations */
 __m256d _mm256_expm1_pd(__m256d x);
 
-/** @note This function doesn't use AVX for calculations */
 static inline __m256d _mm256_exp2_pd(const __m256d x) {
 	return _mm256_exp_pd(_mm256_mul_pd(x, _mm256_const_ln2_pd()));
 }
 
-/** @note This function doesn't use AVX for calculations */
 static inline __m256d _mm256_exp10_pd(const __m256d x) {
 	return _mm256_exp_pd(_mm256_mul_pd(x, _mm256_const_ln10_pd()));
 }
 
-/** @note This function doesn't use AVX for calculations */
 __m256d _mm256_log_pd(__m256d x);
 
-/** @note This function doesn't use AVX for calculations */
-__m256d _mm256_log1p_pd(__m256d x);
+/** @note This is not an accurate implementation of log1p */
+static inline __m256d _mm256_log1p_pd(__m256d x) {
+	return _mm256_log_pd(_mm256_add_pd(x, _mm256_set1_pd(1.0)));
+}
 
-/** @note This function doesn't use AVX for calculations */
 static inline __m256d _mm256_log2_pd(const __m256d x) {
 	return _mm256_exp_pd(_mm256_mul_pd(x, _mm256_const_log2e_pd()));
 }
 
-/** @note This function doesn't use AVX for calculations */
 static inline __m256d _mm256_log10_pd(const __m256d x) {
 	return _mm256_exp_pd(_mm256_mul_pd(x, _mm256_const_log10e_pd()));
 }
 
 /** @note This function doesn't use AVX for calculations */
-__m256d _mm256_logb_pd(__m256d x);
-
-/** @note This function doesn't use AVX for calculations */
 __m256d _mm256_pow_pd(__m256d x, __m256d y);
-
-/** @note This function doesn't use AVX for calculations */
-__m256d _mm256_pow_pd_pd(__m256d x,  __m256d y);
 
 //------------------------------------------------------------------------------
 // __m256d SVML Trigonometry

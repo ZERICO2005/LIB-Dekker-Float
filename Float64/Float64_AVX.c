@@ -13,13 +13,29 @@
 #if (FLOAT64_AVX_SVML_REPLACEMENTS != 0)
 
 __m256d _mm256_cbrt_pd(const __m256d x) {
-	double val[4];
-	_mm256_store_pd(val, x);
-	val[0] = cbrt(val[0]);
-	val[1] = cbrt(val[1]);
-	val[2] = cbrt(val[2]);
-	val[3] = cbrt(val[3]);
-	return _mm256_load_pd(val);
+	// 2^floor(ilogb(fabs(x)) / 3)
+	__m256d guess = _mm256_ldexp1_pd_pd(_mm256_div_pd(
+		_mm256_ilogb_pd_pd(x), _mm256_set1_pd(3.0)
+	));
+
+	/**
+	 * @remarks 7 iterations seems to yeild the full precision of ieee doubles.
+	 * If the ilogb approximation was changed to 2.0^(ilogb(fabs(x)) / 3.0),
+	 * then only 5 iterations would be needed.
+	 */
+	for (int i = 0; i < 7; i++) {
+		guess = _mm256_div_pd(_mm256_add_pd(
+			_mm256_mul_pd(_mm256_set1_pd(2.0), guess),
+			_mm256_div_pd(x, _mm256_square_pd(guess))
+		), _mm256_set1_pd(3.0));
+	}
+	__m256d neg_mask = _mm256_and_pd(
+		x, _mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x8000000000000000))
+	);
+	return _mm256_and_pd(
+		_mm256_or_pd(guess, neg_mask),
+		_mm256_cmp_pd(x, _mm256_setzero_pd(), _CMP_NEQ_UQ)
+	);
 }
 
 __m256d _mm256_hypot_pd(const __m256d x, const __m256d y) {
@@ -38,54 +54,120 @@ __m256d _mm256_hypot_pd(const __m256d x, const __m256d y) {
 // __m256d exponents and logarithms
 //------------------------------------------------------------------------------
 
+/**
+ * @note This is currently the __m256dx2 version of the function, which means
+ * the extra precision is wasted.
+ * @todo Find the correct value for k and the number of terms to use for the
+ * taylor series for this function.
+ */
+static inline __m256d _mm256_taylor_expm1_pd(
+	const __m256d x, __m128i* m_bin
+) {
+	const __m256d inv_fact[6] = {
+	/* 3! */ _mm256_set1_pd(0x1.5555555555555p-3 ),
+	/* 4! */ _mm256_set1_pd(0x1.5555555555555p-5 ),
+	/* 5! */ _mm256_set1_pd(0x1.1111111111111p-7 ),
+	/* 6! */ _mm256_set1_pd(0x1.6c16c16c16c17p-10),
+	/* 7! */ _mm256_set1_pd(0x1.a01a01a01a01ap-13),
+	/* 8! */ _mm256_set1_pd(0x1.a01a01a01a01ap-16)
+	};
+	/* Strategy:  We first reduce the size of x by noting that
+		
+			exp(kr + m * log(2)) = 2^m * exp(r)^k
+
+		where m and k are integers.  By choosing m appropriately
+		we can make |kr| <= log(2) / 2 = 0.347.  Then exp(r) is 
+		evaluated using the familiar Taylor series.  Reducing the 
+		argument substantially speeds up the convergence.       */  
+
+	// const __m256d k = _mm256_set1_pd(0x1.0p+9);
+	const __m256d inv_k = _mm256_set1_pd(0x1.0p-9);
+
+	const __m256d const_log2e = _mm256_const_log2e_pd();
+	const __m256d const_ln2 = _mm256_const_ln2_pd();
+
+	__m256d m = _mm256_floor_pd(
+		_mm256_add_pd(_mm256_mul_pd(x, const_log2e), _mm256_set1_pd(0.5))
+	);
+	*m_bin = _mm256_cvttpd_epi32(m);
+
+	__m256d r = _mm256_mul_pd(
+		_mm256_sub_pd(x, _mm256_mul_pd(const_ln2, m)), inv_k
+	);
+	__m256d s, t, p;
+
+	p = _mm256_square_pd(r);
+	s = _mm256_add_pd(r, _mm256_mul_pd(p, _mm256_set1_pd(0.5)));
+	p = _mm256_mul_pd(p, r);
+	t = _mm256_mul_pd(p, inv_fact[0]);
+	size_t i = 0;
+	do {
+		s = _mm256_add_pd(s, t);
+		p = _mm256_mul_pd(p, r);
+		++i;
+		t = _mm256_mul_pd(p, inv_fact[i]);
+	} while (i < 5);
+
+	s = _mm256_add_pd(s, t);
+
+	s = _mm256_add_pd(_mm256_mul_pd(s, _mm256_set1_pd(2.0)), _mm256_square_pd(s));
+	s = _mm256_add_pd(_mm256_mul_pd(s, _mm256_set1_pd(2.0)), _mm256_square_pd(s));
+	s = _mm256_add_pd(_mm256_mul_pd(s, _mm256_set1_pd(2.0)), _mm256_square_pd(s));
+
+	s = _mm256_add_pd(_mm256_mul_pd(s, _mm256_set1_pd(2.0)), _mm256_square_pd(s));
+	s = _mm256_add_pd(_mm256_mul_pd(s, _mm256_set1_pd(2.0)), _mm256_square_pd(s));
+	s = _mm256_add_pd(_mm256_mul_pd(s, _mm256_set1_pd(2.0)), _mm256_square_pd(s));
+
+	s = _mm256_add_pd(_mm256_mul_pd(s, _mm256_set1_pd(2.0)), _mm256_square_pd(s));
+	s = _mm256_add_pd(_mm256_mul_pd(s, _mm256_set1_pd(2.0)), _mm256_square_pd(s));
+	s = _mm256_add_pd(_mm256_mul_pd(s, _mm256_set1_pd(2.0)), _mm256_square_pd(s));
+	
+	return s;
+	// Original return code:
+	// s += 1.0;
+	// return ldexp(s, static_cast<int>(m));
+}
+
 __m256d _mm256_exp_pd(const __m256d x) {
-	double val[4];
-	_mm256_store_pd(val, x);
-	val[0] = exp(val[0]);
-	val[1] = exp(val[1]);
-	val[2] = exp(val[2]);
-	val[3] = exp(val[3]);
-	return _mm256_load_pd(val);
+	__m128i m_bin;
+	__m256d ret = _mm256_taylor_expm1_pd(x, &m_bin);
+	ret = _mm256_add_pd(ret, _mm256_set1_pd(1.0));
+	
+	return _mm256_ldexp_pd_epi32(ret, m_bin);
 }
 
 __m256d _mm256_expm1_pd(const __m256d x) {
-	double val[4];
-	_mm256_store_pd(val, x);
-	val[0] = expm1(val[0]);
-	val[1] = expm1(val[1]);
-	val[2] = expm1(val[2]);
-	val[3] = expm1(val[3]);
-	return _mm256_load_pd(val);
+	__m128i m_bin;
+	__m256d ret_expm1 = _mm256_taylor_expm1_pd(x, &m_bin);
+
+	__m256d ret = _mm256_add_pd(ret_expm1, _mm256_set1_pd(1.0));
+	
+	ret = _mm256_ldexp_pd_epi32(ret, m_bin);
+	ret = _mm256_sub_pd(ret, _mm256_set1_pd(1.0));
+
+	// Check if x was in range
+	const __m256d const_half_ln2 = _mm256_mul_pd(
+		_mm256_const_ln2_pd(), _mm256_set1_pd(0.5)
+	);
+	__m256d ret_cmp = _mm256_cmp_pd(_mm256_fabs_pd(x), const_half_ln2, _CMP_LT_OQ);
+
+	ret = _mm256_blendv_pd(ret, ret_expm1, ret_cmp);
+	return ret;
 }
 
 __m256d _mm256_log_pd(const __m256d x) {
-	double val[4];
-	_mm256_store_pd(val, x);
-	val[0] = log(val[0]);
-	val[1] = log(val[1]);
-	val[2] = log(val[2]);
-	val[3] = log(val[3]);
-	return _mm256_load_pd(val);
-}
-
-__m256d _mm256_log1p_pd(const __m256d x) {
-	double val[4];
-	_mm256_store_pd(val, x);
-	val[0] = log1p(val[0]);
-	val[1] = log1p(val[1]);
-	val[2] = log1p(val[2]);
-	val[3] = log1p(val[3]);
-	return _mm256_load_pd(val);
-}
-
-__m256d _mm256_logb_pd(const __m256d x) {
-	double val[4];
-	_mm256_store_pd(val, x);
-	val[0] = logb(val[0]);
-	val[1] = logb(val[1]);
-	val[2] = logb(val[2]);
-	val[3] = logb(val[3]);
-	return _mm256_load_pd(val);
+	// extract the exponent, and multiply by ln(2)
+	__m256d guess = _mm256_mul_pd(
+		_mm256_ilogb_pd_pd(x), _mm256_const_ln2_pd()
+	);
+	// 6 iterations should yield the full precision of ieee doubles
+	for (int i = 0; i < 6; i++) {
+		guess = _mm256_sub_pd(_mm256_add_pd(
+			guess,
+			_mm256_mul_pd(x, _mm256_exp_pd(_mm256_negate_pd(guess)))
+		), _mm256_set1_pd(1.0));
+	}
+	return guess;
 }
 
 __m256d _mm256_pow_pd(const __m256d x, const __m256d y) {

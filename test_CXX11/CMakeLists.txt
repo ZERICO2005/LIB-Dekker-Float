@@ -38,6 +38,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./bin")
 # Source Files
 	file(GLOB_RECURSE SRC_FILES
 		"${SRC_DIR}/*.c" "${SRC_DIR}/*.cpp"
+		"${SRC_DIR}/../../Float32/*.c" "${SRC_DIR}/../../Float32/*.cpp"
+		"${SRC_DIR}/../../Float64/*.c" "${SRC_DIR}/../../Float64/*.cpp"
 		"${SRC_DIR}/../../Float32x2/*.c" "${SRC_DIR}/../../Float32x2/*.cpp"
 		"${SRC_DIR}/../../Float64x2/*.c" "${SRC_DIR}/../../Float64x2/*.cpp"
 		"${SRC_DIR}/../../Float64x4/*.c" "${SRC_DIR}/../../Float64x4/*.cpp"
