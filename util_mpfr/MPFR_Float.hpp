@@ -28,7 +28,8 @@ typedef double fp64;
 
 #define PRImpfr "R"
 
-constexpr mpfr_prec_t MPFR_PRECISION = 512;
+constexpr mpfr_prec_t MPFR_PRECISION = 256;
+constexpr mpfr_rnd_t MPFR_ROUND = MPFR_RNDN;
 
 // template<mpfr_prec_t fpX>
 class FloatMPFR {
@@ -43,12 +44,12 @@ class FloatMPFR {
 	}
 
 	inline void copy_value(const FloatMPFR& arg) {
-		mpfr_set(value, arg.value, MPFR_RNDZ);
+		mpfr_set(value, arg.value, MPFR_ROUND);
 	}
 
 	inline void copy_mpfr(const FloatMPFR& arg) {
 		mpfr_set_prec(value, mpfr_get_prec(arg.value));
-		mpfr_set(value, arg.value, MPFR_RNDZ);
+		mpfr_set(value, arg.value, MPFR_ROUND);
 	}
 
 	public:
@@ -62,77 +63,77 @@ class FloatMPFR {
 
 	inline FloatMPFR operator+(const FloatMPFR& arg) const {
 		FloatMPFR result; result.copy_prec(*this);
-		mpfr_add(result.value, value, arg.value, MPFR_RNDZ);
+		mpfr_add(result.value, value, arg.value, MPFR_ROUND);
 		return result;
 	}
 
 	inline FloatMPFR operator-(const FloatMPFR& arg) const {
 		FloatMPFR result; result.copy_prec(*this);;
-		mpfr_sub(result.value, value, arg.value, MPFR_RNDZ);
+		mpfr_sub(result.value, value, arg.value, MPFR_ROUND);
 		return result;
 	}
 
 	inline FloatMPFR operator*(const FloatMPFR& arg) const {
 		FloatMPFR result; result.copy_prec(*this);
-		mpfr_mul(result.value, value, arg.value, MPFR_RNDZ);
+		mpfr_mul(result.value, value, arg.value, MPFR_ROUND);
 		return result;
 	}
 
 	inline FloatMPFR operator/(const FloatMPFR& arg) const {
 		FloatMPFR result; result.copy_prec(*this);
-		mpfr_div(result.value, value, arg.value, MPFR_RNDZ);
+		mpfr_div(result.value, value, arg.value, MPFR_ROUND);
 		return result;
 	}
 
 	inline FloatMPFR operator-() const {
 		FloatMPFR result; result.copy_prec(*this);
-		mpfr_neg(result.value, this->value, MPFR_RNDZ);
+		mpfr_neg(result.value, this->value, MPFR_ROUND);
 		return result;
 	}
 
 /* Increment/Decrement */
 
 	inline FloatMPFR& operator++() {
-		mpfr_add_ui(value, value, (unsigned long)1, MPFR_RNDZ);
+		mpfr_add_ui(value, value, (unsigned long)1, MPFR_ROUND);
 		return *this;
 	}
 
 	inline FloatMPFR& operator--() {
-		mpfr_sub_ui(value, value, (unsigned long)1, MPFR_RNDZ);
+		mpfr_sub_ui(value, value, (unsigned long)1, MPFR_ROUND);
 		return *this;
 	}
 
 	inline FloatMPFR operator++(int) {
 		FloatMPFR temp; temp.copy_mpfr(*this);
-		mpfr_add_ui(value, value, (unsigned long)1, MPFR_RNDZ);
+		mpfr_add_ui(value, value, (unsigned long)1, MPFR_ROUND);
 		return temp;
 	}
 
 	inline FloatMPFR operator--(int) {
 		FloatMPFR temp; temp.copy_mpfr(*this);
-		mpfr_sub_ui(value, value, (unsigned long)1, MPFR_RNDZ);
+		mpfr_sub_ui(value, value, (unsigned long)1, MPFR_ROUND);
 		return temp;
 	}
 
 /* Compound Assignment */
 
 	inline FloatMPFR& operator+=(const FloatMPFR& arg) {
-		mpfr_add(value, value, arg.value, MPFR_RNDZ);
+		mpfr_add(value, value, arg.value, MPFR_ROUND);
 		return *this;
 	}
 
 	inline FloatMPFR& operator-=(const FloatMPFR& arg) {
-		mpfr_sub(value, value, arg.value, MPFR_RNDZ);
+		mpfr_sub(value, value, arg.value, MPFR_ROUND);
 		return *this;
 	}
 
 	inline FloatMPFR& operator*=(const FloatMPFR& arg) {
-		mpfr_mul(value, value, arg.value, MPFR_RNDZ);
+		mpfr_mul(value, value, arg.value, MPFR_ROUND);
 		return *this;
 	}
 
 	inline FloatMPFR& operator/=(const FloatMPFR& arg) {
-		mpfr_div(value, value, arg.value, MPFR_RNDZ);
+		mpfr_div(value, value, arg.value, MPFR_ROUND);
 		return *this;
 	}
 
@@ -179,43 +180,43 @@ class FloatMPFR {
 
 	FloatMPFR(const FloatMPFR& arg) {
 		mpfr_init2(value, mpfr_get_prec(arg.value));
-		mpfr_set(value, arg.value, MPFR_RNDZ);
+		mpfr_set(value, arg.value, MPFR_ROUND);
 	}
 
 	inline FloatMPFR& operator=(const FloatMPFR& arg) {
-		mpfr_set(this->value, arg.value, MPFR_RNDZ);
+		mpfr_set(this->value, arg.value, MPFR_ROUND);
 		return *this;
 	}
 
 	inline FloatMPFR(const fp32& arg) {
 		mpfr_init2(value, MPFR_PRECISION);
-		mpfr_set_flt(value, arg, MPFR_RNDZ);
+		mpfr_set_flt(value, arg, MPFR_ROUND);
 	}
 
 	inline FloatMPFR(const fp64& arg) {
 		mpfr_init2(value, MPFR_PRECISION);
-		mpfr_set_d(value, arg, MPFR_RNDZ);
+		mpfr_set_d(value, arg, MPFR_ROUND);
 	}
 	#ifdef Enable_Float80
 		inline FloatMPFR(const fp80& arg) {
 			mpfr_init2(value, MPFR_PRECISION);
-			mpfr_set_ld(value, arg, MPFR_RNDZ);
+			mpfr_set_ld(value, arg, MPFR_ROUND);
 		}
 	#endif
 	#ifdef Enable_Float128
 		inline FloatMPFR(const fp128& arg) {
 			mpfr_init2(value, MPFR_PRECISION);
-			mpfr_set_float128(value, arg, MPFR_RNDZ);
+			mpfr_set_float128(value, arg, MPFR_ROUND);
 		}
 	#endif
 
 	inline FloatMPFR(const int& arg) {
 		mpfr_init2(value, MPFR_PRECISION);
-		mpfr_set_si(value, (long)arg, MPFR_RNDZ);
+		mpfr_set_si(value, (long)arg, MPFR_ROUND);
 	}
 	inline FloatMPFR(const unsigned int& arg) {
 		mpfr_init2(value, MPFR_PRECISION);
-		mpfr_set_ui(value, (unsigned long)arg, MPFR_RNDZ);
+		mpfr_set_ui(value, (unsigned long)arg, MPFR_ROUND);
 	}
 
 /* Assignment */
@@ -224,71 +225,71 @@ class FloatMPFR {
 	// 	if (this == &arg) {
 	// 		return *this;
 	// 	}
-	// 	mpfr_set(this->value, arg.value, MPFR_RNDZ);
+	// 	mpfr_set(this->value, arg.value, MPFR_ROUND);
 	// 	return *this;
 	// }
 	// inline FloatMPFR& operator=(const FloatMPFR&& arg) noexcept {
 	// 	if (this == &arg) {
 	// 		return *this;
 	// 	}
-	// 	mpfr_set(value, arg.value, MPFR_RNDZ);
+	// 	mpfr_set(value, arg.value, MPFR_ROUND);
 	// 	return *this;
 	// }
 
 	// inline FloatMPFR& operator=(const fp32& arg) {
-	// 	mpfr_set_flt(value, arg, MPFR_RNDZ);
+	// 	mpfr_set_flt(value, arg, MPFR_ROUND);
 	// 	return *this;
 	// }
 	// inline FloatMPFR& operator=(const fp64& arg) {
-	// 	mpfr_set_d(value, arg, MPFR_RNDZ);
+	// 	mpfr_set_d(value, arg, MPFR_ROUND);
 	// 	return *this;
 	// }
 	// #ifdef Enable_Float80
 	// 	inline FloatMPFR& operator=(const fp80& arg) {
-	// 		mpfr_set_ld(value, arg, MPFR_RNDZ);
+	// 		mpfr_set_ld(value, arg, MPFR_ROUND);
 	// 		return *this;
 	// 	}
 	// #endif
 	// #ifdef Enable_Float128
 	// 	inline FloatMPFR& operator=(const fp128& arg) {
-	// 		mpfr_set_float128(value, arg, MPFR_RNDZ);
+	// 		mpfr_set_float128(value, arg, MPFR_ROUND);
 	// 		return *this;
 	// 	}
 	// #endif
 
 	// inline FloatMPFR& operator=(const int& arg) {
-	// 	mpfr_set_si(value, (int long)arg, MPFR_RNDZ);
+	// 	mpfr_set_si(value, (int long)arg, MPFR_ROUND);
 	// 	return *this;
 	// }
 	// inline FloatMPFR& operator=(const unsigned int& arg) {
-	// 	mpfr_set_ui(value, (unsigned long)arg, MPFR_RNDZ);
+	// 	mpfr_set_ui(value, (unsigned long)arg, MPFR_ROUND);
 	// 	return *this;
 	// }
 
 /* Casts */
 
 	inline operator fp32() const {
-		return mpfr_get_flt(value, MPFR_RNDZ);
+		return mpfr_get_flt(value, MPFR_ROUND);
 	}
 	inline operator fp64() const {
-		return mpfr_get_d(value, MPFR_RNDZ);
+		return mpfr_get_d(value, MPFR_ROUND);
 	}
 	#ifdef Enable_Float80
 		inline operator fp80() const {
-			return mpfr_get_ld(value, MPFR_RNDZ);
+			return mpfr_get_ld(value, MPFR_ROUND);
 		}
 	#endif
 	#ifdef Enable_Float128
 		inline operator fp128() const {
-			return mpfr_get_float128(value, MPFR_RNDZ);
+			return mpfr_get_float128(value, MPFR_ROUND);
 		}
 	#endif
 
 	inline operator int() const {
-		return (int)mpfr_get_si(value, MPFR_RNDZ);
+		return (int)mpfr_get_si(value, MPFR_ROUND);
 	}
 	inline operator unsigned int() const {
-		return (unsigned int)mpfr_get_ui(value, MPFR_RNDZ);
+		return (unsigned int)mpfr_get_ui(value, MPFR_ROUND);
 	}
 
 };
@@ -296,7 +297,7 @@ class FloatMPFR {
 typedef FloatMPFR fpMPFR;
 
 inline int stringTo_FloatMPFR(mpfr_t rop, const char* nPtr, char** endPtr = nullptr) {
-	return mpfr_strtofr(rop, nPtr, endPtr, 10, MPFR_RNDZ);
+	return mpfr_strtofr(rop, nPtr, endPtr, 10, MPFR_ROUND);
 }
 
 //------------------------------------------------------------------------------
@@ -306,19 +307,19 @@ inline int stringTo_FloatMPFR(mpfr_t rop, const char* nPtr, char** endPtr = null
 	/** mpfr_sqrt */
 	inline FloatMPFR sqrt(FloatMPFR x) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_sqrt(result.value, x.value, MPFR_RNDZ);
+		mpfr_sqrt(result.value, x.value, MPFR_ROUND);
 		return result;
 	}
 	/** mpfr_cbrt */
 	inline FloatMPFR cbrt(FloatMPFR x) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_cbrt(result.value, x.value, MPFR_RNDZ);
+		mpfr_cbrt(result.value, x.value, MPFR_ROUND);
 		return result;
 	}
 	/** mpfr_abs */
 	inline FloatMPFR fabs(FloatMPFR x) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_abs(result.value, x.value, MPFR_RNDZ);
+		mpfr_abs(result.value, x.value, MPFR_ROUND);
 		return result;
 	}
 	/** 
@@ -327,7 +328,7 @@ inline int stringTo_FloatMPFR(mpfr_t rop, const char* nPtr, char** endPtr = null
 	 */
 	inline FloatMPFR fdim(FloatMPFR x, FloatMPFR y) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_dim(result.value, x.value, y.value, MPFR_RNDZ);
+		mpfr_dim(result.value, x.value, y.value, MPFR_ROUND);
 		return result;
 	}
 	/** 
@@ -336,7 +337,7 @@ inline int stringTo_FloatMPFR(mpfr_t rop, const char* nPtr, char** endPtr = null
 	 */
 	inline FloatMPFR fma(FloatMPFR x, FloatMPFR y, FloatMPFR z) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_fma(result.value, x.value, y.value, z.value, MPFR_RNDZ);
+		mpfr_fma(result.value, x.value, y.value, z.value, MPFR_ROUND);
 		return result;
 	}
 	/** 
@@ -345,7 +346,7 @@ inline int stringTo_FloatMPFR(mpfr_t rop, const char* nPtr, char** endPtr = null
 	 */
 	inline FloatMPFR hypot(FloatMPFR x, FloatMPFR y) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_hypot(result.value, x.value, y.value, MPFR_RNDZ);
+		mpfr_hypot(result.value, x.value, y.value, MPFR_ROUND);
 		return result;
 	}
 
@@ -395,25 +396,25 @@ inline int stringTo_FloatMPFR(mpfr_t rop, const char* nPtr, char** endPtr = null
 	/** mpfr_log */
 	inline FloatMPFR log(FloatMPFR x) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_log(result.value, x.value, MPFR_RNDZ);
+		mpfr_log(result.value, x.value, MPFR_ROUND);
 		return result;
 	}
 	/** mpfr_log2 */
 	inline FloatMPFR log2(FloatMPFR x) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_log2(result.value, x.value, MPFR_RNDZ);
+		mpfr_log2(result.value, x.value, MPFR_ROUND);
 		return result;
 	}
 	/** mpfr_log10 */
 	inline FloatMPFR log10(FloatMPFR x) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_log10(result.value, x.value, MPFR_RNDZ);
+		mpfr_log10(result.value, x.value, MPFR_ROUND);
 		return result;
 	}
 	/** mpfr_log1p */
 	inline FloatMPFR log1p(FloatMPFR x) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_log1p(result.value, x.value, MPFR_RNDZ);
+		mpfr_log1p(result.value, x.value, MPFR_ROUND);
 		return result;
 	}
 
@@ -421,19 +422,19 @@ inline int stringTo_FloatMPFR(mpfr_t rop, const char* nPtr, char** endPtr = null
 	/** mpfr_exp */
 	inline FloatMPFR exp(FloatMPFR x) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_exp(result.value, x.value, MPFR_RNDZ);
+		mpfr_exp(result.value, x.value, MPFR_ROUND);
 		return result;
 	}
 	/** mpfr_exp2 */
 	inline FloatMPFR exp2(FloatMPFR x) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_exp2(result.value, x.value, MPFR_RNDZ);
+		mpfr_exp2(result.value, x.value, MPFR_ROUND);
 		return result;
 	}
 	/** mpfr_expm1 */
 	inline FloatMPFR expm1(FloatMPFR x) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_expm1(result.value, x.value, MPFR_RNDZ);
+		mpfr_expm1(result.value, x.value, MPFR_ROUND);
 		return result;
 	}
 
@@ -443,7 +444,7 @@ inline int stringTo_FloatMPFR(mpfr_t rop, const char* nPtr, char** endPtr = null
 	*/
 	inline FloatMPFR pow(FloatMPFR x, FloatMPFR y) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_pow(result.value, x.value, y.value, MPFR_RNDZ);
+		mpfr_pow(result.value, x.value, y.value, MPFR_ROUND);
 		return result;
 	}
 
@@ -452,76 +453,76 @@ inline int stringTo_FloatMPFR(mpfr_t rop, const char* nPtr, char** endPtr = null
 	/** mpfr_sin */
 	inline FloatMPFR sin(FloatMPFR x) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_sin(result.value, x.value, MPFR_RNDZ);
+		mpfr_sin(result.value, x.value, MPFR_ROUND);
 		return result;
 	}
 	/** mpfr_cos */
 	inline FloatMPFR cos(FloatMPFR x) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_cos(result.value, x.value, MPFR_RNDZ);
+		mpfr_cos(result.value, x.value, MPFR_ROUND);
 		return result;
 	}
 	/** mpfr_tan */
 	inline FloatMPFR tan(FloatMPFR x) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_tan(result.value, x.value, MPFR_RNDZ);
+		mpfr_tan(result.value, x.value, MPFR_ROUND);
 		return result;
 	}
 
 	/** mpfr_asin */
 	inline FloatMPFR asin(FloatMPFR x) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_asin(result.value, x.value, MPFR_RNDZ);
+		mpfr_asin(result.value, x.value, MPFR_ROUND);
 		return result;
 	}
 	/** mpfr_acos */
 	inline FloatMPFR acos(FloatMPFR x) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_acos(result.value, x.value, MPFR_RNDZ);
+		mpfr_acos(result.value, x.value, MPFR_ROUND);
 		return result;
 	}
 	/** mpfr_atan */
 	inline FloatMPFR atan(FloatMPFR x) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_atan(result.value, x.value, MPFR_RNDZ);
+		mpfr_atan(result.value, x.value, MPFR_ROUND);
 		return result;
 	}
 	
 	/** mpfr_sinh */
 	inline FloatMPFR sinh(FloatMPFR x) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_sinh(result.value, x.value, MPFR_RNDZ);
+		mpfr_sinh(result.value, x.value, MPFR_ROUND);
 		return result;
 	}
 	/** mpfr_cosh */
 	inline FloatMPFR cosh(FloatMPFR x) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_cosh(result.value, x.value, MPFR_RNDZ);
+		mpfr_cosh(result.value, x.value, MPFR_ROUND);
 		return result;
 	}
 	/** mpfr_tanh */
 	inline FloatMPFR tanh(FloatMPFR x) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_tanh(result.value, x.value, MPFR_RNDZ);
+		mpfr_tanh(result.value, x.value, MPFR_ROUND);
 		return result;
 	}
 
 	/** mpfr_asinh */
 	inline FloatMPFR asinh(FloatMPFR x) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_asinh(result.value, x.value, MPFR_RNDZ);
+		mpfr_asinh(result.value, x.value, MPFR_ROUND);
 		return result;
 	}
 	/** mpfr_acosh */
 	inline FloatMPFR acosh(FloatMPFR x) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_acosh(result.value, x.value, MPFR_RNDZ);
+		mpfr_acosh(result.value, x.value, MPFR_ROUND);
 		return result;
 	}
 	/** mpfr_atanh */
 	inline FloatMPFR atanh(FloatMPFR x) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_atanh(result.value, x.value, MPFR_RNDZ);
+		mpfr_atanh(result.value, x.value, MPFR_ROUND);
 		return result;
 	}
 
@@ -531,7 +532,7 @@ inline int stringTo_FloatMPFR(mpfr_t rop, const char* nPtr, char** endPtr = null
 	*/
 	inline FloatMPFR atan2(FloatMPFR y, FloatMPFR x) {
 		FloatMPFR result; result.copy_prec(y);
-		mpfr_atan2(result.value, y.value, x.value, MPFR_RNDZ);
+		mpfr_atan2(result.value, y.value, x.value, MPFR_ROUND);
 		return result;
 	}
 
@@ -567,7 +568,7 @@ inline int stringTo_FloatMPFR(mpfr_t rop, const char* nPtr, char** endPtr = null
 	/** mpfr_modf */
 	inline FloatMPFR modf(FloatMPFR x, FloatMPFR* y) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_modf(result.value, y->value, x.value, MPFR_RNDZ);
+		mpfr_modf(result.value, y->value, x.value, MPFR_ROUND);
 		return result;
 	}
 
@@ -577,7 +578,7 @@ inline int stringTo_FloatMPFR(mpfr_t rop, const char* nPtr, char** endPtr = null
 	*/
 	inline FloatMPFR fmod(FloatMPFR x, FloatMPFR y) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_fmod(result.value, x.value, y.value, MPFR_RNDZ);
+		mpfr_fmod(result.value, x.value, y.value, MPFR_ROUND);
 		return result;
 	}
 
@@ -587,7 +588,7 @@ inline int stringTo_FloatMPFR(mpfr_t rop, const char* nPtr, char** endPtr = null
 	*/
 	inline FloatMPFR remainder(FloatMPFR x, FloatMPFR y) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_remainder(result.value, x.value, y.value, MPFR_RNDZ);
+		mpfr_remainder(result.value, x.value, y.value, MPFR_ROUND);
 		return result;
 	}
 
@@ -598,7 +599,7 @@ inline int stringTo_FloatMPFR(mpfr_t rop, const char* nPtr, char** endPtr = null
 	inline FloatMPFR remquo(FloatMPFR x, FloatMPFR y, int* quo) {
 		FloatMPFR result; result.copy_prec(x);
 		long temp_quo;
-		mpfr_remquo(result.value, &temp_quo, x.value, y.value, MPFR_RNDZ);
+		mpfr_remquo(result.value, &temp_quo, x.value, y.value, MPFR_ROUND);
 		*quo = (int)temp_quo;
 		return result;
 	}
@@ -617,9 +618,38 @@ inline int stringTo_FloatMPFR(mpfr_t rop, const char* nPtr, char** endPtr = null
 	*/
 	inline FloatMPFR copysign(FloatMPFR x, FloatMPFR y) {
 		FloatMPFR result; result.copy_prec(x);
-		mpfr_copysign(result.value, x.value, y.value, MPFR_RNDZ);
+		mpfr_copysign(result.value, x.value, y.value, MPFR_ROUND);
 		return result;
 		
+	}
+
+//------------------------------------------------------------------------------
+// Transcendental Functions
+//------------------------------------------------------------------------------
+
+	inline FloatMPFR erf(FloatMPFR x) {
+		FloatMPFR result; result.copy_prec(x);
+		mpfr_erf(result.value, x.value, MPFR_ROUND);
+		return result;
+	}
+
+	inline FloatMPFR erfc(FloatMPFR x) {
+		FloatMPFR result; result.copy_prec(x);
+		mpfr_erfc(result.value, x.value, MPFR_ROUND);
+		return result;
+	}
+
+	inline FloatMPFR tgamma(FloatMPFR x) {
+		FloatMPFR result; result.copy_prec(x);
+		mpfr_gamma(result.value, x.value, MPFR_ROUND);
+		return result;
+	}
+
+	inline FloatMPFR lgamma(FloatMPFR x) {
+		FloatMPFR result; result.copy_prec(x);
+		int sign;
+		mpfr_lgamma(result.value, &sign, x.value, MPFR_ROUND);
+		return result;
 	}
 
 #endif

@@ -90,7 +90,7 @@ static inline bool Float64_isnormal(const fp64 x) {
 /**
  * @brief Avoids compiler defined macros
  */
-static inline fp64 Float64_isunordered(const fp64 x, const fp64 y) {
+static inline bool Float64_isunordered(const fp64 x, const fp64 y) {
 	return (Float64_isnan(x) || Float64_isnan(y));
 }
 

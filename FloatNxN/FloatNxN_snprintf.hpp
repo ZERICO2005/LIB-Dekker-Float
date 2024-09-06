@@ -208,7 +208,7 @@ class internal_FloatNxN_snprintf {
 		}
 
 		// Allocates the string/buffer
-		size_t size_str = len_str + 1;
+		size_t size_str = (size_t)len_str + 1;
 		char* buf = (char*)calloc(size_str, sizeof(char));
 		if (buf == nullptr) {
 			// calloc failure

@@ -619,8 +619,8 @@ namespace std {
 		static constexpr bool has_signaling_NaN = std::numeric_limits<fp64>::has_signaling_NaN;
 		static constexpr std::float_denorm_style has_denorm = std::numeric_limits<fp64>::has_denorm;
 		static constexpr bool is_bounded = true;
-		static constexpr int digits = 104;
-		static constexpr int digits10 = 31;
+		static constexpr int digits = 106; // 2 * (52 mantissa bits + 1 implicit bit)
+		static constexpr int digits10 = 31; // floor(mantissa bits * log10(2))
 		/**
 		 * @brief Dekker floats can represent FLT_MAX + FLT_MIN exactly, which
 		 * is why an absurd amount of digits may be required.
@@ -650,7 +650,7 @@ namespace std {
 			};
 		}
 		inline static constexpr Float64x2 lowest() { return -max(); }
-		inline static constexpr Float64x2 epsilon() { return {static_cast<fp64>(0x1.0p-104), static_cast<fp64>(0.0)}; }
+		inline static constexpr Float64x2 epsilon() { return {static_cast<fp64>(0x1.0p-104), static_cast<fp64>(0.0)}; } // DBL_EPSILON seems to be 0x1.0p-52
 		inline static constexpr Float64x2 round_error() { return {static_cast<fp64>(0.5), static_cast<fp64>(0.0)}; }
 		inline static constexpr Float64x2 infinity() {
 			return {
@@ -719,7 +719,9 @@ namespace std {
 
 /* Other constants */
 
-	constexpr Float64x2 Float64x2_inv_e = {0x1.78b56362cef37p-2,+0x1.8d5d6f63c14820p-55}; /**< ~0.367879 */
+
+	constexpr Float64x2 Float64x2_sqrtpi = {0x1.c5bf891b4ef6bp+0,-0x1.618f13eb7ca89p-54}; /**< ~1.772453851 */
+	constexpr Float64x2 Float64x2_inv_e  = {0x1.78b56362cef37p-2,+0x1.8d5d6f63c1482p-55}; /**< ~0.367879441 */
 
 	constexpr Float64x2 Float64x2_2pi  = {0x1.921fb54442d18p+2,+0x1.1a62633145c06p-52}; /**< ~6.283185 */
 	constexpr Float64x2 Float64x2_pi2  = {0x1.921fb54442d18p+0,+0x1.1a62633145c06p-54}; /**< ~1.570796 */
@@ -1078,25 +1080,11 @@ namespace std {
 	}
 
 /* Transcendental Functions */
-	
-	/** 
-	 * @note casts to long double for calculation as this function is not
-	 * currently implemeneted.
-	 */
-	inline Float64x2 erf(const Float64x2& x) {
-		return static_cast<Float64x2>(
-			erf(static_cast<long double>(x))
-		);
-	}
-	/** 
-	 * @note casts to long double for calculation as this function is not
-	 * currently implemeneted.
-	 */
-	inline Float64x2 erfc(const Float64x2& x) {
-		return static_cast<Float64x2>(
-			erfc(static_cast<long double>(x))
-		);
-	}
+
+	Float64x2 erf(const Float64x2& x);
+
+	Float64x2 erfc(const Float64x2& x);
+
 	/** 
 	 * @note casts to long double for calculation as this function is not
 	 * currently implemeneted.

@@ -7,13 +7,21 @@
 */
 
 /*
-**	Portions of this file were part of the libQD library, licensed
-**	under a modifed BSD license that can be found below:
+**	Portions of this file were part of the libQD and libDDFUN library
+**
+**	libQD is licensed under a modifed BSD license that can be found below:
 **	https://www.davidhbailey.com/dhbsoftware/LBNL-BSD-License.docx
 **	Or alternatively from this website:
 **	https://www.davidhbailey.com/dhbsoftware/
 **	A copy of the LBNL-BSD-License can also be found at:
 **	LIB-Dekker-Float/libQD/LBNL-BSD-License.txt
+**
+**	libDDFUN is licensed under a limited BSD license that can be found below:
+**	https://www.davidhbailey.com/dhbsoftware/DHB-License.docx
+**	Or alternatively from this website:
+**	https://www.davidhbailey.com/dhbsoftware/
+**	A copy of the Limited-BSD-License can also be found at:
+**	LIB-Dekker-Float/libDDFUN/DISCLAIMER_and_Limited-BSD-License.txt
 */
 
 #include <limits>
@@ -193,6 +201,7 @@ static inline Float64x2 taylor_expm1(const Float64x2& x, fp64& m) {
 	m = floor(x.hi * Float64x2_log2e.hi + 0.5);
 	Float64x2 r = mul_pwr2(x - Float64x2_ln2 * m, inv_k);
 	Float64x2 s, t, p;
+	const fp64 thresh = inv_k * std::numeric_limits<Float64x2>::epsilon().hi;
 
 	p = square(r);
 	s = r + mul_pwr2(p, 0.5);
@@ -205,7 +214,7 @@ static inline Float64x2 taylor_expm1(const Float64x2& x, fp64& m) {
 		p *= r;
 		++i;
 		t = p * inv_fact[i];
-	} while (fabs(t.hi) > inv_k * std::numeric_limits<Float64x2>::epsilon().hi && (i < 6 && i < n_inv_fact));
+	} while (fabs(t.hi) > thresh && (i < 6 && i < n_inv_fact));
 
 	s += t;
 
@@ -509,7 +518,7 @@ Float64x2 sin(const Float64x2& x) {
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x2 sin(const Float64x2& a) {  
+Float64x2 sin(const Float64x2& x) {  
 
 	/* Strategy.  To compute sin(x), we choose integers a, b so that
 
@@ -522,13 +531,13 @@ Float64x2 sin(const Float64x2& a) {
 		we can compute sin(x) from sin(s), cos(s).  This greatly 
 		increases the convergence of the sine Taylor series. */
 
-	if (dekker_equal_zero(a)) {
+	if (dekker_equal_zero(x)) {
 		return 0.0;
 	}
 
 	// approximately reduce modulo 2*pi
-	Float64x2 z = round(a / Float64x2_2pi);
-	Float64x2 r = a - Float64x2_2pi * z;
+	Float64x2 z = round(x / Float64x2_2pi);
+	Float64x2 r = x - Float64x2_2pi * z;
 
 	// approximately reduce modulo pi/2 and then modulo pi/16.
 	Float64x2 t;
@@ -600,15 +609,15 @@ Float64x2 sin(const Float64x2& a) {
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x2 cos(const Float64x2& a) {
+Float64x2 cos(const Float64x2& x) {
 
-	if (dekker_equal_zero(a)) {
+	if (dekker_equal_zero(x)) {
 		return 1.0;
 	}
 
 	// approximately reduce modulo 2*pi
-	Float64x2 z = round(a / Float64x2_2pi);
-	Float64x2 ret = a - z * Float64x2_2pi;
+	Float64x2 z = round(x / Float64x2_2pi);
+	Float64x2 ret = x - z * Float64x2_2pi;
 
 	// approximately reduce modulo pi/2 and then modulo pi/16
 	Float64x2 t;
@@ -876,8 +885,8 @@ Float64x2 atan2(const Float64x2& y, const Float64x2& x) {
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x2 asin(const Float64x2& a) {
-	Float64x2 abs_a = fabs(a);
+Float64x2 asin(const Float64x2& x) {
+	Float64x2 abs_a = fabs(x);
 
 	if (abs_a > static_cast<fp64>(1.0)) {
 		// Float64x2::error("(Float64x2::asin): Argument out of domain.");
@@ -885,18 +894,18 @@ Float64x2 asin(const Float64x2& a) {
 	}
 
 	if (abs_a == static_cast<fp64>(1.0)) {
-		return (dekker_greater_zero(a)) ? Float64x2_pi2 : -Float64x2_pi2;
+		return (dekker_greater_zero(x)) ? Float64x2_pi2 : -Float64x2_pi2;
 	}
 
-	return atan2(a, sqrt(static_cast<fp64>(1.0) - square(a)));
+	return atan2(x, sqrt(static_cast<fp64>(1.0) - square(x)));
 }
 
 /** 
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x2 acos(const Float64x2& a) {
-	Float64x2 abs_a = fabs(a);
+Float64x2 acos(const Float64x2& x) {
+	Float64x2 abs_a = fabs(x);
 
 	if (abs_a > static_cast<fp64>(1.0)) {
 		// Float64x2::error("(Float64x2::acos): Argument out of domain.");
@@ -904,33 +913,33 @@ Float64x2 acos(const Float64x2& a) {
 	}
 
 	if (abs_a == static_cast<fp64>(1.0)) {
-		return (dekker_greater_zero(a)) ? Float64x2(0.0) : Float64x2_pi;
+		return (dekker_greater_zero(x)) ? Float64x2(0.0) : Float64x2_pi;
 	}
 
-	return atan2(sqrt(static_cast<fp64>(1.0) - square(a)), a);
+	return atan2(sqrt(static_cast<fp64>(1.0) - square(x)), x);
 }
 
 /** 
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x2 sinh(const Float64x2& a) {
-	if (dekker_equal_zero(a)) {
+Float64x2 sinh(const Float64x2& x) {
+	if (dekker_equal_zero(x)) {
 		return static_cast<Float64x2>(0.0);
 	}
 
-	if (fabs(a.hi) > static_cast<fp64>(0.05)) {
-		Float64x2 ea = exp(a);
+	if (fabs(x.hi) > static_cast<fp64>(0.05)) {
+		Float64x2 ea = exp(x);
 		return mul_pwr2((ea - recip(ea)), 0.5);
 	}
 
 	/* since a is small, using the above formula gives
 		a lot of cancellation.  So use Taylor series.   */
-	Float64x2 s = a;
-	Float64x2 t = a;
+	Float64x2 s = x;
+	Float64x2 t = x;
 	Float64x2 r = square(t);
 	fp64 m = 1.0;
-	fp64 thresh = fabs(a.hi * std::numeric_limits<Float64x2>::epsilon().hi);
+	fp64 thresh = fabs(x.hi * std::numeric_limits<Float64x2>::epsilon().hi);
 
 	do {
 		m += 2.0;
@@ -997,35 +1006,447 @@ void sinhcosh(const Float64x2& x, Float64x2& p_sinh, Float64x2& p_cosh) {
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x2 asinh(const Float64x2& a) {
-	return log(a + sqrt(square(a) + static_cast<fp64>(1.0)));
+Float64x2 asinh(const Float64x2& x) {
+	return log(x + sqrt(square(x) + static_cast<fp64>(1.0)));
 }
 
 /** 
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x2 acosh(const Float64x2& a) {
-	if (a < static_cast<fp64>(1.0)) {
+Float64x2 acosh(const Float64x2& x) {
+	if (x < static_cast<fp64>(1.0)) {
 		// Float64x2::error("(Float64x2::acosh): Argument out of domain.");
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
 
-	return log(a + sqrt(square(a) - static_cast<fp64>(1.0)));
+	return log(x + sqrt(square(x) - static_cast<fp64>(1.0)));
 }
 
 /** 
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-Float64x2 atanh(const Float64x2& a) {
-	if (fabs(a) >= static_cast<fp64>(1.0)) {
+Float64x2 atanh(const Float64x2& x) {
+	if (fabs(x) >= static_cast<fp64>(1.0)) {
 		// Float64x2::error("(Float64x2::atanh): Argument out of domain.");
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
 
-	return mul_pwr2(log((static_cast<fp64>(1.0) + a) / (static_cast<fp64>(1.0) - a)), 0.5);
+	return mul_pwr2(log((static_cast<fp64>(1.0) + x) / (static_cast<fp64>(1.0) - x)), 0.5);
 }
+
+//------------------------------------------------------------------------------
+// Float64x2 erf and erfc
+//------------------------------------------------------------------------------
+
+// static constexpr int dd_knd =  8; /**< Kind parameter for IEEE double floats (usually 8). */
+// static constexpr int dd_ldb =  6; /**< Logical device number for output of error messages. */
+// static constexpr int dd_nbt = 53; /**< Number of mantissa bits in DP word. */
+// static constexpr int dd_nwx =  2; /**< Number of words in DDR datum. */
+// static constexpr fp64 dd_dpw  = 15.954589770191003346328161420398; /**< log10(2^53) Approx. number of digits per DP word. */    
+// static constexpr fp64 dd_logb = 36.736800569677101399113302437283; /**< log(2^53) Approx. constant needed for zeta routines in ddfune. */
+// static constexpr fp64 dd_rdfz = 0x1.0p-50; /**< 2^-50 "Fuzz" for comparing DP values. */
+// static constexpr Float64x2 dd_picon = Float64x2_pi; /**< Two-word DDR value of pi. */
+// static constexpr Float64x2 dd_egammacon = Float64x2_egamma; /**< Two-word DDR value of Euler's gamma constant. */
+
+// The value of epsilon used for Float64x2 in the Fortran90 libDDFUN routines.
+static constexpr fp64 F90_epsilon = 0x1.0p-106;
+
+// static inline void dd_abrt(void) {
+// 	printf("dd_arbt\n");
+// }
+
+__attribute__((unused)) static inline Float64x2 pown(const Float64x2& x, int n) {
+	
+	if (n == 0) {
+		return 1.0;
+	}
+	if (dekker_equal_zero(x)) {
+		return 0.0;
+	}
+
+	Float64x2 r = x;
+	Float64x2 s = 1.0;
+	// casts to unsigned int since abs(INT_MIN) < 0
+	unsigned int N = (unsigned int)((n < 0) ? -n : n);
+
+	if (N > 1) {
+		/* Use binary exponentiation */
+		while (N > 0) {
+			if (N % 2 == 1) {
+				s *= r;
+			}
+			N /= 2;
+			if (N > 0) {
+				r = square(r);
+			}
+		}
+	} else {
+		s = r;
+	}
+
+	/* Compute the reciprocal if n is negative. */
+	if (n < 0) {
+		return (1.0 / s);
+	}
+	return s;
+}
+
+/**
+ * @remarks This function computes ldexp(x, n) storing the result
+ * as a Float64x2. Although most of the time n is zero, which leads me to
+ * believe that this function is just for converting fp64 to Float64x2.
+ */
+static inline void call_dd_dmc(const fp64 x, const int n, Float64x2& ret) {
+	ret.hi = ldexp(x, n);
+	ret.lo = 0.0;
+}
+
+/**
+ * @brief Three way comparison <=> possibly?
+ */
+static inline void call_dd_cpr(const Float64x2& x, const Float64x2& y, int& ret) {
+	// ret = (x < y) ? -1 : (x > y) ? 1 : 0;
+
+	if (x.hi < y.hi) {
+		ret = -1;
+	} else if (x.hi == y.hi) {
+		if (x.lo < y.lo) {
+			ret = -1;
+		} else if (x.lo == y.lo) {
+			ret = 0;
+		} else {
+			ret = 1;
+		}
+	} else {
+		ret = 1;
+	}
+}
+
+/** 
+ * @author Taken from libDDFUN ddfune.f90 which can be found under a
+ * Limited-BSD license from https://www.davidhbailey.com/dhbsoftware/
+ */
+Float64x2 erf(const Float64x2& z) {
+	//   This evaluates the erf function, using a combination of two series.
+	//   In particular, the algorithm is
+	//   (where B = FloatNxN_Count * FloatN_Mantissa_Bits, and
+	//   dcon is a constant defined below):
+	//
+	//   if (z == 0) {
+	//     erf = 0;
+	//   } else if (z > sqrt(B*log(2))) {
+	//     erf = 1;
+	//   } else if (z < -sqrt(B*log(2))) {
+	//     erf = -1;
+	//   } else if (abs(z) < B/dcon + 8) {
+	//     erf = 2 / (sqrt(pi)*exp(z^2)) * Sum_{k>=0} 2^k * z^(2*k+1);
+	//             / (1.3....(2*k+1));
+	//   } else {
+	//     erf = 1 - 1 / (sqrt(pi)*exp(z^2));
+	//             * Sum_{k>=0} (-1)^k * (1.3...(2*k-1)) / (2^k * z^(2*k+1));
+	//   }
+
+	// Float64x2, intent(in):: z
+	// Float64x2, intent(out):: terf
+	Float64x2 terf;
+	/**
+	 * @remarks the lower bound of max_iter for erf seems to be 148. 147 gives
+	 * a few results that are accurate to 74bits instead of 108bits or more.
+	 * I am not sure why max_iter was set to 10000 initially instead of 1000.
+	 * A max_iter of 152 is choosen to cover any missed edge cases, and
+	 * because it is a multiple of 4 (Should that help the compiler at all).
+	 */
+	constexpr int max_iter = 152;
+	constexpr fp64 dcon = 100.0;
+	int ic1, ic2, ic3;
+	// int n1; // unused?
+	fp64 d1, d2;
+	Float64x2 t1, t2, t3, t4, t5, t6, t7;
+	Float64x2 z2, tc1;
+	// Float64x2 tc2, tc3; // unused?
+
+
+	// int dd_nw, dd_nw1;
+	// dd_nw = Float64x2_count;
+	// dd_nw1 = std::min(dd_nw + 1, Float64x2_count);
+
+	call_dd_dmc(2.0, 0, tc1);
+	
+	d1 = trunc(1.0 + sqrt(
+		static_cast<fp64>(std::numeric_limits<Float64x2>::digits) * Float64x2_ln2.hi
+	));
+	d2 = trunc((
+		static_cast<fp64>(std::numeric_limits<Float64x2>::digits) / dcon
+	) + 8.0);
+	call_dd_dmc(d1, 0, t1);
+	call_dd_dmc(d2, 0, t2);
+	call_dd_cpr(z, t1, ic1);
+	// t1(2) = - t1(2);
+	t3 = -t1;
+	t1 = t3;
+	call_dd_cpr(z, t1, ic2);
+	call_dd_cpr(z, t2, ic3);
+
+	if (dekker_equal_zero(z)) { // sign(z) == 0
+		call_dd_dmc(0.0, 0, terf);
+	} else if (ic1 > 0) {
+		call_dd_dmc(1.0, 0, terf);
+	} else if (ic2 < 0) {
+		call_dd_dmc(-1.0, 0, terf);
+	} else if (ic3 < 0) {
+		z2 = z * z;
+		call_dd_dmc(0.0, 0, t1);
+		t2 = z;
+		call_dd_dmc(1.0, 0, t3);
+		call_dd_dmc(1.0e10, 0, t5);
+
+		for (int k = 0; k < max_iter; k++) {
+			if (k > 0) {
+				t6 = z2 * 2.0;
+				t7 = t6 * t2;
+				t2 = t7;
+				d1 = 2.0 * static_cast<fp64>(k) + 1.0;
+				t6 = t3 * d1;
+				t3 = t6;
+			}
+
+			t4 = t2 / t3;
+			t6 = t1 + t4;
+			t1 = t6;
+			t6 = t4 / t1;
+			call_dd_cpr(t6, F90_epsilon, ic1);
+			call_dd_cpr(t6, t5, ic2);
+			if (ic1 <= 0 || ic2 >= 0) {
+				goto JMP_120;
+			}
+			t5 = t6;
+		}
+
+	// write (dd_ldb, 3) 1, max_iter;
+	// 3 format ('*** DDERFR: iteration limit exceeded',2i10);
+	// call_dd_abrt
+
+	/* label */ JMP_120:
+
+		t3 = t1 * 2.0;
+		t4 = Float64x2_sqrtpi;
+		t5 = exp(z2);
+		t6 = t4 * t5;
+		t7 = t3 / t6;
+		terf = t7;
+	} else {
+		z2 = z * z;
+		call_dd_dmc(0.0, 0, t1);
+		call_dd_dmc(1.0, 0, t2);
+		t3 = fabs(z);
+		call_dd_dmc(1.0e10, 0, t5);
+
+		for (int k = 0; k < max_iter; k++) {
+			if (k > 0) {
+				d1 = -(2.0 * static_cast<fp64>(k) - 1.0);
+				t6 = t2 * d1;
+				t2 = t6;
+				t6 = t2 * t3;
+				t3 = t6;
+			}
+
+			t4 = t2 / t3;
+			t6 = t1 + t4;
+			t1 = t6;
+			t6 = t4 / t1;
+			call_dd_cpr(t6, F90_epsilon, ic1);
+			call_dd_cpr(t6, t5, ic2);
+			if (ic1 <= 0 || ic2 >= 0) {
+				goto JMP_130;
+			}
+			t5 = t6;
+		}
+
+	// write (dd_ldb, 3) 2, max_iter;
+	// call_dd_abrt
+
+	/* label */ JMP_130:
+
+		call_dd_dmc(1.0, 0, t2);
+		t3 = Float64x2_sqrtpi;
+		t4 = exp(z2);
+		t5 = t3 * t4;
+		t6 = t1 / t5;
+		t7 = t2 - t6;
+		terf = t7;
+		if (dekker_less_zero(z)) { // sign(z) < 0
+			t6 = -terf;
+			terf = t6;
+		}
+	}
+
+	return terf;
+}
+
+/** 
+ * @author Taken from libDDFUN ddfune.f90 which can be found under a
+ * Limited-BSD license from https://www.davidhbailey.com/dhbsoftware/
+ */
+Float64x2 erfc(const Float64x2& z) {
+	//   This evaluates the erf function, using a combination of two series.
+	//   In particular, the algorithm is
+	//   (where B = FloatNxN_Count * FloatN_Mantissa_Bits, and
+	//   dcon is a constant defined below):
+	//
+	//   if (z == 0) {
+	//     erfc = 1;
+	//   } else if (z > sqrt(B*log(2))) {
+	//     erfc = 0;
+	//   } else if (z < -sqrt(B*log(2))) {
+	//     erfc = 2;
+	//   } else if (abs(z) < B/dcon + 8) {
+	//     erfc = 1 - 2 / (sqrt(pi)*exp(z^2)) * Sum_{k>=0} 2^k * z^(2*k+1);
+	//               / (1.3....(2*k+1));
+	//   } else {
+	//     erfc = 1 / (sqrt(pi)*exp(z^2));
+	//             * Sum_{k>=0} (-1)^k * (1.3...(2*k-1)) / (2^k * z^(2*k+1));
+	//   }
+
+	// Float64x2, intent(in):: z
+	// Float64x2, intent(out):: terfc
+	Float64x2 terfc;
+	/**
+	 * @remarks the lower bound of max_iter for erfc seems to be 148. 147 gives
+	 * a few results that are accurate to 74bits instead of 108bits or more.
+	 * I am not sure why max_iter was set to 10000 initially instead of 1000.
+	 * A max_iter of 152 is choosen to cover any missed edge cases, and
+	 * because it is a multiple of 4 (Should that help the compiler at all).
+	 */
+	constexpr int max_iter = 152;
+	constexpr fp64 dcon = 100.0;
+	int ic1, ic2, ic3;
+	// int n1; // unused?
+	fp64 d1, d2;
+	Float64x2 t1, t2, t3, t4, t5, t6, t7;
+	Float64x2 z2, tc1;
+	// Float64x2 tc2, tc3; // unused?
+
+	// int dd_nw, dd_nw1;
+	// dd_nw = Float64x2_count;
+	// dd_nw1 = std::min(dd_nw + 1, Float64x2_count);
+
+	call_dd_dmc(2.0, 0, tc1);
+	d1 = trunc(1.0 + sqrt(
+		static_cast<fp64>(std::numeric_limits<Float64x2>::digits) * Float64x2_ln2.hi
+	));
+	d2 = trunc((
+		static_cast<fp64>(std::numeric_limits<Float64x2>::digits) / dcon
+	) + 8.0);
+	call_dd_dmc(d1, 0, t1);
+	call_dd_dmc(d2, 0, t2);
+	call_dd_cpr(z, t1, ic1);
+	t3 = -t1;
+	t1 = t3;
+	call_dd_cpr(z, t1, ic2);
+	call_dd_cpr(z, t2, ic3);
+
+	if (dekker_equal_zero(z)) { // sign(z) == 0
+		call_dd_dmc(1.0, 0, terfc);
+	} else if (ic1 > 0) {
+		call_dd_dmc(0.0, 0, terfc);
+	} else if (ic2 < 0) {
+		call_dd_dmc(2.0, 0, terfc);
+	} else if (ic3 < 0) {
+		z2 = z * z;
+		call_dd_dmc(0.0, 0, t1);
+		t2 = z;
+		call_dd_dmc(1.0, 0, t3);
+		call_dd_dmc(1.0e10, 0, t5);
+
+		for (int k = 0; k < max_iter; k++) {
+			if (k > 0) {
+				t6 = z2 * 2.0;
+				t7 = t6 * t2;
+				t2 = t7;
+				d1 = 2.0 * static_cast<fp64>(k) + 1.0;
+				t6 = t3 * d1;
+				t3 = t6;
+			}
+
+			t4 = t2 / t3;
+			t6 = t1 + t4;
+			t1 = t6;
+			t6 = t4 / t1;
+			call_dd_cpr(t6, F90_epsilon, ic1);
+			call_dd_cpr(t6, t5, ic2);
+			if (ic1 <= 0 || ic2 >= 0) {
+				goto JMP_120;
+			}
+			t5 = t6;
+		}
+
+	// write (dd_ldb, 3) 1, max_iter;
+	// 3 format ('*** DDERFCR: iteration limit exceeded',2i10);
+	// call_dd_abrt
+
+	/* label */ JMP_120:
+
+		call_dd_dmc(1.0, 0, t2);
+		t3 = t1 * 2.0;
+		t4 = Float64x2_sqrtpi;
+		t5 = exp(z2);
+		t6 = t4 * t5;
+		t7 = t3 / t6;
+		t6 = t2 - t7;
+		terfc = t6;
+	} else {
+		z2 = z * z;
+		call_dd_dmc(0.0, 0, t1);
+		call_dd_dmc(1.0, 0, t2);
+		t3 = fabs(z);
+		call_dd_dmc(1.0e10, 0, t5);
+
+		for (int k = 0; k < max_iter; k++) {
+			if (k > 0) {
+				d1 = -(2.0 * static_cast<fp64>(k) - 1.0);
+				t6 = t2 * d1;
+				t2 = t6;
+				t6 = t2 * t3;
+				t3 = t6;
+			}
+
+			t4 = t2 / t3;
+			t6 = t1 + t4;
+			t1 = t6;
+			t6 = t4 / t1;
+			call_dd_cpr(t6, F90_epsilon, ic1);
+			call_dd_cpr(t6, t5, ic2);
+			if (ic1 <= 0 || ic2 >= 0) {
+				goto JMP_130;
+			}
+			t5 = t6;
+		}
+
+	// write (dd_ldb, 3) 2, max_iter;
+	// call_dd_abrt
+
+	/* label */ JMP_130:
+
+		t3 = Float64x2_sqrtpi;
+		t4 = exp(z2);
+		t5 = t3 * t4;
+		t6 = t1 / t5;
+		if (dekker_less_zero(z)) { // sign(z) < 0
+			call_dd_dmc(2.0, 0, t2);
+			t7 = t2 - t6;
+			t6 = t7;
+		}
+		terfc = t6;
+	}
+
+	return terfc;
+}
+
+//------------------------------------------------------------------------------
+// Float64x2 lgamma and tgamma
+//------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
 // Float64x2 math.h wrapper functions

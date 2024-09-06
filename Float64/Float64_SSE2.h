@@ -48,5 +48,4 @@ static inline __m128i _mm_ilogb_pd_epu64(__m128d x) {
 	return _mm_srli_epi64(ret, 52);
 }
 
-
 #endif /* FLOAT64_SSE2_H */

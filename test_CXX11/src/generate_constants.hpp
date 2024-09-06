@@ -123,13 +123,22 @@ void output_constant_SIMD(const char* label, FloatX dst) {
 template<typename FloatX>
 void output_constant(const char* label, __attribute__((unused)) const char* name, FloatMPFR src) {
 	FloatX dst = mpfr_get_type<FloatX>(src.value, MPFR_RNDN);
-	output_constant_SIMD(label, dst);
 	#if 0
+	output_constant_SIMD(label, dst);
+	#elif 1
+		#if 0
 		printf(
 			"template<> inline constexpr %s %-12s <%s> = "\
-			"{%+-17.7a, %+-17.7a, %+-17.7a, %+-17.7a};\n",
+			"{%-16.7a, %+-17.7a, %+-17.7a, %+-17.7a};\n",
 			name, label, name, dst.val[0], dst.val[1], dst.val[2], dst.val[3]
 		);
+		#elif 1
+		printf(
+			"template<> inline constexpr %s %-12s <%s> = "\
+			"{%-22.13a, %+-23.13a, %+-23.13a, %+-23.13a};\n",
+			name, label, name, dst.val[0], dst.val[1], dst.val[2], dst.val[3]
+		);
+		#endif
 	#elif 0
 		char dst_hi[999];
 		char dst_lo[999];
