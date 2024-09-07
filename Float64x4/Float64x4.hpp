@@ -21,10 +21,12 @@
 
 #include "Float64x4_def.h"
 #include "Float64x4.h"
-#include "Float64x2/Float64x2.hpp"
+#include "../Float64x2/Float64x2.hpp"
 
 #include <cstdint>
 #include <cmath>
+
+#include "../FloatNxN/FloatNxN_arithmetic.hpp"
 
 //------------------------------------------------------------------------------
 // Float64x4 String Operations
@@ -339,28 +341,309 @@ inline constexpr bool operator>=(const fp64 x, const Float64x4& y) {
 //------------------------------------------------------------------------------
 
 /** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
-inline constexpr bool dekker_equal_zero(const Float64x4& x) {
+inline constexpr bool isequal_zero(const Float64x4& x) {
 	return (x.val[0] == 0.0);
 }
 /** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
-inline constexpr bool dekker_notequal_zero(const Float64x4& x) {
+inline constexpr bool isnotequal_zero(const Float64x4& x) {
 	return (x.val[0] != 0.0);
 }
 /** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
-inline constexpr bool dekker_less_zero(const Float64x4& x) {
+inline constexpr bool isless_zero(const Float64x4& x) {
 	return (x.val[0] < 0.0);
 }
 /** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
-inline constexpr bool dekker_lessequal_zero(const Float64x4& x) {
+inline constexpr bool islessequal_zero(const Float64x4& x) {
 	return (x.val[0] <= 0.0);
 }
 /** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
-inline constexpr bool dekker_greater_zero(const Float64x4& x) {
+inline constexpr bool isgreater_zero(const Float64x4& x) {
 	return (x.val[0] > 0.0);
 }
 /** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
-inline constexpr bool dekker_greaterequal_zero(const Float64x4& x) {
+inline constexpr bool isgreaterequal_zero(const Float64x4& x) {
 	return (x.val[0] >= 0.0);
+}
+
+//------------------------------------------------------------------------------
+// Float64x4 LDF Arithmetic
+//------------------------------------------------------------------------------
+
+template <> inline
+Float64x4 LDF::add<Float64x4, Float64x4, Float64x4>
+(const Float64x4& x, const Float64x4& y) {
+	return Float64x4_add(x, y);
+}
+
+template <> inline
+Float64x4 LDF::add<Float64x4, Float64x4, Float64x2>
+(const Float64x4& x, const Float64x2& y) {
+	return Float64x4_add_dx4_dx2(x, y);
+}
+
+template <> inline
+Float64x4 LDF::add<Float64x4, Float64x2, Float64x4>
+(const Float64x2& x, const Float64x4& y) {
+	return Float64x4_add_dx4_d(x, y);
+}
+
+template <> inline
+Float64x4 LDF::add<Float64x4, Float64x4, fp64>
+(const Float64x4& x, const fp64& y) {
+	return Float64x4_add_dx2_dx4(x, y);
+}
+
+template <> inline
+Float64x4 LDF::add<Float64x4, fp64, Float64x4>
+(const fp64& x, const Float64x4& y) {
+	return Float64x4_add_d_dx4(x, y);
+}
+
+/* Subtraction */
+
+template <> inline
+Float64x4 LDF::sub<Float64x4, Float64x4, Float64x4>
+(const Float64x4& x, const Float64x4& y) {
+	return Float64x4_sub(x, y);
+}
+
+template <> inline
+Float64x4 LDF::sub<Float64x4, Float64x4, Float64x2>
+(const Float64x4& x, const Float64x2& y) {
+	return Float64x4_sub_dx4_dx2(x, y);
+}
+
+template <> inline
+Float64x4 LDF::sub<Float64x4, Float64x2, Float64x4>
+(const Float64x2& x, const Float64x4& y) {
+	return Float64x4_sub_dx4_d(x, y);
+}
+
+template <> inline
+Float64x4 LDF::sub<Float64x4, Float64x4, fp64>
+(const Float64x4& x, const fp64& y) {
+	return Float64x4_sub_dx2_dx4(x, y);
+}
+
+template <> inline
+Float64x4 LDF::sub<Float64x4, fp64, Float64x4>
+(const fp64& x, const Float64x4& y) {
+	return Float64x4_sub_d_dx4(x, y);
+}
+
+/* Multiplication */
+
+template <> inline
+Float64x4 LDF::mul<Float64x4, Float64x4, Float64x4>
+(const Float64x4& x, const Float64x4& y) {
+	return Float64x4_mul(x, y);
+}
+
+template <> inline
+Float64x4 LDF::mul<Float64x4, Float64x4, Float64x2>
+(const Float64x4& x, const Float64x2& y) {
+	return Float64x4_mul_dx4_dx2(x, y);
+}
+
+template <> inline
+Float64x4 LDF::mul<Float64x4, Float64x2, Float64x4>
+(const Float64x2& x, const Float64x4& y) {
+	return Float64x4_mul_dx4_d(x, y);
+}
+
+template <> inline
+Float64x4 LDF::mul<Float64x4, Float64x4, fp64>
+(const Float64x4& x, const fp64& y) {
+	return Float64x4_mul_dx2_dx4(x, y);
+}
+
+template <> inline
+Float64x4 LDF::mul<Float64x4, fp64, Float64x4>
+(const fp64& x, const Float64x4& y) {
+	return Float64x4_mul_d_dx4(x, y);
+}
+
+/* Square */
+
+template <> inline
+Float64x4 LDF::square<Float64x4, Float64x4>
+(const Float64x4& x) {
+	return Float64x4_square(x);
+}
+
+/* Division */
+
+template <> inline
+Float64x4 LDF::div<Float64x4, Float64x4, Float64x4>
+(const Float64x4& x, const Float64x4& y) {
+	return Float64x4_div(x, y);
+}
+
+template <> inline
+Float64x4 LDF::div<Float64x4, Float64x4, Float64x2>
+(const Float64x4& x, const Float64x2& y) {
+	return Float64x4_div_dx4_dx2(x, y);
+}
+
+template <> inline
+Float64x4 LDF::div<Float64x4, Float64x2, Float64x4>
+(const Float64x2& x, const Float64x4& y) {
+	return Float64x4_div_dx4_d(x, y);
+}
+
+template <> inline
+Float64x4 LDF::div<Float64x4, Float64x4, fp64>
+(const Float64x4& x, const fp64& y) {
+	return Float64x4_div_dx2_dx4(x, y);
+}
+
+template <> inline
+Float64x4 LDF::div<Float64x4, fp64, Float64x4>
+(const fp64& x, const Float64x4& y) {
+	return Float64x4_div_d_dx4(x, y);
+}
+
+/* Reciprocal */
+
+template <> inline
+Float64x4 LDF::recip<Float64x4, Float64x4>
+(const Float64x4& x) {
+	return Float64x4_recip(x);
+}
+
+//------------------------------------------------------------------------------
+// Float64x4 LDF Optimized Arithmetic
+//------------------------------------------------------------------------------
+
+template <> inline
+Float64x4 LDF::add<Float64x4, Float64x2, Float64x2>
+(const Float64x2& x, const Float64x2& y) {
+	return Float64x4_add_dx2_dx2(x, y);
+}
+
+template <> inline
+Float64x4 LDF::add<Float64x4, Float64x2, fp64>
+(const Float64x2& x, const fp64& y) {
+	return Float64x4_add_dx2_d(x, y);
+}
+
+template <> inline
+Float64x4 LDF::add<Float64x4, fp64, Float64x2>
+(const fp64& x, const Float64x2& y) {
+	return Float64x4_add_d_dx2(x, y);
+}
+
+template <> inline
+Float64x4 LDF::add<Float64x4, fp64, fp64>
+(const fp64& x, const fp64& y) {
+	return Float64x4_add_d_d(x, y);
+}
+
+/* Subtraction */
+
+template <> inline
+Float64x4 LDF::sub<Float64x4, Float64x2, Float64x2>
+(const Float64x2& x, const Float64x2& y) {
+	return Float64x4_sub_dx2_dx2(x, y);
+}
+
+template <> inline
+Float64x4 LDF::sub<Float64x4, Float64x2, fp64>
+(const Float64x2& x, const fp64& y) {
+	return Float64x4_sub_dx2_d(x, y);
+}
+
+template <> inline
+Float64x4 LDF::sub<Float64x4, fp64, Float64x2>
+(const fp64& x, const Float64x2& y) {
+	return Float64x4_sub_d_dx2(x, y);
+}
+
+template <> inline
+Float64x4 LDF::sub<Float64x4, fp64, fp64>
+(const fp64& x, const fp64& y) {
+	return Float64x4_sub_d_d(x, y);
+}
+
+/* Multiplication */
+
+template <> inline
+Float64x4 LDF::mul<Float64x4, Float64x2, Float64x2>
+(const Float64x2& x, const Float64x2& y) {
+	return Float64x4_mul_dx2_dx2(x, y);
+}
+
+template <> inline
+Float64x4 LDF::mul<Float64x4, Float64x2, fp64>
+(const Float64x2& x, const fp64& y) {
+	return Float64x4_mul_dx2_d(x, y);
+}
+
+template <> inline
+Float64x4 LDF::mul<Float64x4, fp64, Float64x2>
+(const fp64& x, const Float64x2& y) {
+	return Float64x4_mul_d_dx2(x, y);
+}
+
+template <> inline
+Float64x4 LDF::mul<Float64x4, fp64, fp64>
+(const fp64& x, const fp64& y) {
+	return Float64x4_mul_d_d(x, y);
+}
+
+/* Square */
+
+template <> inline
+Float64x4 LDF::square<Float64x4, Float64x2>
+(const Float64x2& x) {
+	return Float64x4_square_dx2(x);
+}
+
+template <> inline
+Float64x4 LDF::square<Float64x4, fp64>
+(const fp64& x) {
+	return Float64x4_square_d(x);
+}
+
+/* Division */
+
+template <> inline
+Float64x4 LDF::div<Float64x4, Float64x2, Float64x2>
+(const Float64x2& x, const Float64x2& y) {
+	return Float64x4_div_dx2_dx2(x, y);
+}
+
+template <> inline
+Float64x4 LDF::div<Float64x4, Float64x2, fp64>
+(const Float64x2& x, const fp64& y) {
+	return Float64x4_div_dx2_d(x, y);
+}
+
+template <> inline
+Float64x4 LDF::div<Float64x4, fp64, Float64x2>
+(const fp64& x, const Float64x2& y) {
+	return Float64x4_div_d_dx2(x, y);
+}
+
+template <> inline
+Float64x4 LDF::div<Float64x4, fp64, fp64>
+(const fp64& x, const fp64& y) {
+	return Float64x4_div_d_d(x, y);
+}
+
+
+/* Reciprocal */
+
+template <> inline
+Float64x4 LDF::recip<Float64x4, Float64x2>
+(const Float64x2& x) {
+	return Float64x4_recip_dx2(x);
+}
+
+template <> inline
+Float64x4 LDF::recip<Float64x4, fp64>
+(const fp64& x) {
+	return Float64x4_recip_d(x);
 }
 
 //------------------------------------------------------------------------------
@@ -581,17 +864,21 @@ inline Float64x4 mul_pwr2(const fp64 x, const Float64x4& y) {
 // Float64x4 bitwise operators
 //------------------------------------------------------------------------------
 
-inline Float64x4 bitwise_not(const Float64x4& x) {
+template <> inline
+Float64x4 LDF::bitwise_not<Float64x4>
+(const Float64x4& x) {
 	Float64x4 ret = x;
 	uint64_t* binary_part = reinterpret_cast<uint64_t*>(&ret);
 	binary_part[0] = ~binary_part[0];
 	binary_part[1] = ~binary_part[1];
 	binary_part[2] = ~binary_part[2];
 	binary_part[3] = ~binary_part[3];
-	return x;
+	return ret;
 }
 
-inline Float64x4 bitwise_and(const Float64x4& x, const Float64x4& y) {
+template <> inline
+Float64x4 LDF::bitwise_and<Float64x4, Float64x4>
+(const Float64x4& x, const Float64x4& y) {
 	Float64x4 ret = x;
 	uint64_t* ret_bin = reinterpret_cast<uint64_t*>(&ret);
 	const uint64_t* y_bin = reinterpret_cast<const uint64_t*>(&y);
@@ -599,10 +886,12 @@ inline Float64x4 bitwise_and(const Float64x4& x, const Float64x4& y) {
 	ret_bin[1] &= y_bin[1];
 	ret_bin[2] &= y_bin[2];
 	ret_bin[3] &= y_bin[3];
-	return x;
+	return ret;
 }
 
-inline Float64x4 bitwise_andnot(const Float64x4& x, const Float64x4& y) {
+template <> inline
+Float64x4 LDF::bitwise_andnot<Float64x4, Float64x4>
+(const Float64x4& x, const Float64x4& y) {
 	Float64x4 ret = x;
 	uint64_t* ret_bin = reinterpret_cast<uint64_t*>(&ret);
 	const uint64_t* y_bin = reinterpret_cast<const uint64_t*>(&y);
@@ -610,10 +899,12 @@ inline Float64x4 bitwise_andnot(const Float64x4& x, const Float64x4& y) {
 	ret_bin[1] &= ~y_bin[1];
 	ret_bin[2] &= ~y_bin[2];
 	ret_bin[3] &= ~y_bin[3];
-	return x;
+	return ret;
 }
 
-inline Float64x4 bitwise_or(const Float64x4& x, const Float64x4& y) {
+template <> inline
+Float64x4 LDF::bitwise_or<Float64x4, Float64x4>
+(const Float64x4& x, const Float64x4& y) {
 	Float64x4 ret = x;
 	uint64_t* ret_bin = reinterpret_cast<uint64_t*>(&ret);
 	const uint64_t* y_bin = reinterpret_cast<const uint64_t*>(&y);
@@ -621,10 +912,12 @@ inline Float64x4 bitwise_or(const Float64x4& x, const Float64x4& y) {
 	ret_bin[1] |= y_bin[1];
 	ret_bin[2] |= y_bin[2];
 	ret_bin[3] |= y_bin[3];
-	return x;
+	return ret;
 }
 
-inline Float64x4 bitwise_xor(const Float64x4& x, const Float64x4& y) {
+template <> inline
+Float64x4 LDF::bitwise_xor<Float64x4, Float64x4>
+(const Float64x4& x, const Float64x4& y) {
 	Float64x4 ret = x;
 	uint64_t* ret_bin = reinterpret_cast<uint64_t*>(&ret);
 	const uint64_t* y_bin = reinterpret_cast<const uint64_t*>(&y);
@@ -632,7 +925,59 @@ inline Float64x4 bitwise_xor(const Float64x4& x, const Float64x4& y) {
 	ret_bin[1] ^= y_bin[1];
 	ret_bin[2] ^= y_bin[2];
 	ret_bin[3] ^= y_bin[3];
-	return x;
+	return ret;
+}
+
+template <> inline
+Float64x4 LDF::bitwise_and<Float64x4, fp64>
+(const Float64x4& x, const fp64& y) {
+	Float64x4 ret = x;
+	uint64_t* ret_bin = reinterpret_cast<uint64_t*>(&ret);
+	const uint64_t* y_bin = reinterpret_cast<const uint64_t*>(&y);
+	ret_bin[0] &= *y_bin;
+	ret_bin[1] &= *y_bin;
+	ret_bin[2] &= *y_bin;
+	ret_bin[3] &= *y_bin;
+	return ret;
+}
+
+template <> inline
+Float64x4 LDF::bitwise_andnot<Float64x4, fp64>
+(const Float64x4& x, const fp64& y) {
+	Float64x4 ret = x;
+	uint64_t* ret_bin = reinterpret_cast<uint64_t*>(&ret);
+	const uint64_t* y_bin = reinterpret_cast<const uint64_t*>(&y);
+	ret_bin[0] &= ~(*y_bin);
+	ret_bin[1] &= ~(*y_bin);
+	ret_bin[2] &= ~(*y_bin);
+	ret_bin[3] &= ~(*y_bin);
+	return ret;
+}
+
+template <> inline
+Float64x4 LDF::bitwise_or<Float64x4, fp64>
+(const Float64x4& x, const fp64& y) {
+	Float64x4 ret = x;
+	uint64_t* ret_bin = reinterpret_cast<uint64_t*>(&ret);
+	const uint64_t* y_bin = reinterpret_cast<const uint64_t*>(&y);
+	ret_bin[0] |= *y_bin;
+	ret_bin[1] |= *y_bin;
+	ret_bin[2] |= *y_bin;
+	ret_bin[3] |= *y_bin;
+	return ret;
+}
+
+template <> inline
+Float64x4 LDF::bitwise_xor<Float64x4, fp64>
+(const Float64x4& x, const fp64& y) {
+	Float64x4 ret = x;
+	uint64_t* ret_bin = reinterpret_cast<uint64_t*>(&ret);
+	const uint64_t* y_bin = reinterpret_cast<const uint64_t*>(&y);
+	ret_bin[0] ^= *y_bin;
+	ret_bin[1] ^= *y_bin;
+	ret_bin[2] ^= *y_bin;
+	ret_bin[3] ^= *y_bin;
+	return ret;
 }
 
 //------------------------------------------------------------------------------
@@ -725,7 +1070,7 @@ constexpr Float64x4 Float64x4_tau  = Float64x4_2pi; /**< ~6.283185307 */
 		return
 			isinf(x)             ? FP_INFINITE :
 			isnan(x)             ? FP_NAN      :
-			dekker_equal_zero(x) ? FP_ZERO     :
+			isequal_zero(x) ? FP_ZERO     :
 			isnormal(x)          ? FP_NORMAL   :
 			FP_SUBNORMAL;
 	}
@@ -767,7 +1112,7 @@ constexpr Float64x4 Float64x4_tau  = Float64x4_2pi; /**< ~6.283185307 */
 		return fmin(fmin(x, y), z);
 	}
 	inline constexpr Float64x4 fabs(const Float64x4& x) {
-		return (dekker_less_zero(x)) ? -x : x;
+		return (isless_zero(x)) ? -x : x;
 	}
 	inline constexpr Float64x4 fdim(const Float64x4& x, const Float64x4& y) {
 		return (x > y) ? (x - y) : static_cast<Float64x4>(0.0);
@@ -777,7 +1122,7 @@ constexpr Float64x4 Float64x4_tau  = Float64x4_2pi; /**< ~6.283185307 */
 		return (x * y) + z;
 	}
 	inline constexpr Float64x4 copysign(const Float64x4& x, const Float64x4& y) {
-		return (dekker_less_zero(x)) != (dekker_less_zero(y)) ? -x : x;
+		return (isless_zero(x)) != (isless_zero(y)) ? -x : x;
 	}
 	inline Float64x4 sqrt(const Float64x4& x) {
 		return Float64x4_sqrt(x);
@@ -842,17 +1187,17 @@ constexpr Float64x4 Float64x4_tau  = Float64x4_2pi; /**< ~6.283185307 */
 	}
 
 	inline Float64x4 pow(const Float64x4& x, const Float64x4& y) {
-		return dekker_equal_zero(x) ? (
-			dekker_equal_zero(y) ? static_cast<Float64x4>(1.0) : static_cast<Float64x4>(0.0)
+		return isequal_zero(x) ? (
+			isequal_zero(y) ? static_cast<Float64x4>(1.0) : static_cast<Float64x4>(0.0)
 		) : exp(y * log(x));
 	}
 	inline Float64x4 pow(const Float64x4& x, const Float64x2& y) {
-		return dekker_equal_zero(x) ? (
-			dekker_equal_zero(y) ? static_cast<Float64x4>(1.0) : static_cast<Float64x4>(0.0)
+		return isequal_zero(x) ? (
+			isequal_zero(y) ? static_cast<Float64x4>(1.0) : static_cast<Float64x4>(0.0)
 		) : exp(y * log(x));
 	}
 	inline Float64x4 pow(const Float64x4& x, const fp64 y) {
-		return dekker_equal_zero(x) ? (
+		return isequal_zero(x) ? (
 			(y == static_cast<fp64>(0.0)) ? static_cast<Float64x4>(1.0) : static_cast<Float64x4>(0.0)
 		) : exp(y * log(x));
 	}

@@ -252,7 +252,7 @@ Float64x2 exp(const Float64x2& x) {
 	if (x.lo >= 709.79) {
 		return std::numeric_limits<Float64x2>::infinity();
 	}
-	if (dekker_equal_zero(x)) {
+	if (isequal_zero(x)) {
 		return static_cast<Float64x2>(1.0);
 	}
 	if (x == 1.0) {
@@ -272,7 +272,7 @@ Float64x2 expm1(const Float64x2& x) {
 	if (x.hi >= 709.79) {
 		return std::numeric_limits<Float64x2>::infinity();
 	}
-	if (dekker_equal_zero(x)) {
+	if (isequal_zero(x)) {
 		return static_cast<Float64x2>(0.0);
 	}
 	fp64 m;
@@ -339,7 +339,7 @@ Float64x2 log(const Float64x2& x) {
  * @remarks using similar methods to log(x)
  */
 Float64x2 log1p(const Float64x2& x) {
-	if (dekker_equal_zero(x)) {
+	if (isequal_zero(x)) {
 		return 0.0;
 	}
 	if (x <= -1.0) {
@@ -381,7 +381,7 @@ static Float64x2 sin_taylor(const Float64x2 &a) {
 	const fp64 thresh = 0.5 * fabs(a.hi) * std::numeric_limits<Float64x2>::epsilon().hi;
 	Float64x2 r, s, t, x;
 
-	if (dekker_equal_zero(a)) {
+	if (isequal_zero(a)) {
 		return 0.0;
 	}
 
@@ -410,7 +410,7 @@ static Float64x2 cos_taylor(const Float64x2 &a) {
 	const fp64 thresh = 0.5 * std::numeric_limits<Float64x2>::epsilon().hi;
 	Float64x2 r, s, t, x;
 
-	if (dekker_equal_zero(a)) {
+	if (isequal_zero(a)) {
 		return 1.0;
 	}
 
@@ -438,7 +438,7 @@ static Float64x2 cos_taylor(const Float64x2 &a) {
 static void sincos_taylor(
 	const Float64x2 &a, Float64x2 &p_sin, Float64x2 &p_cos
 ) {
-	if (dekker_equal_zero(a)) {
+	if (isequal_zero(a)) {
 		p_sin = 0.0;
 		p_cos = 1.0;
 		return;
@@ -538,7 +538,7 @@ Float64x2 sin(const Float64x2& x) {
 		we can compute sin(x) from sin(s), cos(s).  This greatly 
 		increases the convergence of the sine Taylor series. */
 
-	if (dekker_equal_zero(x)) {
+	if (isequal_zero(x)) {
 		return 0.0;
 	}
 
@@ -618,7 +618,7 @@ Float64x2 sin(const Float64x2& x) {
  */
 Float64x2 cos(const Float64x2& x) {
 
-	if (dekker_equal_zero(x)) {
+	if (isequal_zero(x)) {
 		return 1.0;
 	}
 
@@ -699,7 +699,7 @@ Float64x2 cos(const Float64x2& x) {
  */
 void sincos(const Float64x2& x, Float64x2& p_sin, Float64x2& p_cos) {
 
-	if (dekker_equal_zero(x)) {
+	if (isequal_zero(x)) {
 		p_sin = static_cast<fp64>(0.0);
 		p_cos = static_cast<fp64>(1.0);
 		return;
@@ -791,7 +791,7 @@ Float64x2 atan(const Float64x2& y) {
 		denominator is larger.  Otherwise, the second is used.
 	*/
 
-	if (dekker_equal_zero(y)) {
+	if (isequal_zero(y)) {
 		return static_cast<fp64>(0.0);
 	}
 
@@ -846,25 +846,25 @@ Float64x2 atan2(const Float64x2& y, const Float64x2& x) {
 		denominator is larger.  Otherwise, the second is used.
 	*/
 
-	if (dekker_equal_zero(x)) {
+	if (isequal_zero(x)) {
 	
-		if (dekker_equal_zero(y)) {
+		if (isequal_zero(y)) {
 			// /* Both x and y is zero. */
 			// Float64x2::error("(Float64x2::atan2): Both arguments zero.");
 			return std::numeric_limits<Float64x2>::quiet_NaN();
 		}
 
-		return (dekker_greater_zero(y)) ? Float64x2_pi2 : -Float64x2_pi2;
-	} else if (dekker_equal_zero(y)) {
-		return (dekker_greater_zero(x)) ? Float64x2(0.0) : Float64x2_pi;
+		return (isgreater_zero(y)) ? Float64x2_pi2 : -Float64x2_pi2;
+	} else if (isequal_zero(y)) {
+		return (isgreater_zero(x)) ? Float64x2(0.0) : Float64x2_pi;
 	}
 
 	if (x == y) {
-		return (dekker_greater_zero(y)) ? Float64x2_pi4 : -Float64x2_3pi4;
+		return (isgreater_zero(y)) ? Float64x2_pi4 : -Float64x2_3pi4;
 	}
 
 	if (x == -y) {
-		return (dekker_greater_zero(y)) ? Float64x2_3pi4 : -Float64x2_pi4;
+		return (isgreater_zero(y)) ? Float64x2_3pi4 : -Float64x2_pi4;
 	}
 
 	Float64x2 r = sqrt(square(x) + square(y));
@@ -901,7 +901,7 @@ Float64x2 asin(const Float64x2& x) {
 	}
 
 	if (abs_a == static_cast<fp64>(1.0)) {
-		return (dekker_greater_zero(x)) ? Float64x2_pi2 : -Float64x2_pi2;
+		return (isgreater_zero(x)) ? Float64x2_pi2 : -Float64x2_pi2;
 	}
 
 	return atan2(x, sqrt(static_cast<fp64>(1.0) - square(x)));
@@ -920,7 +920,7 @@ Float64x2 acos(const Float64x2& x) {
 	}
 
 	if (abs_a == static_cast<fp64>(1.0)) {
-		return (dekker_greater_zero(x)) ? Float64x2(0.0) : Float64x2_pi;
+		return (isgreater_zero(x)) ? Float64x2(0.0) : Float64x2_pi;
 	}
 
 	return atan2(sqrt(static_cast<fp64>(1.0) - square(x)), x);
@@ -931,7 +931,7 @@ Float64x2 acos(const Float64x2& x) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 Float64x2 sinh(const Float64x2& x) {
-	if (dekker_equal_zero(x)) {
+	if (isequal_zero(x)) {
 		return static_cast<Float64x2>(0.0);
 	}
 
@@ -965,7 +965,7 @@ Float64x2 sinh(const Float64x2& x) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 Float64x2 cosh(const Float64x2& x) {
-	if (dekker_equal_zero(x)) {
+	if (isequal_zero(x)) {
 		return static_cast<Float64x2>(1.0);
 	}
 
@@ -978,7 +978,7 @@ Float64x2 cosh(const Float64x2& x) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 Float64x2 tanh(const Float64x2& x) {
-	if (dekker_equal_zero(x)) {
+	if (isequal_zero(x)) {
 		return static_cast<Float64x2>(0.0);
 	}
 
@@ -1072,7 +1072,7 @@ __attribute__((unused)) static inline Float64x2 pown(const Float64x2& x, int n) 
 	if (n == 0) {
 		return 1.0;
 	}
-	if (dekker_equal_zero(x)) {
+	if (isequal_zero(x)) {
 		return 0.0;
 	}
 
@@ -1327,7 +1327,7 @@ Float64x2 erf(const Float64x2& z) {
 	call_dd_cpr(z, t1, ic2);
 	call_dd_cpr(z, t2, ic3);
 
-	if (dekker_equal_zero(z)) { // sign(z) == 0
+	if (isequal_zero(z)) { // sign(z) == 0
 		call_dd_dmc(0.0, 0, terf);
 	} else if (ic1 > 0) {
 		call_dd_dmc(1.0, 0, terf);
@@ -1414,7 +1414,7 @@ Float64x2 erf(const Float64x2& z) {
 		t6 = t1 / t5;
 		t7 = t2 - t6;
 		terf = t7;
-		if (dekker_less_zero(z)) { // sign(z) < 0
+		if (isless_zero(z)) { // sign(z) < 0
 			t6 = -terf;
 			terf = t6;
 		}
@@ -1485,7 +1485,7 @@ Float64x2 erfc(const Float64x2& z) {
 	call_dd_cpr(z, t1, ic2);
 	call_dd_cpr(z, t2, ic3);
 
-	if (dekker_equal_zero(z)) { // sign(z) == 0
+	if (isequal_zero(z)) { // sign(z) == 0
 		call_dd_dmc(1.0, 0, terfc);
 	} else if (ic1 > 0) {
 		call_dd_dmc(0.0, 0, terfc);
@@ -1571,7 +1571,7 @@ Float64x2 erfc(const Float64x2& z) {
 		t4 = exp(z2);
 		t5 = t3 * t4;
 		t6 = t1 / t5;
-		if (dekker_less_zero(z)) { // sign(z) < 0
+		if (isless_zero(z)) { // sign(z) < 0
 			call_dd_dmc(2.0, 0, t2);
 			t7 = t2 - t6;
 			t6 = t7;

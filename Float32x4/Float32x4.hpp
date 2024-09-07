@@ -13,6 +13,8 @@
 #include <cstdint>
 #include <cmath>
 
+#include "../FloatNxN/FloatNxN_arithmetic.hpp"
+
 /**
  * @note Float32x4 is currently unimplemented.
  */
@@ -79,27 +81,27 @@ inline constexpr bool operator>=(const Float32x4& x, const Float32x4& y) {
 //------------------------------------------------------------------------------
 
 /** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
-inline constexpr bool dekker_equal_zero(const Float32x4& x) {
+inline constexpr bool isequal_zero(const Float32x4& x) {
 	return (x.val[0] == 0.0);
 }
 /** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
-inline constexpr bool dekker_notequal_zero(const Float32x4& x) {
+inline constexpr bool isnotequal_zero(const Float32x4& x) {
 	return (x.val[0] != 0.0);
 }
 /** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
-inline constexpr bool dekker_less_zero(const Float32x4& x) {
+inline constexpr bool isless_zero(const Float32x4& x) {
 	return (x.val[0] < 0.0);
 }
 /** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
-inline constexpr bool dekker_lessequal_zero(const Float32x4& x) {
+inline constexpr bool islessequal_zero(const Float32x4& x) {
 	return (x.val[0] <= 0.0);
 }
 /** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
-inline constexpr bool dekker_greater_zero(const Float32x4& x) {
+inline constexpr bool isgreater_zero(const Float32x4& x) {
 	return (x.val[0] > 0.0);
 }
 /** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
-inline constexpr bool dekker_greaterequal_zero(const Float32x4& x) {
+inline constexpr bool isgreaterequal_zero(const Float32x4& x) {
 	return (x.val[0] >= 0.0);
 }
 
@@ -145,17 +147,21 @@ inline Float32x4 mul_pwr2(const fp32 x, const Float32x4& y) {
 // Float32x4 bitwise operators
 //------------------------------------------------------------------------------
 
-inline Float32x4 bitwise_not(const Float32x4& x) {
+template <> inline
+Float32x4 LDF::bitwise_not<Float32x4>
+(const Float32x4& x) {
 	Float32x4 ret = x;
 	uint32_t* binary_part = reinterpret_cast<uint32_t*>(&ret);
 	binary_part[0] = ~binary_part[0];
 	binary_part[1] = ~binary_part[1];
 	binary_part[2] = ~binary_part[2];
 	binary_part[3] = ~binary_part[3];
-	return x;
+	return ret;
 }
 
-inline Float32x4 bitwise_and(const Float32x4& x, const Float32x4& y) {
+template <> inline
+Float32x4 LDF::bitwise_and<Float32x4, Float32x4>
+(const Float32x4& x, const Float32x4& y) {
 	Float32x4 ret = x;
 	uint32_t* ret_bin = reinterpret_cast<uint32_t*>(&ret);
 	const uint32_t* y_bin = reinterpret_cast<const uint32_t*>(&y);
@@ -163,10 +169,12 @@ inline Float32x4 bitwise_and(const Float32x4& x, const Float32x4& y) {
 	ret_bin[1] &= y_bin[1];
 	ret_bin[2] &= y_bin[2];
 	ret_bin[3] &= y_bin[3];
-	return x;
+	return ret;
 }
 
-inline Float32x4 bitwise_andnot(const Float32x4& x, const Float32x4& y) {
+template <> inline
+Float32x4 LDF::bitwise_andnot<Float32x4, Float32x4>
+(const Float32x4& x, const Float32x4& y) {
 	Float32x4 ret = x;
 	uint32_t* ret_bin = reinterpret_cast<uint32_t*>(&ret);
 	const uint32_t* y_bin = reinterpret_cast<const uint32_t*>(&y);
@@ -174,10 +182,12 @@ inline Float32x4 bitwise_andnot(const Float32x4& x, const Float32x4& y) {
 	ret_bin[1] &= ~y_bin[1];
 	ret_bin[2] &= ~y_bin[2];
 	ret_bin[3] &= ~y_bin[3];
-	return x;
+	return ret;
 }
 
-inline Float32x4 bitwise_or(const Float32x4& x, const Float32x4& y) {
+template <> inline
+Float32x4 LDF::bitwise_or<Float32x4, Float32x4>
+(const Float32x4& x, const Float32x4& y) {
 	Float32x4 ret = x;
 	uint32_t* ret_bin = reinterpret_cast<uint32_t*>(&ret);
 	const uint32_t* y_bin = reinterpret_cast<const uint32_t*>(&y);
@@ -185,10 +195,12 @@ inline Float32x4 bitwise_or(const Float32x4& x, const Float32x4& y) {
 	ret_bin[1] |= y_bin[1];
 	ret_bin[2] |= y_bin[2];
 	ret_bin[3] |= y_bin[3];
-	return x;
+	return ret;
 }
 
-inline Float32x4 bitwise_xor(const Float32x4& x, const Float32x4& y) {
+template <> inline
+Float32x4 LDF::bitwise_xor<Float32x4, Float32x4>
+(const Float32x4& x, const Float32x4& y) {
 	Float32x4 ret = x;
 	uint32_t* ret_bin = reinterpret_cast<uint32_t*>(&ret);
 	const uint32_t* y_bin = reinterpret_cast<const uint32_t*>(&y);
@@ -196,7 +208,59 @@ inline Float32x4 bitwise_xor(const Float32x4& x, const Float32x4& y) {
 	ret_bin[1] ^= y_bin[1];
 	ret_bin[2] ^= y_bin[2];
 	ret_bin[3] ^= y_bin[3];
-	return x;
+	return ret;
+}
+
+template <> inline
+Float32x4 LDF::bitwise_and<Float32x4, fp32>
+(const Float32x4& x, const fp32& y) {
+	Float32x4 ret = x;
+	uint32_t* ret_bin = reinterpret_cast<uint32_t*>(&ret);
+	const uint32_t* y_bin = reinterpret_cast<const uint32_t*>(&y);
+	ret_bin[0] &= *y_bin;
+	ret_bin[1] &= *y_bin;
+	ret_bin[2] &= *y_bin;
+	ret_bin[3] &= *y_bin;
+	return ret;
+}
+
+template <> inline
+Float32x4 LDF::bitwise_andnot<Float32x4, fp32>
+(const Float32x4& x, const fp32& y) {
+	Float32x4 ret = x;
+	uint32_t* ret_bin = reinterpret_cast<uint32_t*>(&ret);
+	const uint32_t* y_bin = reinterpret_cast<const uint32_t*>(&y);
+	ret_bin[0] &= ~(*y_bin);
+	ret_bin[1] &= ~(*y_bin);
+	ret_bin[2] &= ~(*y_bin);
+	ret_bin[3] &= ~(*y_bin);
+	return ret;
+}
+
+template <> inline
+Float32x4 LDF::bitwise_or<Float32x4, fp32>
+(const Float32x4& x, const fp32& y) {
+	Float32x4 ret = x;
+	uint32_t* ret_bin = reinterpret_cast<uint32_t*>(&ret);
+	const uint32_t* y_bin = reinterpret_cast<const uint32_t*>(&y);
+	ret_bin[0] |= *y_bin;
+	ret_bin[1] |= *y_bin;
+	ret_bin[2] |= *y_bin;
+	ret_bin[3] |= *y_bin;
+	return ret;
+}
+
+template <> inline
+Float32x4 LDF::bitwise_xor<Float32x4, fp32>
+(const Float32x4& x, const fp32& y) {
+	Float32x4 ret = x;
+	uint32_t* ret_bin = reinterpret_cast<uint32_t*>(&ret);
+	const uint32_t* y_bin = reinterpret_cast<const uint32_t*>(&y);
+	ret_bin[0] ^= *y_bin;
+	ret_bin[1] ^= *y_bin;
+	ret_bin[2] ^= *y_bin;
+	ret_bin[3] ^= *y_bin;
+	return ret;
 }
 
 //------------------------------------------------------------------------------
@@ -283,7 +347,7 @@ namespace std {
 		return
 			isinf(x)             ? FP_INFINITE :
 			isnan(x)             ? FP_NAN      :
-			dekker_equal_zero(x) ? FP_ZERO     :
+			isequal_zero(x) ? FP_ZERO     :
 			isnormal(x)          ? FP_NORMAL   :
 			FP_SUBNORMAL;
 	}
@@ -325,10 +389,10 @@ namespace std {
 		return fmin(fmin(x, y), z);
 	}
 	inline constexpr Float32x4 fabs(const Float32x4& x) {
-		return (dekker_less_zero(x)) ? -x : x;
+		return (isless_zero(x)) ? -x : x;
 	}
 	inline constexpr Float32x4 copysign(const Float32x4& x, const Float32x4& y) {
-		return (dekker_less_zero(x)) != (dekker_less_zero(y)) ? -x : x;
+		return (isless_zero(x)) != (isless_zero(y)) ? -x : x;
 	}
 
 /* Comparison */

@@ -90,7 +90,7 @@ Float64x4 exp(const Float64x4& x) {
 	if (x.val[0] >= 709.79) {
 		return std::numeric_limits<Float64x4>::infinity();
 	}
-	if (dekker_equal_zero(x)) {
+	if (isequal_zero(x)) {
 		return static_cast<Float64x4>(1.0);
 	}
 	if (x == 1.0) {
@@ -110,7 +110,7 @@ Float64x4 expm1(const Float64x4& x) {
 	if (x.val[0] >= 709.79) {
 		return std::numeric_limits<Float64x4>::infinity();
 	}
-	if (dekker_equal_zero(x)) {
+	if (isequal_zero(x)) {
 		return static_cast<Float64x4>(0.0);
 	}
 
@@ -151,10 +151,10 @@ Float64x4 log(const Float64x4& x) {
 	if (x == 1.0) {
 		return 0.0;
 	}
-	if (dekker_equal_zero(x)) {
+	if (isequal_zero(x)) {
 		return -std::numeric_limits<Float64x4>::infinity();
 	}
-	if (dekker_less_zero(x)) {
+	if (isless_zero(x)) {
 		// qd_real::error("(qd_real::log): Non-positive argument.");
 		return std::numeric_limits<Float64x4>::quiet_NaN();
 	}
@@ -171,7 +171,7 @@ Float64x4 log(const Float64x4& x) {
  * @remarks using similar methods to log(x)
  */
 Float64x4 log1p(const Float64x4& x) {
-	if (dekker_equal_zero(x)) {
+	if (isequal_zero(x)) {
 		return 0.0;
 	}
 	if (x == -1.0) {
@@ -202,7 +202,7 @@ static void sincos_taylor(const Float64x4& a, Float64x4& sin_a, Float64x4& cos_a
 	const fp64 thresh = 0.5 * std::numeric_limits<Float64x4>::epsilon().val[0] * std::fabs(a.val[0]);
 	Float64x4 p, s, t, x;
 
-	if (dekker_equal_zero(a)) {
+	if (isequal_zero(a)) {
 		sin_a = 0.0;
 		cos_a = 1.0;
 		return;
@@ -234,7 +234,7 @@ static Float64x4 sin_taylor(const Float64x4& a) {
 	const fp64 thresh = 0.5 * std::numeric_limits<Float64x4>::epsilon().val[0] * std::fabs(a.val[0]);
 	Float64x4 p, s, t, x;
 
-	if (dekker_equal_zero(a)) {
+	if (isequal_zero(a)) {
 		return 0.0;
 	}
 
@@ -263,7 +263,7 @@ static Float64x4 cos_taylor(const Float64x4& a) {
 	const fp64 thresh = 0.5 * std::numeric_limits<Float64x4>::epsilon().val[0];
 	Float64x4 p, s, t, x;
 
-	if (dekker_equal_zero(a)) {
+	if (isequal_zero(a)) {
 		return 1.0;
 	}
 
@@ -297,7 +297,7 @@ Float64x4 sin(const Float64x4& a) {
 		 sin(x) from sin(s) and cos(s).  This greatly increases the
 		 convergence of the sine Taylor series.                          */
 
-	if (dekker_equal_zero(a)) {
+	if (isequal_zero(a)) {
 		return 0.0;
 	}
 
@@ -377,7 +377,7 @@ Float64x4 sin(const Float64x4& a) {
  */
 Float64x4 cos(const Float64x4& a) {
 
-	if (dekker_equal_zero(a)) {
+	if (isequal_zero(a)) {
 		return 1.0;
 	}
 
@@ -458,7 +458,7 @@ Float64x4 cos(const Float64x4& a) {
  */
 void sincos(const Float64x4& a, Float64x4& sin_a, Float64x4& cos_a) {
 
-	if (dekker_equal_zero(a)) {
+	if (isequal_zero(a)) {
 		sin_a = 0.0;
 		cos_a = 1.0;
 		return;
@@ -552,7 +552,7 @@ void sincos(const Float64x4& a, Float64x4& sin_a, Float64x4& cos_a) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 Float64x4 atan(const Float64x4& y) {
-	if (dekker_equal_zero(y)) {
+	if (isequal_zero(y)) {
 		return static_cast<fp64>(0.0);
 	}
 
@@ -615,25 +615,25 @@ Float64x4 atan2(const Float64x4& y, const Float64x4& x) {
 		 denominator is larger.  Otherwise, the second is used.
 	*/
 
-	if (dekker_equal_zero(x)) {
+	if (isequal_zero(x)) {
 		
-		if (dekker_equal_zero(y)) {
+		if (isequal_zero(y)) {
 			/* Both x and y is zero. */
 			// qd_real::error("(qd_real::atan2): Both arguments zero.");
 			return std::numeric_limits<Float64x4>::quiet_NaN();
 		}
 
-		return (dekker_greater_zero(y)) ? Float64x4_pi2 : -Float64x4_pi2;
-	} else if (dekker_equal_zero(y)) {
-		return (dekker_greater_zero(x)) ? static_cast<Float64x4>(0.0) : Float64x4_pi;
+		return (isgreater_zero(y)) ? Float64x4_pi2 : -Float64x4_pi2;
+	} else if (isequal_zero(y)) {
+		return (isgreater_zero(x)) ? static_cast<Float64x4>(0.0) : Float64x4_pi;
 	}
 
 	if (x == y) {
-		return (dekker_greater_zero(y)) ? Float64x4_pi4 : -Float64x4_3pi4;
+		return (isgreater_zero(y)) ? Float64x4_pi4 : -Float64x4_3pi4;
 	}
 
 	if (x == -y) {
-		return (dekker_greater_zero(y)) ? Float64x4_3pi4 : -Float64x4_pi4;
+		return (isgreater_zero(y)) ? Float64x4_3pi4 : -Float64x4_pi4;
 	}
 
 	Float64x4 r = sqrt(square(x) + square(y));
@@ -678,7 +678,7 @@ Float64x4 asin(const Float64x4& a) {
 	}
 
 	if (abs_a == 1.0) {
-		return (dekker_greater_zero(a)) ? Float64x4_pi2 : -Float64x4_pi2;
+		return (isgreater_zero(a)) ? Float64x4_pi2 : -Float64x4_pi2;
 	}
 
 	return atan2(a, sqrt(1.0 - square(a)));
@@ -697,7 +697,7 @@ Float64x4 acos(const Float64x4& a) {
 	}
 
 	if (abs_a == 1.0) {
-		return (dekker_greater_zero(a)) ? static_cast<Float64x4>(0.0) : Float64x4_pi;
+		return (isgreater_zero(a)) ? static_cast<Float64x4>(0.0) : Float64x4_pi;
 	}
 
 	return atan2(sqrt(1.0 - square(a)), a);
@@ -708,7 +708,7 @@ Float64x4 acos(const Float64x4& a) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 Float64x4 sinh(const Float64x4& a) {
-	if (dekker_equal_zero(a)) {
+	if (isequal_zero(a)) {
 		return 0.0;
 	}
 
@@ -741,7 +741,7 @@ Float64x4 sinh(const Float64x4& a) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 Float64x4 cosh(const Float64x4& a) {
-	if (dekker_equal_zero(a)) {
+	if (isequal_zero(a)) {
 		return 1.0;
 	}
 
@@ -754,7 +754,7 @@ Float64x4 cosh(const Float64x4& a) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 Float64x4 tanh(const Float64x4& x) {
-	if (dekker_equal_zero(x)) {
+	if (isequal_zero(x)) {
 		return static_cast<Float64x4>(0.0);
 	}
 

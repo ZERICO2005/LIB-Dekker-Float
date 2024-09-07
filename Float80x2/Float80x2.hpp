@@ -16,6 +16,8 @@
 #include "Float80.hpp"
 #include "Float80x2_def.h"
 
+#include "../FloatNxN/FloatNxN_arithmetic.hpp"
+
 // Can be changed to other types for better accuracy
 typedef long double Float80x2_Math;
 
@@ -114,71 +116,33 @@ inline constexpr bool operator>=(const fp80 x, const Float80x2& y) {
 /* Compare to Zero */
 
 /** @brief Assumes that if x.hi is zero then x.lo is also zero */
-inline constexpr bool dekker_equal_zero(const Float80x2& x) {
+inline constexpr bool isequal_zero(const Float80x2& x) {
 	return (x.hi == static_cast<fp80>(0.0));
 }
 /** @brief Assumes that if x.hi is zero then x.lo is also zero */
-inline constexpr bool dekker_notequal_zero(const Float80x2& x) {
+inline constexpr bool isnotequal_zero(const Float80x2& x) {
 	return (x.hi != static_cast<fp80>(0.0));
 }
 /** @brief Assumes that if x.hi is zero then x.lo is also zero */
-inline constexpr bool dekker_less_zero(const Float80x2& x) {
+inline constexpr bool isless_zero(const Float80x2& x) {
 	return (x.hi < static_cast<fp80>(0.0));
 }
 /** @brief Assumes that if x.hi is zero then x.lo is also zero */
-inline constexpr bool dekker_lessequal_zero(const Float80x2& x) {
+inline constexpr bool islessequal_zero(const Float80x2& x) {
 	return (x.hi <= static_cast<fp80>(0.0));
 }
 /** @brief Assumes that if x.hi is zero then x.lo is also zero */
-inline constexpr bool dekker_greater_zero(const Float80x2& x) {
+inline constexpr bool isgreater_zero(const Float80x2& x) {
 	return (x.hi > static_cast<fp80>(0.0));
 }
 /** @brief Assumes that if x.hi is zero then x.lo is also zero */
-inline constexpr bool dekker_greaterequal_zero(const Float80x2& x) {
+inline constexpr bool isgreaterequal_zero(const Float80x2& x) {
 	return (x.hi >= static_cast<fp80>(0.0));
 }
 
-
 //------------------------------------------------------------------------------
-// Float80x2 Basic Arithmetic
+// Float80x2 Dekker Split
 //------------------------------------------------------------------------------
-
-/* Negation */
-
-inline constexpr Float80x2 operator-(const Float80x2& x) {
-	return {-x.hi, -x.lo};
-}
-
-inline Float80x2 operator+(const Float80x2& x, const Float80x2& y) {
-	fp80 r_hi = x.hi + y.hi;
-	fp80 r_lo = static_cast<fp80>(0.0);
-	if (fabs(x.hi) > fabs(y.hi)) {
-		r_lo = x.hi - r_hi + y.hi + y.lo + x.lo;
-	} else {
-		r_lo = y.hi - r_hi + x.hi + x.lo + y.lo;
-	}
-
-	Float80x2 c;
-	c.hi = r_hi + r_lo;
-	c.lo = r_hi - c.hi + r_lo;
-	return c;
-}
-
-inline Float80x2 operator-(const Float80x2& x, const Float80x2& y) {
-	fp80 r_hi = x.hi - y.hi;
-	fp80 r_lo = static_cast<fp80>(0.0);
-	if (fabs(x.hi) > fabs(y.hi)) {
-		r_lo = x.hi - r_hi - y.hi - y.lo + x.lo;
-	} else {
-		r_lo = -y.hi - r_hi + x.hi + x.lo - y.lo;
-	}
-
-	Float80x2 c;
-	c.hi = r_hi + r_lo;
-	c.lo = r_hi - c.hi + r_lo;
-	return c;
-}
-
 
 #if defined(FLOATNX2_BITWISE_SPLIT) || defined(FLOAT80X2_BITWISE_SPLIT)
 	/**
@@ -209,10 +173,50 @@ inline Float80x2 operator-(const Float80x2& x, const Float80x2& y) {
 	}
 #endif
 
+//------------------------------------------------------------------------------
+// Float80x2 Basic Arithmetic
+//------------------------------------------------------------------------------
+
+template <> inline
+Float80x2 LDF::add<Float80x2, Float80x2, Float80x2>
+(const Float80x2& x, const Float80x2& y) {
+	fp80 r_hi = x.hi + y.hi;
+	fp80 r_lo = static_cast<fp80>(0.0);
+	if (fabs(x.hi) > fabs(y.hi)) {
+		r_lo = x.hi - r_hi + y.hi + y.lo + x.lo;
+	} else {
+		r_lo = y.hi - r_hi + x.hi + x.lo + y.lo;
+	}
+
+	Float80x2 c;
+	c.hi = r_hi + r_lo;
+	c.lo = r_hi - c.hi + r_lo;
+	return c;
+}
+
+template <> inline
+Float80x2 LDF::sub<Float80x2, Float80x2, Float80x2>
+(const Float80x2& x, const Float80x2& y) {
+	fp80 r_hi = x.hi - y.hi;
+	fp80 r_lo = static_cast<fp80>(0.0);
+	if (fabs(x.hi) > fabs(y.hi)) {
+		r_lo = x.hi - r_hi - y.hi - y.lo + x.lo;
+	} else {
+		r_lo = -y.hi - r_hi + x.hi + x.lo - y.lo;
+	}
+
+	Float80x2 c;
+	c.hi = r_hi + r_lo;
+	c.lo = r_hi - c.hi + r_lo;
+	return c;
+}
+
 /**
  * @brief Multiplies two fp80 values with result stored as a Float80x2
  */
-inline Float80x2 dekker_mul12(const fp80 x, const fp80 y) {
+template <> inline
+Float80x2 LDF::mul<Float80x2, fp80, fp80>
+(const fp80& x, const fp80& y) {
 	Float80x2 a = dekker_split(x);
 	Float80x2 b = dekker_split(y);
 	fp80 p = a.hi * b.hi;
@@ -224,8 +228,10 @@ inline Float80x2 dekker_mul12(const fp80 x, const fp80 y) {
 	return r;
 }
 
-inline Float80x2 operator*(const Float80x2& x, const Float80x2& y) {
-	Float80x2 t = dekker_mul12(x.hi, y.hi);
+template <> inline
+Float80x2 LDF::mul<Float80x2, Float80x2, Float80x2>
+(const Float80x2& x, const Float80x2& y) {
+	Float80x2 t = LDF::mul<Float80x2, fp80, fp80>(x.hi, y.hi);
 	fp80 c = x.hi * y.lo + x.lo * y.hi + t.lo;
 
 	Float80x2 r;
@@ -234,9 +240,11 @@ inline Float80x2 operator*(const Float80x2& x, const Float80x2& y) {
 	return r;
 }
 
-inline Float80x2 operator/(const Float80x2& x, const Float80x2& y) {
+template <> inline
+Float80x2 LDF::div<Float80x2, Float80x2, Float80x2>
+(const Float80x2& x, const Float80x2& y) {
 	fp80 u = x.hi / y.hi;
-	Float80x2 t = dekker_mul12(u, y.hi);
+	Float80x2 t = LDF::mul<Float80x2, fp80, fp80>(u, y.hi);
 	fp80 l = (x.hi - t.hi - t.lo + x.lo - u * y.lo) / y.hi;
 
 	Float80x2 r;
@@ -248,7 +256,9 @@ inline Float80x2 operator/(const Float80x2& x, const Float80x2& y) {
 /**
  * @brief Squares a fp80 value with the result stored as a Float80x2
  */
-inline Float80x2 dekker_square12(const fp80 x) {
+template <> inline
+Float80x2 LDF::square<Float80x2, fp80>
+(const fp80& x) {
 	Float80x2 a = dekker_split(x);
 	fp80 p = a.hi * a.hi;
 	fp80 q = static_cast<fp80>(2.0) * (a.hi * a.lo);
@@ -259,8 +269,10 @@ inline Float80x2 dekker_square12(const fp80 x) {
 	return r;
 }
 
-inline Float80x2 square(const Float80x2 x) {
-	Float80x2 t = dekker_square12(x.hi);
+template <> inline
+Float80x2 LDF::square<Float80x2, Float80x2>
+(const Float80x2& x) {
+	Float80x2 t = LDF::square<Float80x2, fp80>(x.hi);
 	fp80 c = (static_cast<fp80>(2.0) * (x.hi * x.lo)) + t.lo;
 
 	Float80x2 r;
@@ -269,9 +281,11 @@ inline Float80x2 square(const Float80x2 x) {
 	return r;
 }
 
-inline Float80x2 recip(const Float80x2 y) {
+template <> inline
+Float80x2 LDF::recip<Float80x2, Float80x2>
+(const Float80x2& y) {
 	fp80 u = static_cast<fp80>(1.0) / y.hi;
-	Float80x2 t = dekker_mul12(u, y.hi);
+	Float80x2 t = LDF::mul<Float80x2, fp80, fp80>(u, y.hi);
 	fp80 l = (((static_cast<fp80>(1.0) - t.hi) - t.lo) - (u * y.lo)) / y.hi;
 
 	Float80x2 r;
@@ -284,7 +298,9 @@ inline Float80x2 recip(const Float80x2 y) {
 // Float80x2 optimized arithmetic
 //------------------------------------------------------------------------------
 
-inline Float80x2 operator+(const Float80x2& x, const fp80 y) {
+template <> inline
+Float80x2 LDF::add<Float80x2, Float80x2, fp80>
+(const Float80x2& x, const fp80& y) {
 	fp80 r_hi = x.hi + y;
 	fp80 r_lo = static_cast<fp80>(0.0);
 	if (fabs(x.hi) > fabs(y)) {
@@ -299,7 +315,9 @@ inline Float80x2 operator+(const Float80x2& x, const fp80 y) {
 	return c;
 }
 
-inline Float80x2 operator+(const fp80 x, const Float80x2& y) {
+template <> inline
+Float80x2 LDF::add<Float80x2, fp80, Float80x2>
+(const fp80& x, const Float80x2& y) {
 	fp80 r_hi = x + y.hi;
 	fp80 r_lo = static_cast<fp80>(0.0);
 	if (fabs(x) > fabs(y.hi)) {
@@ -317,7 +335,9 @@ inline Float80x2 operator+(const fp80 x, const Float80x2& y) {
 /**
  * @brief Adds two fp80 values with the result stored as a Float80x2
  */
-inline Float80x2 dekker_add12(const fp80 x, const fp80 y) {
+template <> inline
+Float80x2 LDF::add<Float80x2, fp80, fp80>
+(const fp80& x, const fp80& y) {
 	fp80 r_hi = x + y;
 	fp80 r_lo = static_cast<fp80>(0.0);
 	if (fabs(x) > fabs(y)) {
@@ -332,7 +352,9 @@ inline Float80x2 dekker_add12(const fp80 x, const fp80 y) {
 	return c;
 }
 
-inline Float80x2 operator-(const Float80x2& x, const fp80 y) {
+template <> inline
+Float80x2 LDF::sub<Float80x2, Float80x2, fp80>
+(const Float80x2& x, const fp80& y) {
 	fp80 r_hi = x.hi - y;
 	fp80 r_lo = static_cast<fp80>(0.0);
 	if (fabs(x.hi) > fabs(y)) {
@@ -347,7 +369,9 @@ inline Float80x2 operator-(const Float80x2& x, const fp80 y) {
 	return c;
 }
 
-inline Float80x2 operator-(const fp80 x, const Float80x2& y) {
+template <> inline
+Float80x2 LDF::sub<Float80x2, fp80, Float80x2>
+(const fp80& x, const Float80x2& y) {
 	fp80 r_hi = x - y.hi;
 	fp80 r_lo = static_cast<fp80>(0.0);
 	if (fabs(x) > fabs(y.hi)) {
@@ -365,7 +389,9 @@ inline Float80x2 operator-(const fp80 x, const Float80x2& y) {
 /**
  * @brief Subtracts two fp80 values with the result stored as a Float80x2
  */
-inline Float80x2 dekker_sub12(const fp80 x, const fp80 y) {
+template <> inline
+Float80x2 LDF::sub<Float80x2, fp80, fp80>
+(const fp80& x, const fp80& y) {
 	fp80 r_hi = x - y;
 	fp80 r_lo = static_cast<fp80>(0.0);
 	if (fabs(x) > fabs(y)) {
@@ -380,8 +406,10 @@ inline Float80x2 dekker_sub12(const fp80 x, const fp80 y) {
 	return c;
 }
 
-inline Float80x2 operator*(const Float80x2& x, const fp80 y) {
-	Float80x2 t = dekker_mul12(x.hi, y);
+template <> inline
+Float80x2 LDF::mul<Float80x2, Float80x2, fp80>
+(const Float80x2& x, const fp80& y) {
+	Float80x2 t = LDF::mul<Float80x2, fp80, fp80>(x.hi, y);
 	fp80 c = (x.lo * y) + t.lo;
 
 	Float80x2 r;
@@ -390,8 +418,10 @@ inline Float80x2 operator*(const Float80x2& x, const fp80 y) {
 	return r;
 }
 
-inline Float80x2 operator*(const fp80 x, const Float80x2& y) {
-	Float80x2 t = dekker_mul12(x, y.hi);
+template <> inline
+Float80x2 LDF::mul<Float80x2, fp80, Float80x2>
+(const fp80& x, const Float80x2& y) {
+	Float80x2 t = LDF::mul<Float80x2, fp80, fp80>(x, y.hi);
 	fp80 c = (x * y.lo) + t.lo;
 
 	Float80x2 r;
@@ -400,9 +430,11 @@ inline Float80x2 operator*(const fp80 x, const Float80x2& y) {
 	return r;
 }
 
-inline Float80x2 operator/(const Float80x2& x, const fp80 y) {
+template <> inline
+Float80x2 LDF::div<Float80x2, Float80x2, fp80>
+(const Float80x2& x, const fp80& y) {
 	fp80 u = x.hi / y;
-	Float80x2 t = dekker_mul12(u, y);
+	Float80x2 t = LDF::mul<Float80x2, fp80, fp80>(u, y);
 	fp80 l = (((x.hi - t.hi) - t.lo) + x.lo) / y;
 
 	Float80x2 r;
@@ -411,9 +443,11 @@ inline Float80x2 operator/(const Float80x2& x, const fp80 y) {
 	return r;
 }
 
-inline Float80x2 operator/(const fp80 x, const Float80x2& y) {
+template <> inline
+Float80x2 LDF::div<Float80x2, fp80, Float80x2>
+(const fp80& x, const Float80x2& y) {
 	fp80 u = x / y.hi;
-	Float80x2 t = dekker_mul12(u, y.hi);
+	Float80x2 t = LDF::mul<Float80x2, fp80, fp80>(u, y.hi);
 	fp80 l = (((x - t.hi) - t.lo) - (u * y.lo)) / y.hi;
 
 	Float80x2 r;
@@ -425,9 +459,11 @@ inline Float80x2 operator/(const fp80 x, const Float80x2& y) {
 /**
  * @brief Divides two fp80 values with the result stored as a Float80x2
  */
-inline Float80x2 dekker_div12(const fp80 x, const fp80 y) {
+template <> inline
+Float80x2 LDF::div<Float80x2, fp80, fp80>
+(const fp80& x, const fp80& y) {
 	fp80 u = x / y;
-	Float80x2 t = dekker_mul12(u, y);
+	Float80x2 t = LDF::mul<Float80x2, fp80, fp80>(u, y);
 	fp80 l = ((x - t.hi) - t.lo) / y;
 
 	Float80x2 r;
@@ -441,9 +477,11 @@ inline Float80x2 dekker_div12(const fp80 x, const fp80 y) {
  * as a Float80x2
  */
 
-inline Float80x2 dekker_recip12(const fp80 y) {
+template <> inline
+Float80x2 LDF::recip<Float80x2, fp80>
+(const fp80& y) {
 	fp80 u = static_cast<fp80>(1.0) / y;
-	Float80x2 t = dekker_mul12(u, y);
+	Float80x2 t = LDF::mul<Float80x2, fp80, fp80>(u, y);
 	fp80 l = ((static_cast<fp80>(1.0) - t.hi) - t.lo) / y;
 
 	Float80x2 r;
@@ -459,7 +497,9 @@ inline Float80x2 dekker_recip12(const fp80 y) {
 /**
  * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero
  */
-inline Float80x2 mul_pwr2(const Float80x2& x, const fp80 y) {
+template <> inline
+Float80x2 LDF::mul_pwr2<Float80x2, Float80x2, fp80>
+(const Float80x2& x, const fp80& y) {
 	Float80x2 ret;
 	ret.hi = x.hi * y;
 	ret.lo = x.lo * y;
@@ -469,7 +509,9 @@ inline Float80x2 mul_pwr2(const Float80x2& x, const fp80 y) {
 /**
  * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero
  */
-inline Float80x2 mul_pwr2(const fp80 x, const Float80x2& y) {
+template <> inline
+Float80x2 LDF::mul_pwr2<Float80x2, fp80, Float80x2>
+(const fp80& x, const Float80x2& y) {
 	Float80x2 ret;
 	ret.hi = x * y.hi;
 	ret.lo = x * y.lo;
@@ -480,7 +522,9 @@ inline Float80x2 mul_pwr2(const fp80 x, const Float80x2& y) {
  * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero.
  * The result is stored as a Float80x2
  */
-inline Float80x2 dekker_mul12_pwr2(const fp80 x, const fp80 y) {
+template <> inline
+Float80x2 LDF::mul_pwr2<Float80x2, fp80, fp80>
+(const fp80& x, const fp80& y) {
 	Float80x2 ret;
 	ret.hi = x * y;
 	ret.lo = static_cast<fp80>(0.0);
@@ -488,8 +532,194 @@ inline Float80x2 dekker_mul12_pwr2(const fp80 x, const fp80 y) {
 }
 
 //------------------------------------------------------------------------------
-// Float80x2 Operator Overloads
+// Float80x2 bitwise operators
 //------------------------------------------------------------------------------
+
+template <> inline
+Float80x2 LDF::bitwise_not<Float80x2>
+(const Float80x2& x) {
+	Float80x2 ret = x;
+	struct Binary_Float80 { uint64_t mantissa; uint16_t exponent; };
+	Binary_Float80* binary_part = reinterpret_cast<Binary_Float80*>(&ret);
+	binary_part[0].mantissa = ~binary_part[0].mantissa;
+	binary_part[0].exponent = ~binary_part[0].exponent;
+	binary_part[1].mantissa = ~binary_part[1].mantissa;
+	binary_part[1].exponent = ~binary_part[1].exponent;
+	return ret;
+}
+
+template <> inline
+Float80x2 LDF::bitwise_and<Float80x2, Float80x2>
+(const Float80x2& x, const Float80x2& y) {
+	Float80x2 ret = x;
+	struct Binary_Float80 { uint64_t mantissa; uint16_t exponent; };
+	Binary_Float80* ret_bin = reinterpret_cast<Binary_Float80*>(&ret);
+	const Binary_Float80* y_bin = reinterpret_cast<const Binary_Float80*>(&y);
+	ret_bin[0].mantissa &= y_bin[0].mantissa;
+	ret_bin[0].exponent &= y_bin[0].exponent;
+	ret_bin[1].mantissa &= y_bin[1].mantissa;
+	ret_bin[1].exponent &= y_bin[1].exponent;
+	return ret;
+}
+
+template <> inline
+Float80x2 LDF::bitwise_andnot<Float80x2, Float80x2>
+(const Float80x2& x, const Float80x2& y) {
+	Float80x2 ret = x;
+	struct Binary_Float80 { uint64_t mantissa; uint16_t exponent; };
+	Binary_Float80* ret_bin = reinterpret_cast<Binary_Float80*>(&ret);
+	const Binary_Float80* y_bin = reinterpret_cast<const Binary_Float80*>(&y);
+	ret_bin[0].mantissa &= ~y_bin[0].mantissa;
+	ret_bin[0].exponent &= ~y_bin[0].exponent;
+	ret_bin[1].mantissa &= ~y_bin[1].mantissa;
+	ret_bin[1].exponent &= ~y_bin[1].exponent;
+	return ret;
+}
+
+template <> inline
+Float80x2 LDF::bitwise_or<Float80x2, Float80x2>
+(const Float80x2& x, const Float80x2& y) {
+	Float80x2 ret = x;
+	struct Binary_Float80 { uint64_t mantissa; uint16_t exponent; };
+	Binary_Float80* ret_bin = reinterpret_cast<Binary_Float80*>(&ret);
+	const Binary_Float80* y_bin = reinterpret_cast<const Binary_Float80*>(&y);
+	ret_bin[0].mantissa |= y_bin[0].mantissa;
+	ret_bin[0].exponent |= y_bin[0].exponent;
+	ret_bin[1].mantissa |= y_bin[1].mantissa;
+	ret_bin[1].exponent |= y_bin[1].exponent;
+	return ret;
+}
+
+template <> inline
+Float80x2 LDF::bitwise_xor<Float80x2, Float80x2>
+(const Float80x2& x, const Float80x2& y) {
+	Float80x2 ret = x;
+	struct Binary_Float80 { uint64_t mantissa; uint16_t exponent; };
+	Binary_Float80* ret_bin = reinterpret_cast<Binary_Float80*>(&ret);
+	const Binary_Float80* y_bin = reinterpret_cast<const Binary_Float80*>(&y);
+	ret_bin[0].mantissa ^= y_bin[0].mantissa;
+	ret_bin[0].exponent ^= y_bin[0].exponent;
+	ret_bin[1].mantissa ^= y_bin[1].mantissa;
+	ret_bin[1].exponent ^= y_bin[1].exponent;
+	return ret;
+}
+
+template <> inline
+Float80x2 LDF::bitwise_and<Float80x2, fp80>
+(const Float80x2& x, const fp80& y) {
+	Float80x2 ret = x;
+	struct Binary_Float80 { uint64_t mantissa; uint16_t exponent; };
+	Binary_Float80* ret_bin = reinterpret_cast<Binary_Float80*>(&ret);
+	const Binary_Float80* y_bin = reinterpret_cast<const Binary_Float80*>(&y);
+	ret_bin[0].mantissa &= y_bin->mantissa;
+	ret_bin[0].exponent &= y_bin->exponent;
+	ret_bin[1].mantissa &= y_bin->mantissa;
+	ret_bin[1].exponent &= y_bin->exponent;
+	return ret;
+}
+
+template <> inline
+Float80x2 LDF::bitwise_andnot<Float80x2, fp80>
+(const Float80x2& x, const fp80& y) {
+	Float80x2 ret = x;
+	struct Binary_Float80 { uint64_t mantissa; uint16_t exponent; };
+	Binary_Float80* ret_bin = reinterpret_cast<Binary_Float80*>(&ret);
+	const Binary_Float80* y_bin = reinterpret_cast<const Binary_Float80*>(&y);
+	ret_bin[0].mantissa &= ~y_bin->mantissa;
+	ret_bin[0].exponent &= ~y_bin->exponent;
+	ret_bin[1].mantissa &= ~y_bin->mantissa;
+	ret_bin[1].exponent &= ~y_bin->exponent;
+	return ret;
+}
+
+template <> inline
+Float80x2 LDF::bitwise_or<Float80x2, fp80>
+(const Float80x2& x, const fp80& y) {
+	Float80x2 ret = x;
+	struct Binary_Float80 { uint64_t mantissa; uint16_t exponent; };
+	Binary_Float80* ret_bin = reinterpret_cast<Binary_Float80*>(&ret);
+	const Binary_Float80* y_bin = reinterpret_cast<const Binary_Float80*>(&y);
+	ret_bin[0].mantissa |= y_bin->mantissa;
+	ret_bin[0].exponent |= y_bin->exponent;
+	ret_bin[1].mantissa |= y_bin->mantissa;
+	ret_bin[1].exponent |= y_bin->exponent;
+	return ret;
+}
+
+template <> inline
+Float80x2 LDF::bitwise_xor<Float80x2, fp80>
+(const Float80x2& x, const fp80& y) {
+	Float80x2 ret = x;
+	struct Binary_Float80 { uint64_t mantissa; uint16_t exponent; };
+	Binary_Float80* ret_bin = reinterpret_cast<Binary_Float80*>(&ret);
+	const Binary_Float80* y_bin = reinterpret_cast<const Binary_Float80*>(&y);
+	ret_bin[0].mantissa ^= y_bin->mantissa;
+	ret_bin[0].exponent ^= y_bin->exponent;
+	ret_bin[1].mantissa ^= y_bin->mantissa;
+	ret_bin[1].exponent ^= y_bin->exponent;
+	return ret;
+}
+
+//------------------------------------------------------------------------------
+// Float80x2 Arithmetic Operator Overloads
+//------------------------------------------------------------------------------
+
+inline constexpr Float80x2 operator-(const Float80x2& x) {
+	return {-x.hi, -x.lo};
+}
+
+inline Float80x2 operator+(const Float80x2& x, const Float80x2& y) {
+	return LDF::add<Float80x2, Float80x2, Float80x2>(x, y);
+}
+inline Float80x2 operator-(const Float80x2& x, const Float80x2& y) {
+	return LDF::sub<Float80x2, Float80x2, Float80x2>(x, y);
+}
+inline Float80x2 operator*(const Float80x2& x, const Float80x2& y) {
+	return LDF::mul<Float80x2, Float80x2, Float80x2>(x, y);
+}
+inline Float80x2 operator/(const Float80x2& x, const Float80x2& y) {
+	return LDF::div<Float80x2, Float80x2, Float80x2>(x, y);
+}
+
+inline Float80x2 operator+(const Float80x2& x, const fp80 y) {
+	return LDF::add<Float80x2, Float80x2, fp80>(x, y);
+}
+inline Float80x2 operator-(const Float80x2& x, const fp80 y) {
+	return LDF::sub<Float80x2, Float80x2, fp80>(x, y);
+}
+inline Float80x2 operator*(const Float80x2& x, const fp80 y) {
+	return LDF::mul<Float80x2, Float80x2, fp80>(x, y);
+}
+inline Float80x2 operator/(const Float80x2& x, const fp80 y) {
+	return LDF::div<Float80x2, Float80x2, fp80>(x, y);
+}
+
+inline Float80x2 operator+(const fp80 x, const Float80x2& y) {
+	return LDF::add<Float80x2, fp80, Float80x2>(x, y);
+}
+inline Float80x2 operator-(const fp80 x, const Float80x2& y) {
+	return LDF::sub<Float80x2, fp80, Float80x2>(x, y);
+}
+inline Float80x2 operator*(const fp80 x, const Float80x2& y) {
+	return LDF::mul<Float80x2, fp80, Float80x2>(x, y);
+}
+inline Float80x2 operator/(const fp80 x, const Float80x2& y) {
+	return LDF::div<Float80x2, fp80, Float80x2>(x, y);
+}
+
+inline Float80x2 square(const Float80x2& x) {
+	return LDF::square<Float80x2, Float80x2>(x);
+}
+inline Float80x2 recip(const Float80x2& x) {
+	return LDF::recip<Float80x2, Float80x2>(x);
+}
+
+inline Float80x2 mul_pwr2(const Float80x2& x, const fp80 y) {
+	return LDF::mul_pwr2<Float80x2, Float80x2, fp80>(x, y);
+}
+inline Float80x2 mul_pwr2(const fp80 x, const Float80x2& y) {
+	return LDF::mul_pwr2<Float80x2, fp80, Float80x2>(x, y);
+}
 
 // #if __cplusplus >= 201304L
 // 	#define FLOAT80X2_RELAXED_CONSTEXPR constexpr
@@ -638,7 +868,7 @@ namespace std {
 		return
 			isinf(x)             ? FP_INFINITE :
 			isnan(x)             ? FP_NAN      :
-			dekker_equal_zero(x) ? FP_ZERO     :
+			isequal_zero(x) ? FP_ZERO     :
 			isnormal(x)          ? FP_NORMAL   :
 			FP_SUBNORMAL;
 	}
@@ -713,19 +943,19 @@ namespace std {
 		) ? -x : x;
 	}
 	inline Float80x2 sqrt(const Float80x2& x) {
-		if (dekker_equal_zero(x)) {
+		if (isequal_zero(x)) {
 			return x;
 		}
 		fp80 guess = sqrt(x.hi);
 		return mul_pwr2((guess + x / guess), static_cast<fp80>(0.5));
 	}
 	inline Float80x2 cbrt(const Float80x2& x) {
-		if (dekker_equal_zero(x)) {
+		if (isequal_zero(x)) {
 			return x;
 		}
 		fp80 guess = cbrt(x.hi);
 		return (
-			(static_cast<fp80>(2.0) * guess) + (x / dekker_square12(guess))
+			(static_cast<fp80>(2.0) * guess) + (x / LDF::square<Float80x2, fp80>(guess))
 		) / static_cast<fp80>(3.0);
 	}
 	/** @note Naive implementation of hypot, may overflow for large inputs */
@@ -893,8 +1123,8 @@ namespace std {
 	 * currently implemeneted.
 	 */
 	inline Float80x2 pow(const Float80x2& x, const Float80x2& y) {
-		return dekker_equal_zero(x) ? (
-			dekker_equal_zero(y) ? static_cast<Float80x2>(1.0) : static_cast<Float80x2>(0.0)
+		return isequal_zero(x) ? (
+			isequal_zero(y) ? static_cast<Float80x2>(1.0) : static_cast<Float80x2>(0.0)
 		) : exp(y * log(x));
 	}
 	/** 
@@ -902,7 +1132,7 @@ namespace std {
 	 * currently implemeneted.
 	 */
 	inline Float80x2 pow(const Float80x2& x, const fp80 y) {
-		return dekker_equal_zero(x) ? (
+		return isequal_zero(x) ? (
 			(y == static_cast<fp80>(0.0)) ? static_cast<Float80x2>(1.0) : static_cast<Float80x2>(0.0)
 		) : exp(y * log(x));
 	}
@@ -916,7 +1146,7 @@ namespace std {
 		fp80 frac_lo = x.lo - int_lo.hi;
 		// Sum in increasing order
 		Float80x2 trunc_all = (
-			dekker_add12(frac_hi, frac_lo) >= static_cast<fp80>(1.0)
+			LDF::add<Float80x2, fp80, fp80>(frac_hi, frac_lo) >= static_cast<fp80>(1.0)
 		) ? static_cast<Float80x2>(1.0) : static_cast<Float80x2>(0.0);
 		trunc_all += int_lo;
 		trunc_all += int_hi;
@@ -925,19 +1155,19 @@ namespace std {
 	inline Float80x2 floor(const Float80x2& x) {
 		Float80x2 int_part = trunc(x);
 		return (
-			dekker_less_zero(x) && int_part != x
+			isless_zero(x) && int_part != x
 		) ? int_part - static_cast<fp80>(1.0) : int_part;
 	}
 	inline Float80x2 ceil(const Float80x2& x) {
 		Float80x2 int_part = trunc(x);
 		return (
-			dekker_greater_zero(x) && int_part != x
+			isgreater_zero(x) && int_part != x
 		) ? int_part + static_cast<fp80>(1.0) : int_part;
 	}
 	inline Float80x2 round(const Float80x2& x) {
 		Float80x2 int_part = trunc(x);
 		Float80x2 frac_part = x - int_part;
-		if (dekker_greaterequal_zero(x)) {
+		if (isgreaterequal_zero(x)) {
 			if (frac_part >= static_cast<fp80>(0.5)) {
 				return int_part + static_cast<fp80>(1.0);
 			}

@@ -17,34 +17,41 @@ namespace LDF {
 //------------------------------------------------------------------------------
 
 /** @brief `x + y` Addition */
-template <typename Ret_Type, typename Lhs_Type, typename Rhs_Type>
-Ret_Type add(const Lhs_Type& x, const Rhs_Type& y);
+template <typename Ret_Type, typename OP1_Type, typename OP2_Type>
+Ret_Type add(const OP1_Type& x, const OP2_Type& y);
 
 /** @brief `x - y` Subtraction */
-template <typename Ret_Type, typename Lhs_Type, typename Rhs_Type>
-Ret_Type sub(const Lhs_Type& x, const Rhs_Type& y);
+template <typename Ret_Type, typename OP1_Type, typename OP2_Type>
+Ret_Type sub(const OP1_Type& x, const OP2_Type& y);
 
 /** @brief `x * y` Multipliction */
-template <typename Ret_Type, typename Lhs_Type, typename Rhs_Type>
-Ret_Type mul(const Lhs_Type& x, const Rhs_Type& y);
+template <typename Ret_Type, typename OP1_Type, typename OP2_Type>
+Ret_Type mul(const OP1_Type& x, const OP2_Type& y);
 
 /** @brief `x / y` Division */
-template <typename Ret_Type, typename Lhs_Type, typename Rhs_Type>
-Ret_Type div(const Lhs_Type& x, const Rhs_Type& y);
+template <typename Ret_Type, typename OP1_Type, typename OP2_Type>
+Ret_Type div(const OP1_Type& x, const OP2_Type& y);
 
-/** @brief `x * x` Square */
+/**
+ * @brief `x * x` Square
+ * Optimized routine for squaring Dekker-Floats.
+ */
 template <typename Ret_Type, typename Input_Type>
 Ret_Type square(const Input_Type& x);
 
-/** @brief `1 / x` Reciprocal */
+/**
+ * @brief `1 / x` Reciprocal
+ * Optimized routine for calculating the reciprocal of a Dekker-Float.
+ */
 template <typename Ret_Type, typename Input_Type>
 Ret_Type recip(const Input_Type& x);
 
 /**
  * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero.
+ * Optimized routine for multiplying a Dekker-Float by a known power of two.
  */
-template <typename Ret_Type, typename Lhs_Type, typename Rhs_Type>
-Ret_Type mul_pwr2(const Lhs_Type& x, const Rhs_Type& y);
+template <typename Ret_Type, typename OP1_Type, typename OP2_Type>
+Ret_Type mul_pwr2(const OP1_Type& x, const OP2_Type& y);
 
 //------------------------------------------------------------------------------
 // Bitwise Operations
@@ -55,20 +62,20 @@ template <typename T>
 T bitwise_not(const T& x);
 
 /** @brief `x & y` Performs a bitwise AND */
-template <typename T>
-T bitwise_and(const T& x, const T& y);
+template <typename Ret_Type, typename Arg_Type>
+Ret_Type bitwise_and(const Ret_Type& x, const Arg_Type& y);
 
 /** @brief `x & ~y` Performs a bitwise ANDNOT */
-template <typename T>
-T bitwise_andnot(const T& x, const T& y);
+template <typename Ret_Type, typename Arg_Type>
+Ret_Type bitwise_andnot(const Ret_Type& x, const Arg_Type& y);
 
 /** @brief `x | y` Performs a bitwise OR */
-template <typename T>
-T bitwise_or(const T& x, const T& y);
+template <typename Ret_Type, typename Arg_Type>
+Ret_Type bitwise_or(const Ret_Type& x, const Arg_Type& y);
 
 /** @brief `x ^ y` Performs a bitwise XOR */
-template <typename T>
-T bitwise_xor(const T& x, const T& y);
+template <typename Ret_Type, typename Arg_Type>
+Ret_Type bitwise_xor(const Ret_Type& x, const Arg_Type& y);
 
 } /* LIB-Dekker-Float namespace */
 
@@ -78,37 +85,37 @@ T bitwise_xor(const T& x, const T& y);
 
 /** @brief `x + y` Addition */
 template <>
-constexpr inline float LDF::add<float, float, float>(const float& x, const float& y) {
+inline constexpr float LDF::add<float, float, float>(const float& x, const float& y) {
 	return x + y;
 }
 
 /** @brief `x - y` Subtraction */
 template <>
-constexpr inline float LDF::sub<float, float, float>(const float& x, const float& y) {
+inline constexpr float LDF::sub<float, float, float>(const float& x, const float& y) {
 	return x - y;
 }
 
 /** @brief `x * y` Multipliction */
 template <>
-constexpr inline float LDF::mul<float, float, float>(const float& x, const float& y) {
+inline constexpr float LDF::mul<float, float, float>(const float& x, const float& y) {
 	return x * y;
 }
 
 /** @brief `x / y` Division */
 template <>
-constexpr inline float LDF::div<float, float, float>(const float& x, const float& y) {
+inline constexpr float LDF::div<float, float, float>(const float& x, const float& y) {
 	return x / y;
 }
 
 /** @brief `x * x` Square */
 template <>
-constexpr inline float LDF::square<float, float>(const float& x) {
+inline constexpr float LDF::square<float, float>(const float& x) {
 	return x * x;
 }
 
 /** @brief `1 / x` Reciprocal */
 template <>
-constexpr inline float LDF::recip<float, float>(const float& x) {
+inline constexpr float LDF::recip<float, float>(const float& x) {
 	return static_cast<float>(1.0) / x;
 }
 
@@ -116,7 +123,7 @@ constexpr inline float LDF::recip<float, float>(const float& x) {
  * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero.
  */
 template <>
-constexpr inline float LDF::mul_pwr2<float, float, float>(const float& x, const float& y) {
+inline constexpr float LDF::mul_pwr2<float, float, float>(const float& x, const float& y) {
 	return x * y;
 }
 
@@ -126,37 +133,37 @@ constexpr inline float LDF::mul_pwr2<float, float, float>(const float& x, const 
 
 /** @brief `x + y` Addition */
 template <>
-constexpr inline double LDF::add<double, double, double>(const double& x, const double& y) {
+inline constexpr double LDF::add<double, double, double>(const double& x, const double& y) {
 	return x + y;
 }
 
 /** @brief `x - y` Subtraction */
 template <>
-constexpr inline double LDF::sub<double, double, double>(const double& x, const double& y) {
+inline constexpr double LDF::sub<double, double, double>(const double& x, const double& y) {
 	return x - y;
 }
 
 /** @brief `x * y` Multipliction */
 template <>
-constexpr inline double LDF::mul<double, double, double>(const double& x, const double& y) {
+inline constexpr double LDF::mul<double, double, double>(const double& x, const double& y) {
 	return x * y;
 }
 
 /** @brief `x / y` Division */
 template <>
-constexpr inline double LDF::div<double, double, double>(const double& x, const double& y) {
+inline constexpr double LDF::div<double, double, double>(const double& x, const double& y) {
 	return x / y;
 }
 
 /** @brief `x * x` Square */
 template <>
-constexpr inline double LDF::square<double, double>(const double& x) {
+inline constexpr double LDF::square<double, double>(const double& x) {
 	return x * x;
 }
 
 /** @brief `1 / x` Reciprocal */
 template <>
-constexpr inline double LDF::recip<double, double>(const double& x) {
+inline constexpr double LDF::recip<double, double>(const double& x) {
 	return static_cast<double>(1.0) / x;
 }
 
@@ -164,7 +171,7 @@ constexpr inline double LDF::recip<double, double>(const double& x) {
  * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero.
  */
 template <>
-constexpr inline double LDF::mul_pwr2<double, double, double>(const double& x, const double& y) {
+inline constexpr double LDF::mul_pwr2<double, double, double>(const double& x, const double& y) {
 	return x * y;
 }
 
@@ -174,37 +181,37 @@ constexpr inline double LDF::mul_pwr2<double, double, double>(const double& x, c
 
 /** @brief `x + y` Addition */
 template <>
-constexpr inline long double LDF::add<long double, long double, long double>(const long double& x, const long double& y) {
+inline constexpr long double LDF::add<long double, long double, long double>(const long double& x, const long double& y) {
 	return x + y;
 }
 
 /** @brief `x - y` Subtraction */
 template <>
-constexpr inline long double LDF::sub<long double, long double, long double>(const long double& x, const long double& y) {
+inline constexpr long double LDF::sub<long double, long double, long double>(const long double& x, const long double& y) {
 	return x - y;
 }
 
 /** @brief `x * y` Multipliction */
 template <>
-constexpr inline long double LDF::mul<long double, long double, long double>(const long double& x, const long double& y) {
+inline constexpr long double LDF::mul<long double, long double, long double>(const long double& x, const long double& y) {
 	return x * y;
 }
 
 /** @brief `x / y` Division */
 template <>
-constexpr inline long double LDF::div<long double, long double, long double>(const long double& x, const long double& y) {
+inline constexpr long double LDF::div<long double, long double, long double>(const long double& x, const long double& y) {
 	return x / y;
 }
 
 /** @brief `x * x` Square */
 template <>
-constexpr inline long double LDF::square<long double, long double>(const long double& x) {
+inline constexpr long double LDF::square<long double, long double>(const long double& x) {
 	return x * x;
 }
 
 /** @brief `1 / x` Reciprocal */
 template <>
-constexpr inline long double LDF::recip<long double, long double>(const long double& x) {
+inline constexpr long double LDF::recip<long double, long double>(const long double& x) {
 	return static_cast<long double>(1.0) / x;
 }
 
@@ -212,7 +219,7 @@ constexpr inline long double LDF::recip<long double, long double>(const long dou
  * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero.
  */
 template <>
-constexpr inline long double LDF::mul_pwr2<long double, long double, long double>(const long double& x, const long double& y) {
+inline constexpr long double LDF::mul_pwr2<long double, long double, long double>(const long double& x, const long double& y) {
 	return x * y;
 }
 

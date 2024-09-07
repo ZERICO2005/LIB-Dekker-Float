@@ -28,7 +28,6 @@ typedef struct Float64x4 {
 /* Constructors */
 	Float64x4() = default;
 
-
 	constexpr inline Float64x4(
 		const fp64 val_0, const fp64 val_1, const fp64 val_2, const fp64 val_3
 	) : val{val_0, val_1, val_2, val_3} {}
