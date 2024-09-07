@@ -1,3 +1,6 @@
+Limited BSD License available from:
+https://www.davidhbailey.com/dhbsoftware/DHB-License.docx
+
 COPYRIGHT, DISCLAIMER AND LIMITED BSD LICENSE.
 
 AUTHOR:

@@ -1,3 +1,5 @@
+README.md updated: 2024/09/07
+
 LIB-Dekker-Float contains a variety of Dekker-Float implementations to boost precision and performance in your C/C++ program.
 
 This library is still under development, so it may or may not work with your program out of the box quite yet. Additionally, some math.h functions are unimplemented or rely on casting to other types.
@@ -24,12 +26,40 @@ Under Development:
 
 # Attribution
 
-Some of the code is based on the quad-double and double-double implementations from https://www.davidhbailey.com/dhbsoftware/, licensed
-under a modifed BSD license which can be obtained from: https://www.davidhbailey.com/dhbsoftware/LBNL-BSD-License.docx. A copy of the LBNL-BSD-License is can also be found at `LIB-Dekker-Float/libQD/LBNL-BSD-License.txt`.
+Some of the code is based on the quad-double and double-double implementations from libQD and libDDFUN. They can be found at https://www.davidhbailey.com/dhbsoftware/.
+
+libQD is licensed under a modifed BSD license which can be obtained from: https://www.davidhbailey.com/dhbsoftware/LBNL-BSD-License.docx. A copy of the LBNL-BSD-License is can also be found at `LIB-Dekker-Float/libQD/LBNL-BSD-License.txt`.
+
+libDDFUN is licensed under a limited BSD license which can be obtained from: https://www.davidhbailey.com/dhbsoftware/DHB-License.docx. A copy of the Limited-BSD-License can also be found at `LIB-Dekker-Float/libDDFUN/DISCLAIMER_and_Limited-BSD-License.txt`
 
 # Test Code
 
 The `./test_CXX11` and `./test_C99` folders contain some basic code to test the libraries. However, no tests/asserts are configured or setup yet.
+
+# LDF namespace
+
+The LDF namespace (LIB-Dekker-Float) in C++ provides templates for `add`, `sub`, `mul`, `div`, `square`, `recip`, `mul_pwr2`, and bitwise operations. The templates follow this pattern: `<Ret_Type, OP1_Type, OP2_Type, ...>`.
+
+The LDF templates expose some functions that can't be accessed through operator overloads. For example, `double / double` can't be overloaded to return `Float64x4` instead of `double`; so instead, one would call `LDF::div<Float64x4, double, double>(x, y)`. This allows `double / double` to be calculated to `Float64x4` precision. As another example, `LDF::square<Float64x2, double>(x)` is able to efficiently square a `double` to `Float64x2` precision.
+
+# String Operations
+
+snprintf, stringTo, std::cout, and std::cin functions are provided for converting to and from a string.
+
+To convert a `Float64x2` to a string, you can use `snprintf_Float64x2(buf, sizeof(buf), "%.20" PRIFloat64x2 "f")`, which will print 20 digits after the decimal point.
+
+To convert a string to a `Float64x2`, you can use `Float64x2 value = stringTo_Float64x2("1.2345e3")`. In C++, you can also use string literals `Float64x2 value = "1.2345e3"_FP64X2`.
+
+## snprintf specifiers:
+
+* PRIFloat32x2  "DS"
+* PRIFloat32x4  "QS"
+* PRIFloat64x2  "DD"
+* PRIFloat64x4  "QD"
+* PRIFloat80x2  "DX"
+* PRIFloat128x2 "DQ"
+
+An extended list of snprintf specifiers can be found at `LIB-Dekker-Float/docs/Proposed-type-names.txt`
 
 # MPFR Conversion Functions
 
