@@ -638,7 +638,8 @@ class internal_FloatNxN_snprintf {
 		}
 		
 		FloatNxN value = va_arg(args, FloatNxN);
-
+		// const double* foo = reinterpret_cast<double*>(&value);
+		// printf("[%11.8lf %11.8lf]\n", foo[0], foo[1]);
 		std::string output_str = "";
 		if (fm_start > format) { /* Copy text before % */
 			size_t copy_amount = (size_t)(fm_start - format);

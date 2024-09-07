@@ -38,13 +38,13 @@ inline Float80x2 operator""_FP80X2(const char* str, std::size_t) {
 /**
  * @brief Wrapper for stringTo_Float80x2
  */
-inline std::istream& operator>>(std::istream& stream, Float80x2& value);
+std::istream& operator>>(std::istream& stream, Float80x2& value);
 
 #include <ostream>
 /**
  * @brief Wrapper for Float80x2_snprintf
  */
-inline std::ostream& operator<<(std::ostream& stream, const Float80x2& value);
+std::ostream& operator<<(std::ostream& stream, const Float80x2& value);
 
 //------------------------------------------------------------------------------
 // Float80x2 Comparison

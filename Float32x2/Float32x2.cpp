@@ -43,7 +43,7 @@ int Float32x2_snprintf(char* buf, size_t len, const char* format, ...) {
 	return ret_val;
 }
 
-inline std::ostream& operator<<(std::ostream& stream, const Float32x2& value) {
+std::ostream& operator<<(std::ostream& stream, const Float32x2& value) {
 	internal_FloatNxN_snprintf<Float32x2, fp32, 2> func_cout;
 	return func_cout.FloatNxN_cout(PRIFloat32x2, PRIFloat32, stream, value);
 }

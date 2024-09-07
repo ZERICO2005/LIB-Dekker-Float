@@ -45,13 +45,13 @@ inline Float64x4 operator""_FP64X4(const char* str, std::size_t) {
 /**
  * @brief Wrapper for stringTo_Float64x4
  */
-inline std::istream& operator>>(std::istream& stream, Float64x4& value);
+std::istream& operator>>(std::istream& stream, Float64x4& value);
 
 #include <ostream>
 /**
  * @brief Wrapper for Float64x4_snprintf
  */
-inline std::ostream& operator<<(std::ostream& stream, const Float64x4& value);
+std::ostream& operator<<(std::ostream& stream, const Float64x4& value);
 
 //------------------------------------------------------------------------------
 // Float64x4 Compairison

@@ -15,6 +15,8 @@
 #include <ios>
 #include <numbers>
 
+#include <iostream>
+
 #include "Float32/Float32.h"
 #include "Float64/Float64.h"
 
@@ -158,6 +160,7 @@ void run_generate_constants(void) {
 #endif
 
 int main(void) {
+	printf("\n");
 	// run_demo();
 	// run_math_demo(123456);
 	// test_function();
@@ -169,6 +172,17 @@ int main(void) {
 	// Float32x2_snprintf(buf, sizeof(buf), "%+.50Df", x);
 	// printf("FLT_MAX + FLT_MIN = [%s]\n", buf);
 
+	#if 0
+	{
+		Float64x2 r = -0.75;
+		for (int i = 0; i < 16; i++) {
+			Float64x2 result = tgamma(r);
+			std::cout << "tgamma(" << r << ") = " << result << std::endl;
+			r += 0.75;
+		}
+	}
+	#endif
+	
 	#if 1
 	__attribute__((unused)) char buf[999];
 	
@@ -212,6 +226,7 @@ int main(void) {
 	// mpfr_printf("\nFloat64x4: \n1/3 = %.70Rf\n", p);
 	
 	// get_fact();
+	printf("\n");
 	fflush(stdout);
 	return 0;
 }

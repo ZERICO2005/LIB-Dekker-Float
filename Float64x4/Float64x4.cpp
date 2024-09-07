@@ -908,7 +908,7 @@ int Float64x4_snprintf(char* buf, size_t len, const char* format, ...) {
 	return ret_val;
 }
 
-inline std::ostream& operator<<(std::ostream& stream, const Float64x4& value) {
+std::ostream& operator<<(std::ostream& stream, const Float64x4& value) {
 	internal_FloatNxN_snprintf<Float64x4, fp64, 2> func_cout;
 	return func_cout.FloatNxN_cout(PRIFloat64x4, PRIFloat64, stream, value);
 }

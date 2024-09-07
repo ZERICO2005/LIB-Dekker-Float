@@ -43,13 +43,13 @@ inline Float32x2 operator""_FP32X2(const char* str, std::size_t) {
 /**
  * @brief Wrapper for stringTo_Float32x2
  */
-inline std::istream& operator>>(std::istream& stream, Float32x2& value);
+std::istream& operator>>(std::istream& stream, Float32x2& value);
 
 #include <ostream>
 /**
  * @brief Wrapper for Float32x2_snprintf
  */
-inline std::ostream& operator<<(std::ostream& stream, const Float32x2& value);
+std::ostream& operator<<(std::ostream& stream, const Float32x2& value);
 
 //------------------------------------------------------------------------------
 // Float32x2 Comparison

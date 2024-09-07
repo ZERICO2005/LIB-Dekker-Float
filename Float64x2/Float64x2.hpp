@@ -44,13 +44,14 @@ inline Float64x2 operator""_FP64X2(const char* str, std::size_t) {
 /**
  * @brief Wrapper for stringTo_Float64x2
  */
-inline std::istream& operator>>(std::istream& stream, Float64x2& value);
+std::istream& operator>>(std::istream& stream, Float64x2& value);
 
 #include <ostream>
 /**
  * @brief Wrapper for Float64x2_snprintf
  */
-inline std::ostream& operator<<(std::ostream& stream, const Float64x2& value);
+std::ostream& operator<<(std::ostream& stream, const Float64x2& value);
+
 
 //------------------------------------------------------------------------------
 // Float64x2 Comparison
@@ -1085,6 +1086,19 @@ namespace std {
 
 	Float64x2 erfc(const Float64x2& x);
 
+#if 0
+
+	Float64x2 tgamma(const Float64x2& x);
+
+	/** 
+	 * @note naive implementation of lgamma(x)
+	 */
+	inline Float64x2 lgamma(const Float64x2& x) {
+		return log(fabs(tgamma(x - static_cast<fp64>(1.0))));
+	}
+
+#else
+
 	/** 
 	 * @note casts to long double for calculation as this function is not
 	 * currently implemeneted.
@@ -1103,5 +1117,7 @@ namespace std {
 			tgamma(static_cast<long double>(x))
 		);
 	}
+
+#endif
 
 #endif /* FLOAT64X2_HPP */
