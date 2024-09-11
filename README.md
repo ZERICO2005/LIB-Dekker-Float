@@ -26,11 +26,11 @@ Under Development:
 
 # Attribution
 
-Some of the code is based on the quad-double and double-double implementations from libQD and libDDFUN. They can be found at https://www.davidhbailey.com/dhbsoftware/.
+Some of the code is based on the quad-double, double-double, and double-quad implementations from libQD, libDDFUN, and libDQFUN. They can be found at https://www.davidhbailey.com/dhbsoftware/.
 
 libQD is licensed under a modifed BSD license which can be obtained from: https://www.davidhbailey.com/dhbsoftware/LBNL-BSD-License.docx. A copy of the LBNL-BSD-License is can also be found at `LIB-Dekker-Float/libQD/LBNL-BSD-License.txt`.
 
-libDDFUN is licensed under a limited BSD license which can be obtained from: https://www.davidhbailey.com/dhbsoftware/DHB-License.docx. A copy of the Limited-BSD-License can also be found at `LIB-Dekker-Float/libDDFUN/DISCLAIMER_and_Limited-BSD-License.txt`
+libDDFUN and libDQFUN are licensed under a limited BSD license which can be obtained from: https://www.davidhbailey.com/dhbsoftware/DHB-License.docx. A copy of the Limited-BSD-License can also be found at `LIB-Dekker-Float/libDDFUN/DISCLAIMER_and_Limited-BSD-License.txt` for libDDFUN, and at `LIB-Dekker-Float/libDQFUN/DISCLAIMER_and_Limited-BSD-License.txt` for libQDFUN.
 
 # Test Code
 

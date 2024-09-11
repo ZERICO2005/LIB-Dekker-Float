@@ -89,6 +89,8 @@ static inline void call_dd_cpr(const FloatNxN& x, const FloatBase y_temp, int& r
 /** 
  * @author Taken from libDDFUN ddfune.f90 which can be found under a
  * Limited-BSD license from https://www.davidhbailey.com/dhbsoftware/
+ * @remarks It appears that the exact same implementation is used in
+ * libQDFUN as well.
  */
 template<
 	typename FloatNxN, typename FloatBase, int FloatBase_count,
@@ -98,7 +100,7 @@ static inline FloatNxN libDDFUN_erf(
 	const FloatNxN& z,
 	const FloatNxN FloatNxN_sqrtpi,
 	const FloatBase FloatBase_ln2,
-	const FloatBase F90_epsilon
+	const FloatBase target_epsilon
 ) {
 	//   This evaluates the erf function, using a combination of two series.
 	//   In particular, the algorithm is
@@ -123,7 +125,7 @@ static inline FloatNxN libDDFUN_erf(
 	// FloatNxN, intent(out):: terf
 	FloatNxN terf;
 	
-	constexpr FloatBase dcon = static_cast<FloatBase>(100.0);
+	constexpr FloatBase dcon = static_cast<FloatBase>(100.0); /**< Unknown magic number */
 	int ic1, ic2, ic3;
 	// int n1; // unused?
 	FloatBase d1, d2;
@@ -184,7 +186,7 @@ static inline FloatNxN libDDFUN_erf(
 			t4 = t2 / t3;
 			t1 += t4;
 			t6 = t4 / t1;
-			call_dd_cpr(t6, static_cast<FloatNxN>(F90_epsilon), ic1);
+			call_dd_cpr(t6, static_cast<FloatNxN>(target_epsilon), ic1);
 			call_dd_cpr(t6, t5, ic2);
 			if (ic1 <= 0 || ic2 >= 0) {
 				// goto JMP_120;
@@ -217,7 +219,7 @@ static inline FloatNxN libDDFUN_erf(
 			t4 = t2 / t3;
 			t1 += t4;
 			t6 = t4 / t1;
-			call_dd_cpr(t6, F90_epsilon, ic1);
+			call_dd_cpr(t6, target_epsilon, ic1);
 			call_dd_cpr(t6, t5, ic2);
 			if (ic1 <= 0 || ic2 >= 0) {
 				// goto JMP_130;
@@ -244,6 +246,8 @@ static inline FloatNxN libDDFUN_erf(
 /** 
  * @author Taken from libDDFUN ddfune.f90 which can be found under a
  * Limited-BSD license from https://www.davidhbailey.com/dhbsoftware/
+ * @remarks It appears that the exact same implementation is used in
+ * libQDFUN as well.
  */
 template<
 	typename FloatNxN, typename FloatBase, int FloatBase_count,
@@ -253,7 +257,7 @@ static inline FloatNxN libDDFUN_erfc(
 	const FloatNxN& z,
 	const FloatNxN FloatNxN_sqrtpi,
 	const FloatBase FloatBase_ln2,
-	const FloatBase F90_epsilon
+	const FloatBase target_epsilon
 ) {
 	//   This evaluates the erf function, using a combination of two series.
 	//   In particular, the algorithm is
@@ -278,7 +282,7 @@ static inline FloatNxN libDDFUN_erfc(
 	// FloatNxN, intent(out):: terfc
 	FloatNxN terfc;
 
-	constexpr FloatBase dcon = static_cast<FloatBase>(100.0);
+	constexpr FloatBase dcon = static_cast<FloatBase>(100.0); /**< Unknown magic number */
 	int ic1, ic2, ic3;
 	// int n1; // unused?
 	FloatBase d1, d2;
@@ -337,7 +341,7 @@ static inline FloatNxN libDDFUN_erfc(
 			t4 = t2 / t3;
 			t1 += t4;
 			t6 = t4 / t1;
-			call_dd_cpr(t6, F90_epsilon, ic1);
+			call_dd_cpr(t6, target_epsilon, ic1);
 			call_dd_cpr(t6, t5, ic2);
 			if (ic1 <= 0 || ic2 >= 0) {
 				// goto JMP_120;
@@ -370,7 +374,7 @@ static inline FloatNxN libDDFUN_erfc(
 			t4 = t2 / t3;
 			t1 += t4;
 			t6 = t4 / t1;
-			call_dd_cpr(t6, F90_epsilon, ic1);
+			call_dd_cpr(t6, target_epsilon, ic1);
 			call_dd_cpr(t6, t5, ic2);
 			if (ic1 <= 0 || ic2 >= 0) {
 				// goto JMP_130;

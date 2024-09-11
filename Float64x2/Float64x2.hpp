@@ -1259,7 +1259,7 @@ namespace std {
 
 	Float64x2 erfc(const Float64x2& x);
 
-#if 0
+#if 1
 
 	Float64x2 tgamma(const Float64x2& x);
 
@@ -1267,7 +1267,7 @@ namespace std {
 	 * @note naive implementation of lgamma(x)
 	 */
 	inline Float64x2 lgamma(const Float64x2& x) {
-		return log(fabs(tgamma(x - static_cast<fp64>(1.0))));
+		return log(fabs(tgamma(x)));
 	}
 
 #else

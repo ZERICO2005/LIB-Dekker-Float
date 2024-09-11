@@ -249,7 +249,7 @@ int main(void) {
 	// run_math_demo(123456);
 	
 	// test_function();
-	precision_test<Float80x2>();
+	precision_test<Float64x2>();
 
 	// run_generate_constants();
 	

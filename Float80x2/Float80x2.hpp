@@ -1418,6 +1418,17 @@ constexpr Float80x2 Float80x2_sqrtpi = {0xe.2dfc48da77b553dp-3L,-0xf.13eb7ca891b
 		);
 	}
 	#endif
+
+	#if 1
+	Float80x2 tgamma(const Float80x2& x);
+
+	/** 
+	 * @note naive implementation of lgamma(x)
+	 */
+	inline Float80x2 lgamma(const Float80x2& x) {
+		return log(fabs(tgamma(x)));
+	}
+	#else
 	/** 
 	 * @note casts to Float80x2_Math for calculation as this function is not
 	 * currently implemeneted.
@@ -1436,5 +1447,6 @@ constexpr Float80x2 Float80x2_sqrtpi = {0xe.2dfc48da77b553dp-3L,-0xf.13eb7ca891b
 			tgamma(static_cast<Float80x2_Math>(x))
 		);
 	}
+	#endif
 
 #endif /* FLOAT80X2_HPP */

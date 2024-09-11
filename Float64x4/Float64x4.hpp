@@ -1379,6 +1379,19 @@ constexpr Float64x4 Float64x4_tau  = Float64x4_2pi; /**< ~6.283185307 */
 			erfc(static_cast<long double>(x))
 		);
 	}
+
+#if 1
+
+	Float64x4 tgamma(const Float64x4& x);
+
+	/** 
+	 * @note naive implementation of lgamma(x)
+	 */
+	inline Float64x4 lgamma(const Float64x4& x) {
+		return log(fabs(tgamma(x)));
+	}
+
+#else
 	/** 
 	 * @note casts to long double for calculation as this function is not
 	 * currently implemeneted.
@@ -1397,6 +1410,6 @@ constexpr Float64x4 Float64x4_tau  = Float64x4_2pi; /**< ~6.283185307 */
 			tgamma(static_cast<long double>(x))
 		);
 	}
-
+#endif
 
 #endif /* FLOAT64X4_HPP */

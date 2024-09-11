@@ -1051,11 +1051,53 @@ Float64x2 atanh(const Float64x2& x) {
 	#endif
 }
 
+//------------------------------------------------------------------------------
+// Float64x2 pown
+//------------------------------------------------------------------------------
+
+__attribute__((unused)) static inline Float64x2 pown(const Float64x2& x, int n) {
+	
+	if (n == 0) {
+		return 1.0;
+	}
+	if (isequal_zero(x)) {
+		return 0.0;
+	}
+
+	Float64x2 r = x;
+	Float64x2 s = 1.0;
+	// casts to unsigned int since abs(INT_MIN) < 0
+	unsigned int N = (unsigned int)((n < 0) ? -n : n);
+
+	if (N > 1) {
+		/* Use binary exponentiation */
+		while (N > 0) {
+			if (N % 2 == 1) {
+				s *= r;
+			}
+			N /= 2;
+			if (N > 0) {
+				r = square(r);
+			}
+		}
+	} else {
+		s = r;
+	}
+
+	/* Compute the reciprocal if n is negative. */
+	if (n < 0) {
+		return (1.0 / s);
+	}
+	return s;
+}
+
 #if 1
 
 //------------------------------------------------------------------------------
-// Float64x2 libDDFUN Fortran90 Functions
+// Float64x2 libDDFUN/libDQFUN Fortran90 Functions
 //------------------------------------------------------------------------------
+
+#elif 0
 
 __attribute__((unused)) static constexpr int dd_knd =  8; /**< Kind parameter for IEEE double floats (usually 8). */
 __attribute__((unused)) static constexpr int dd_ldb =  6; /**< Logical device number for output of error messages. */
@@ -1150,7 +1192,6 @@ static inline void call_dd_cpr(const Float64x2& x, const Float64x2& y, int& ret)
 	}
 }
 
-#if 1
 /**
  * @brief probably modf
  */
@@ -1218,13 +1259,11 @@ static inline void call_dd_infr(const Float64x2& x, Float64x2& ret_int, Float64x
 
 	// /* label */ JMP_120:
 }
-#else
 
 static inline void call_dd_infr(const Float64x2& x, Float64x2& ret_int, Float64x2& ret_frac) {
 	ret_frac = modf(x, ret_int);
 }
 
-#endif
 
 static inline int call_dd_int_ldexp(const fp64 x, const int expon) {
 	fp64 ret = ldexp(x, expon);
@@ -1268,336 +1307,6 @@ static inline int call_dd_sgn(const fp64 x) {
 
 #define call_dd_cssnr(theta, ret_cos, ret_sin) sincos(theta, ret_sin, ret_cos)
 
-//------------------------------------------------------------------------------
-// Float64x2 erf and erfc
-//------------------------------------------------------------------------------
-
-/** 
- * @author Taken from libDDFUN ddfune.f90 which can be found under a
- * Limited-BSD license from https://www.davidhbailey.com/dhbsoftware/
- */
-Float64x2 erf(const Float64x2& z) {
-	//   This evaluates the erf function, using a combination of two series.
-	//   In particular, the algorithm is
-	//   (where B = FloatNxN_Count * FloatN_Mantissa_Bits, and
-	//   dcon is a constant defined below):
-	//
-	//   if (z == 0) {
-	//     erf = 0;
-	//   } else if (z > sqrt(B*log(2))) {
-	//     erf = 1;
-	//   } else if (z < -sqrt(B*log(2))) {
-	//     erf = -1;
-	//   } else if (abs(z) < B/dcon + 8) {
-	//     erf = 2 / (sqrt(pi)*exp(z^2)) * Sum_{k>=0} 2^k * z^(2*k+1);
-	//             / (1.3....(2*k+1));
-	//   } else {
-	//     erf = 1 - 1 / (sqrt(pi)*exp(z^2));
-	//             * Sum_{k>=0} (-1)^k * (1.3...(2*k-1)) / (2^k * z^(2*k+1));
-	//   }
-
-	// Float64x2, intent(in):: z
-	// Float64x2, intent(out):: terf
-	Float64x2 terf;
-	/**
-	 * @remarks the lower bound of max_iter for erf seems to be 148. 147 gives
-	 * a few results that are accurate to 74bits instead of 108bits or more.
-	 * I am not sure why max_iter was set to 10000 initially instead of 1000.
-	 * A max_iter of 152 is choosen to cover any missed edge cases, and
-	 * because it is a multiple of 4 (Should that help the compiler at all).
-	 */
-	constexpr int max_iter = 152;
-	constexpr fp64 dcon = 100.0;
-	int ic1, ic2, ic3;
-	// int n1; // unused?
-	fp64 d1, d2;
-	Float64x2 t1, t2, t3, t4, t5, t6, t7;
-	Float64x2 z2, tc1;
-	// Float64x2 tc2, tc3; // unused?
-
-
-	// int dd_nw, dd_nw1;
-	// dd_nw = Float64x2_count;
-	// dd_nw1 = std::min(dd_nw + 1, Float64x2_count);
-
-	call_dd_dmc(2.0, 0, tc1);
-	
-	d1 = trunc(1.0 + sqrt(
-		static_cast<fp64>(std::numeric_limits<Float64x2>::digits) * Float64x2_ln2.hi
-	));
-	d2 = trunc((
-		static_cast<fp64>(std::numeric_limits<Float64x2>::digits) / dcon
-	) + 8.0);
-	call_dd_dmc(d1, 0, t1);
-	call_dd_dmc(d2, 0, t2);
-	call_dd_cpr(z, t1, ic1);
-	// t1(2) = - t1(2);
-	t3 = -t1;
-	t1 = t3;
-	call_dd_cpr(z, t1, ic2);
-	call_dd_cpr(z, t2, ic3);
-
-	if (isequal_zero(z)) { // sign(z) == 0
-		call_dd_dmc(0.0, 0, terf);
-	} else if (ic1 > 0) {
-		call_dd_dmc(1.0, 0, terf);
-	} else if (ic2 < 0) {
-		call_dd_dmc(-1.0, 0, terf);
-	} else if (ic3 < 0) {
-		z2 = z * z;
-		call_dd_dmc(0.0, 0, t1);
-		t2 = z;
-		call_dd_dmc(1.0, 0, t3);
-		call_dd_dmc(1.0e10, 0, t5);
-
-		for (int k = 0; k < max_iter; k++) {
-			if (k > 0) {
-				t6 = z2 * 2.0;
-				t7 = t6 * t2;
-				t2 = t7;
-				d1 = 2.0 * static_cast<fp64>(k) + 1.0;
-				t6 = t3 * d1;
-				t3 = t6;
-			}
-
-			t4 = t2 / t3;
-			t6 = t1 + t4;
-			t1 = t6;
-			t6 = t4 / t1;
-			call_dd_cpr(t6, F90_epsilon, ic1);
-			call_dd_cpr(t6, t5, ic2);
-			if (ic1 <= 0 || ic2 >= 0) {
-				goto JMP_120;
-			}
-			t5 = t6;
-		}
-
-	// write (dd_ldb, 3) 1, max_iter;
-	// 3 format ('*** DDERFR: iteration limit exceeded',2i10);
-	// call_dd_abrt
-
-	/* label */ JMP_120:
-
-		t3 = t1 * 2.0;
-		t4 = Float64x2_sqrtpi;
-		t5 = exp(z2);
-		t6 = t4 * t5;
-		t7 = t3 / t6;
-		terf = t7;
-	} else {
-		z2 = z * z;
-		call_dd_dmc(0.0, 0, t1);
-		call_dd_dmc(1.0, 0, t2);
-		t3 = fabs(z);
-		call_dd_dmc(1.0e10, 0, t5);
-
-		for (int k = 0; k < max_iter; k++) {
-			if (k > 0) {
-				d1 = -(2.0 * static_cast<fp64>(k) - 1.0);
-				t6 = t2 * d1;
-				t2 = t6;
-				t6 = t2 * t3;
-				t3 = t6;
-			}
-
-			t4 = t2 / t3;
-			t6 = t1 + t4;
-			t1 = t6;
-			t6 = t4 / t1;
-			call_dd_cpr(t6, F90_epsilon, ic1);
-			call_dd_cpr(t6, t5, ic2);
-			if (ic1 <= 0 || ic2 >= 0) {
-				goto JMP_130;
-			}
-			t5 = t6;
-		}
-
-	// write (dd_ldb, 3) 2, max_iter;
-	// call_dd_abrt
-
-	/* label */ JMP_130:
-
-		call_dd_dmc(1.0, 0, t2);
-		t3 = Float64x2_sqrtpi;
-		t4 = exp(z2);
-		t5 = t3 * t4;
-		t6 = t1 / t5;
-		t7 = t2 - t6;
-		terf = t7;
-		if (isless_zero(z)) { // sign(z) < 0
-			t6 = -terf;
-			terf = t6;
-		}
-	}
-
-	return terf;
-}
-
-/** 
- * @author Taken from libDDFUN ddfune.f90 which can be found under a
- * Limited-BSD license from https://www.davidhbailey.com/dhbsoftware/
- */
-Float64x2 erfc(const Float64x2& z) {
-	//   This evaluates the erf function, using a combination of two series.
-	//   In particular, the algorithm is
-	//   (where B = FloatNxN_Count * FloatN_Mantissa_Bits, and
-	//   dcon is a constant defined below):
-	//
-	//   if (z == 0) {
-	//     erfc = 1;
-	//   } else if (z > sqrt(B*log(2))) {
-	//     erfc = 0;
-	//   } else if (z < -sqrt(B*log(2))) {
-	//     erfc = 2;
-	//   } else if (abs(z) < B/dcon + 8) {
-	//     erfc = 1 - 2 / (sqrt(pi)*exp(z^2)) * Sum_{k>=0} 2^k * z^(2*k+1);
-	//               / (1.3....(2*k+1));
-	//   } else {
-	//     erfc = 1 / (sqrt(pi)*exp(z^2));
-	//             * Sum_{k>=0} (-1)^k * (1.3...(2*k-1)) / (2^k * z^(2*k+1));
-	//   }
-
-	// Float64x2, intent(in):: z
-	// Float64x2, intent(out):: terfc
-	Float64x2 terfc;
-	/**
-	 * @remarks the lower bound of max_iter for erfc seems to be 148. 147 gives
-	 * a few results that are accurate to 74bits instead of 108bits or more.
-	 * I am not sure why max_iter was set to 10000 initially instead of 1000.
-	 * A max_iter of 152 is choosen to cover any missed edge cases, and
-	 * because it is a multiple of 4 (Should that help the compiler at all).
-	 */
-	constexpr int max_iter = 152;
-	constexpr fp64 dcon = 100.0;
-	int ic1, ic2, ic3;
-	// int n1; // unused?
-	fp64 d1, d2;
-	Float64x2 t1, t2, t3, t4, t5, t6, t7;
-	Float64x2 z2, tc1;
-	// Float64x2 tc2, tc3; // unused?
-
-	// int dd_nw, dd_nw1;
-	// dd_nw = Float64x2_count;
-	// dd_nw1 = std::min(dd_nw + 1, Float64x2_count);
-
-	call_dd_dmc(2.0, 0, tc1);
-	d1 = trunc(1.0 + sqrt(
-		static_cast<fp64>(std::numeric_limits<Float64x2>::digits) * Float64x2_ln2.hi
-	));
-	d2 = trunc((
-		static_cast<fp64>(std::numeric_limits<Float64x2>::digits) / dcon
-	) + 8.0);
-	call_dd_dmc(d1, 0, t1);
-	call_dd_dmc(d2, 0, t2);
-	call_dd_cpr(z, t1, ic1);
-	t3 = -t1;
-	t1 = t3;
-	call_dd_cpr(z, t1, ic2);
-	call_dd_cpr(z, t2, ic3);
-
-	if (isequal_zero(z)) { // sign(z) == 0
-		call_dd_dmc(1.0, 0, terfc);
-	} else if (ic1 > 0) {
-		call_dd_dmc(0.0, 0, terfc);
-	} else if (ic2 < 0) {
-		call_dd_dmc(2.0, 0, terfc);
-	} else if (ic3 < 0) {
-		z2 = z * z;
-		call_dd_dmc(0.0, 0, t1);
-		t2 = z;
-		call_dd_dmc(1.0, 0, t3);
-		call_dd_dmc(1.0e10, 0, t5);
-
-		for (int k = 0; k < max_iter; k++) {
-			if (k > 0) {
-				t6 = z2 * 2.0;
-				t7 = t6 * t2;
-				t2 = t7;
-				d1 = 2.0 * static_cast<fp64>(k) + 1.0;
-				t6 = t3 * d1;
-				t3 = t6;
-			}
-
-			t4 = t2 / t3;
-			t6 = t1 + t4;
-			t1 = t6;
-			t6 = t4 / t1;
-			call_dd_cpr(t6, F90_epsilon, ic1);
-			call_dd_cpr(t6, t5, ic2);
-			if (ic1 <= 0 || ic2 >= 0) {
-				goto JMP_120;
-			}
-			t5 = t6;
-		}
-
-	// write (dd_ldb, 3) 1, max_iter;
-	// 3 format ('*** DDERFCR: iteration limit exceeded',2i10);
-	// call_dd_abrt
-
-	/* label */ JMP_120:
-
-		call_dd_dmc(1.0, 0, t2);
-		t3 = t1 * 2.0;
-		t4 = Float64x2_sqrtpi;
-		t5 = exp(z2);
-		t6 = t4 * t5;
-		t7 = t3 / t6;
-		t6 = t2 - t7;
-		terfc = t6;
-	} else {
-		z2 = z * z;
-		call_dd_dmc(0.0, 0, t1);
-		call_dd_dmc(1.0, 0, t2);
-		t3 = fabs(z);
-		call_dd_dmc(1.0e10, 0, t5);
-
-		for (int k = 0; k < max_iter; k++) {
-			if (k > 0) {
-				d1 = -(2.0 * static_cast<fp64>(k) - 1.0);
-				t6 = t2 * d1;
-				t2 = t6;
-				t6 = t2 * t3;
-				t3 = t6;
-			}
-
-			t4 = t2 / t3;
-			t6 = t1 + t4;
-			t1 = t6;
-			t6 = t4 / t1;
-			call_dd_cpr(t6, F90_epsilon, ic1);
-			call_dd_cpr(t6, t5, ic2);
-			if (ic1 <= 0 || ic2 >= 0) {
-				goto JMP_130;
-			}
-			t5 = t6;
-		}
-
-	// write (dd_ldb, 3) 2, max_iter;
-	// call_dd_abrt
-
-	/* label */ JMP_130:
-
-		t3 = Float64x2_sqrtpi;
-		t4 = exp(z2);
-		t5 = t3 * t4;
-		t6 = t1 / t5;
-		if (isless_zero(z)) { // sign(z) < 0
-			call_dd_dmc(2.0, 0, t2);
-			t7 = t2 - t6;
-			t6 = t7;
-		}
-		terfc = t6;
-	}
-
-	return terfc;
-}
-
-//------------------------------------------------------------------------------
-// Float64x2 tgamma
-//------------------------------------------------------------------------------
-
-
-#if 0
 /*
  * Couldn't get it to work, integer arguments seem to be off by 2 instead of 1,
  * then any non-integer values seem to be off slightly or return NaN's. The
@@ -1622,7 +1331,7 @@ Float64x2 tgamma(const Float64x2& t) {
 	// Float64x2, intent(in):: t
 	// Float64x2, intent(out):: z
 	Float64x2 z;
-	constexpr int max_iter = 100;
+	constexpr int max_iter = 1024;
 	
 	constexpr fp64 dmax = 1.0e+8;
 	int i1, ic1, nt, n1, n2, n3;
@@ -1842,8 +1551,6 @@ Float64x2 tgamma(const Float64x2& t) {
 
 #endif
 
-#else
-
 //------------------------------------------------------------------------------
 // Float64x2 erf and erfc
 //------------------------------------------------------------------------------
@@ -1851,6 +1558,13 @@ Float64x2 tgamma(const Float64x2& t) {
 #include "../FloatNxN/FloatNxN_erf.hpp"
 
 Float64x2 erf(const Float64x2& x) {
+	/**
+	 * @remarks the lower bound of max_iter for erf seems to be 148. 147 gives
+	 * a few results that are accurate to 74bits instead of 108bits or more.
+	 * I am not sure why max_iter was set to 10000 initially instead of 1000.
+	 * A max_iter of 152 is choosen to cover any missed edge cases, and
+	 * because it is a multiple of 4 (Should that help the compiler at all).
+	 */
 	return libDDFUN_erf<
 		Float64x2, fp64, 2,
 		256
@@ -1864,7 +1578,7 @@ Float64x2 erf(const Float64x2& x) {
 Float64x2 erfc(const Float64x2& x) {
 	return libDDFUN_erfc<
 		Float64x2, fp64, 2,
-		4096
+		256
 	>(
 		x,
 		Float64x2_sqrtpi, Float64x2_ln2.hi,
@@ -1872,8 +1586,21 @@ Float64x2 erfc(const Float64x2& x) {
 	);
 }
 
+//------------------------------------------------------------------------------
+// Float64x2 tgamma
+//------------------------------------------------------------------------------
 
-#endif
+#include "../FloatNxN/FloatNxN_tgamma.hpp"
+
+Float64x2 tgamma(const Float64x2& t) {
+	return libDQFUN_tgamma<
+		Float64x2, fp64, 2,
+		100000
+	>(
+		t,
+		Float64x2_pi, Float64x2_ln2.hi
+	);
+}
 
 //------------------------------------------------------------------------------
 // Float64x2 math.h wrapper functions

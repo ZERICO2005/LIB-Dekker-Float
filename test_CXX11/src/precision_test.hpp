@@ -30,10 +30,10 @@ long double calc_precision(fpX x, fpX& ground_truth, fpX& func_result) {
 	mpfr_set_type<fpX>(y0_mpfr.value, x, MPFR_RNDN);
 
 	{ // Calculate ground truth
-		mpfr_erf(y0_mpfr.value, y0_mpfr.value, MPFR_RNDN);
+		mpfr_gamma(y0_mpfr.value, y0_mpfr.value, MPFR_RNDN);
 	}
 	{ // Calculate func result
-		y1 = erf(x);
+		y1 = tgamma(x);
 	}
 
 	y0 = mpfr_get_type<fpX>(y0_mpfr.value, MPFR_RNDN);
@@ -58,7 +58,7 @@ void precision_test(void) {
 	long double max_diff = -9999999.0L;
 	size_t values_printed = 0;
 	for (size_t i = 0; i < points; i++) {
-		long double EP =     9.01L;
+		long double EP =     10.0L;
 		long double offset = 0.0L;
 		
 		fpX x = linearInterpolation(
