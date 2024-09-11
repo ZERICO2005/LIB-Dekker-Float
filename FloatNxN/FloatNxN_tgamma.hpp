@@ -21,10 +21,7 @@
 
 #include <cmath>
 #include <limits>
-
-/* Fortran */
-
-#define aint(x) trunc(x)
+#include <cassert>
 
 /* Unary */
 
@@ -52,6 +49,14 @@
 #define call_dq_cssnr(theta, ret_cos, ret_sin) sincos(theta, ret_sin, ret_cos)
 // #define call_dq_npwr(x, n, ret) ret = pown(x, n)
 #define call_dq_npwr(x, n, ret) ret = pow(x, n)
+
+template<typename FloatBase>
+static inline int call_dq_int_ldexp(const FloatBase x, const int expon) {
+	FloatBase ret = ldexp(x, expon);
+	// printf("int_ldexp: ret(%lf) = ldexp(%lf, %2d)\n", ret, x, expon);
+	assert(ret == static_cast<FloatBase>((static_cast<int>(ret)))); // check that the conversion is exact.
+	return static_cast<int>(ret);
+}
 
 /**
  * @remarks This function computes ldexp(x, n) storing the result
@@ -138,6 +143,84 @@ static inline void call_dq_cpr(const FloatNxN& x, const FloatNxN& y, int& ret) {
 template<typename FloatNxN, typename FloatBase>
 static inline void T_call_dd_infr(const FloatNxN& a, FloatNxN& b, FloatNxN& c) {
 #if 1
+	c = modf(a, b);
+	return;
+#elif 0
+	//   Sets B to the integer part of the DDR number A and sets C equal to the
+	//   fractional part of A. Note that if A = -3.3, then B = -3 and C = -0.3.
+
+	// implicit none
+	// FloatNxN, intent(in):: a;
+	// FloatNxN, intent(out):: b, c;
+
+	/**
+	 * @remarks I am guessing t105 was supposed to be
+	 * FloatNxN_mantissa_bits - 1, representing the largest exact integer
+	 */
+	const FloatBase largest_ipwr2 = ldexp(
+		static_cast<FloatBase>(1.0),
+		std::numeric_limits<FloatNxN>::digits - 1
+	);
+	#if 0
+		// Doesn't work?
+		const FloatNxN largest_integer = LDF::sub<FloatNxN, FloatBase, FloatBase>(
+			largest_ipwr2, static_cast<FloatBase>(1.0)
+		);
+	#else
+		const FloatNxN largest_integer = largest_ipwr2;
+	#endif
+
+	int ic;
+	FloatNxN f, s0, s1;
+	
+	// static FloatNxN con = FloatNxN(t105) + FloatNxN(t52);
+	// save con
+	// data con / t105, t52/
+
+	//   Check if  A  is zero.
+
+	if (isequal_zero(a))  {
+		b = static_cast<FloatBase>(0.0);
+		c = static_cast<FloatBase>(0.0);
+		goto JMP_120;
+	}
+
+	if (static_cast<FloatBase>(a) >= largest_ipwr2) {
+		// write (dd_ldb, 1);
+		// 1 format ('*** DDINFR: Argument is too large.');
+		// call_dq_abrt
+		printf("%s\n", "*** DDINFR: Argument is too large.");
+		return;
+	}
+	
+	f = static_cast<FloatBase>(1.0);
+	if (isgreater_zero(a)) {
+		call_dq_add (a, largest_integer, s0);
+		call_dq_sub (s0, largest_integer, b);
+		call_dq_cpr (a, b, ic);
+		if (ic >= 0) {
+			call_dq_sub (a, b, c);
+		} else {
+			call_dq_sub (b, f, s1);
+			b = s1;
+			call_dq_sub (a, b, c);
+		}
+	} else {
+		call_dq_sub (a, largest_integer, s0);
+		call_dq_add (s0, largest_integer, b);
+		call_dq_cpr (a, b, ic);
+		if (ic <= 0) {
+			call_dq_sub (a, b, c);
+		} else {
+			call_dq_add (b, f, s1);
+			b = s1;
+			call_dq_sub (a, b, c);
+		}
+	}
+
+	/* continue */ JMP_120:
+	return;
+#elif 1
 	//   Sets B to the integer part of the DDR number A and sets C equal to the
 	//   fractional part of A. Note that if A = -3.3, then B = -3 and C = -0.3.
 
@@ -197,6 +280,7 @@ static inline void T_call_dd_infr(const FloatNxN& a, FloatNxN& b, FloatNxN& c) {
 	/* continue */ JMP_120:
 	return;
 #else
+	// Original code
 	//   Sets B to the integer part of the DDR number A and sets C equal to the
 	//   fractional part of A. Note that if A = -3.3, then B = -3 and C = -0.3.
 
@@ -268,6 +352,9 @@ static inline void T_call_dd_infr(const FloatNxN& a, FloatNxN& b, FloatNxN& c) {
 template<typename FloatNxN, typename FloatBase>
 void T_call_dd_nint(const FloatNxN& a, FloatNxN& b) {
 #if 1
+	b = round(a);
+	return;
+#elif 0
 	//   This sets B equal to the integer (type DDR) nearest to the DDR number A.
 
 	// implicit none
@@ -379,7 +466,10 @@ static inline FloatNxN libDQFUN_tgamma(
 	// FloatNxN, intent(in):: t;
 	// FloatNxN, intent(out):: z;
 	// constexpr int max_iter = 100000;
-	constexpr FloatBase dmax = static_cast<FloatBase>(1.0e+8);
+
+	// This constant appears to be very conservative
+	__attribute__((unused)) constexpr FloatBase dmax = static_cast<FloatBase>(1.0e+8);
+	
 	int i, i1, ic1, j, nt, n1, n2, n3;
 	FloatBase alpha, d1, d2, d3;
 	FloatNxN f1, sum1, sum2, tn;
@@ -395,14 +485,14 @@ static inline FloatNxN libDQFUN_tgamma(
 
 	dq_nw1 = std::min(dq_nw + 1, dq_nwx);
 	call_dq_dmc (static_cast<FloatBase>(2.0), 0, tc1);
-	call_dq_npwr (tc1, -dq_nw1*dq_nbt, target_epsilon);
+	call_dq_npwr (tc1, -dq_nw1 * dq_nbt, target_epsilon);
 
 	call_dq_mdc (t, d1, n1);
 	d1 = ldexp(d1, n1);
 	call_dq_nint (t, t1);
 	call_dq_cpr (t, t1, ic1);
 	i1 = call_dq_sgn (t);
-	if (i1 == 0 || d1 > dmax || (i1 < 0 && ic1 == 0)) {
+	if (i1 == 0 || /* d1 > dmax || */ (i1 < 0 && ic1 == 0)) {
 		// write (dq_ldb, 2) dmax
 		// 2 format ('*** DQGAMMAR: input argument must have absolute value <=',f10.0,','/ &
 		// 'must not be zero, and if negative must not be an integer.')
@@ -425,7 +515,7 @@ static inline FloatNxN libDQFUN_tgamma(
 	//	 If t is a positive integer, { apply the usual factorial recursion.
 
 		call_dq_mdc (t2, d2, n2);
-		nt = ldexp(d2, n2);
+		nt = call_dq_int_ldexp(d2, n2);
 		call_dq_eq (f1, t1);
 
 		for (i = 2; i <= nt - 1; i++) {
@@ -441,7 +531,7 @@ static inline FloatNxN libDQFUN_tgamma(
 	//	 to the unit interval.
 
 		call_dq_mdc (t2, d2, n2);
-		nt = ldexp(d2, n2);
+		nt = call_dq_int_ldexp(d2, n2);
 		call_dq_eq (f1, t1);
 		call_dq_eq (t3, tn);
 
@@ -458,7 +548,7 @@ static inline FloatNxN libDQFUN_tgamma(
 		call_dq_sub (f1, t, t4);
 		call_dq_infr (t4, t3, t5);
 		call_dq_mdc (t3, d3, n3);
-		nt = ldexp(d3, n3);
+		nt = call_dq_int_ldexp(d3, n3);
 
 		call_dq_eq (f1, t1);
 		call_dq_sub (f1, t5, t2);
@@ -475,7 +565,9 @@ static inline FloatNxN libDQFUN_tgamma(
 	//	 Calculate alpha = bits of precision * log(2) / 2, { take the next even
 	//	 integer value, so that alpha/2 and alpha^2/4 can be calculated exactly in DP.
 
-	alpha = static_cast<FloatBase>(2.0) * aint (static_cast<FloatBase>(0.25) * (dq_nw1 + 1) * dq_nbt * al2 + static_cast<FloatBase>(1.0));
+	alpha = static_cast<FloatBase>(2.0) * trunc(
+		static_cast<FloatBase>(0.25) * (dq_nw1 + 1) * dq_nbt * al2 + static_cast<FloatBase>(1.0)
+	);
 	d2 = static_cast<FloatBase>(0.25) * (alpha * alpha);
 	call_dq_eq (tn, t2);
 	call_dq_div (f1, t2, t3);

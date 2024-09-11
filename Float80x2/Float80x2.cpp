@@ -125,6 +125,46 @@ Float80x2 expm1(const Float80x2& x) {
 	return ret - static_cast<fp80>(1.0); // expm1 to standard accuracy
 }
 
+/** 
+ * @brief Logarithm.  Computes log(x) in double-double precision.
+ * @note This is a natural logarithm (i.e., base e).
+ *
+ * @author Taken from libQD dd_real.cpp which can be found under a
+ * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
+ */
+Float80x2 log(const Float80x2& x) {
+	/* Strategy.  The Taylor series for log converges much more
+		slowly than that of exp, due to the lack of the factorial
+		term in the denominator.  Hence this routine instead tries
+		to determine the root of the function
+
+			f(x) = exp(x) - a
+
+		using Newton iteration.  The iteration is given by
+
+			x' = x - f(x)/f'(x) 
+			= x - (1 - a * exp(-x))
+			= x + a * exp(-x) - 1.
+			
+		Only one iteration is needed, since Newton's iteration
+		approximately doubles the number of digits per iteration. */
+
+	if (x == static_cast<fp80>(1.0)) {
+		return static_cast<fp80>(0.0);
+	}
+
+	if (x.hi <= static_cast<fp80>(0.0)) {
+		if (x == static_cast<fp80>(0.0)) {
+			return -std::numeric_limits<Float80x2>::infinity();
+		}
+		// Float64x2::error("(Float80x2::log): Non-positive argument.");
+		return std::numeric_limits<Float80x2>::quiet_NaN();
+	}
+
+	Float80x2 guess = log(x.hi);   /* Initial approximation */
+	return guess.hi + x * exp(-guess) - static_cast<fp80>(1.0);
+}
+
 //------------------------------------------------------------------------------
 // Float80x2 sin and cos
 //------------------------------------------------------------------------------

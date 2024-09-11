@@ -1159,28 +1159,22 @@ constexpr Float80x2 Float80x2_sqrtpi = {0xe.2dfc48da77b553dp-3L,-0xf.13eb7ca891b
 
 /* Logarithms and Exponents */
 
+	Float80x2 log(const Float80x2& x);
+	
 	/** 
-	 * @note casts to Float80x2_Math for calculation as this function is not
-	 * currently implemeneted.
-	 */
-	inline Float80x2 log(const Float80x2& x) { return static_cast<Float80x2>(log(static_cast<Float80x2_Math>(x))); }
-	/** 
-	 * @note casts to Float80x2_Math for calculation as this function is not
-	 * currently implemeneted.
+	 * @note Naive implementation of log1p
 	 */
 	inline Float80x2 log1p(const Float80x2& x) {
 		return log(x + static_cast<fp80>(1.0));
 	}
 	/** 
-	 * @note casts to Float80x2_Math for calculation as this function is not
-	 * currently implemeneted.
+	 * @note Naive implementation of log2
 	 */
 	inline Float80x2 log2(const Float80x2 x) {
 		return log(x) * Float80x2_log2e;
 	}
 	/** 
-	 * @note casts to Float80x2_Math for calculation as this function is not
-	 * currently implemeneted.
+	 * @note Naive implementation of log10
 	 */
 	inline Float80x2 log10(const Float80x2 x) {
 		return log(x) * Float80x2_log10e;
