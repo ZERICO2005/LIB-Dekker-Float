@@ -140,7 +140,7 @@ void run_math_demo(unsigned int seed) {
 
 #endif
 
-#if 1
+#if 0
 
 void run_generate_constants(void) {
 	generate_constants<Float64x4>("Float64x4");
@@ -249,7 +249,7 @@ int main(void) {
 	// run_math_demo(123456);
 	
 	// test_function();
-	precision_test<Float64x2>();
+	precision_test<Float80x2>();
 
 	// run_generate_constants();
 	

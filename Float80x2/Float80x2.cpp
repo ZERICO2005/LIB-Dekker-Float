@@ -23,6 +23,108 @@
 
 #include <cmath>
 
+
+//------------------------------------------------------------------------------
+// Float80x2 exp and log
+//------------------------------------------------------------------------------
+
+/** 
+ * @author Taken from libQD qd_real.cpp which can be found under a
+ * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
+ */
+static inline Float80x2 taylor_expm1(const Float80x2& x, fp80& m) {
+	/* Strategy:  We first reduce the size of x by noting that
+		 
+					exp(kr + m * log(2)) = 2^m * exp(r)^k
+
+		 where m and k are integers.  By choosing m appropriately
+		 we can make |kr| <= log(2) / 2 = 0.346574.  Then exp(r) is 
+		 evaluated using the familiar Taylor series.  Reducing the 
+		 argument substantially speeds up the convergence.       */
+
+	// constexpr fp80 k = 0x1.0p+16L;
+	constexpr fp80 recip_k = static_cast<fp80>(0x1.0p-16L);
+
+	m = std::floor(x.hi * Float80x2_log2e.hi + static_cast<fp80>(0.5));
+	Float80x2 r = mul_pwr2(x - Float80x2_ln2 * m, recip_k);
+	Float80x2 s, p, t;
+	fp80 thresh = recip_k * std::numeric_limits<Float80x2>::epsilon().hi;
+
+	p = square(r);
+	s = r + mul_pwr2(p, static_cast<fp80>(0.5));
+	int i = 0;
+	do {
+		p *= r;
+		t = p * inv_fact[i++];
+		s += t;
+	} while (std::fabs(t.hi) > thresh && i < 9);
+
+	s = mul_pwr2(s, static_cast<fp80>(2.0)) + square(s);
+	s = mul_pwr2(s, static_cast<fp80>(2.0)) + square(s);
+	s = mul_pwr2(s, static_cast<fp80>(2.0)) + square(s);
+	s = mul_pwr2(s, static_cast<fp80>(2.0)) + square(s);
+
+	s = mul_pwr2(s, static_cast<fp80>(2.0)) + square(s);
+	s = mul_pwr2(s, static_cast<fp80>(2.0)) + square(s);
+	s = mul_pwr2(s, static_cast<fp80>(2.0)) + square(s);
+	s = mul_pwr2(s, static_cast<fp80>(2.0)) + square(s);
+
+	s = mul_pwr2(s, static_cast<fp80>(2.0)) + square(s);
+	s = mul_pwr2(s, static_cast<fp80>(2.0)) + square(s);
+	s = mul_pwr2(s, static_cast<fp80>(2.0)) + square(s);
+	s = mul_pwr2(s, static_cast<fp80>(2.0)) + square(s);
+
+	s = mul_pwr2(s, static_cast<fp80>(2.0)) + square(s);
+	s = mul_pwr2(s, static_cast<fp80>(2.0)) + square(s);
+	s = mul_pwr2(s, static_cast<fp80>(2.0)) + square(s);
+	s = mul_pwr2(s, static_cast<fp80>(2.0)) + square(s);
+
+	return s;
+}
+
+Float80x2 exp(const Float80x2& x) {
+	if (x.hi <= static_cast<fp80>(-11356.53L)) {
+		// Gives a better approximation near extreme values
+		return exp(x.hi);
+	}
+	/* ln(2^1023 * (1 + (1 - 2^-52)))) = ~11356.523406294 */
+	if (x.hi >= static_cast<fp80>(11356.53L)) {
+		return std::numeric_limits<Float80x2>::infinity();
+	}
+	if (isequal_zero(x)) {
+		return static_cast<Float80x2>(1.0);
+	}
+	if (x == static_cast<fp80>(1.0)) {
+		return Float80x2_e;
+	}
+
+	fp80 m;
+	Float80x2 ret = taylor_expm1(x, m);
+	ret += static_cast<fp80>(1.0);
+	return ldexp(ret, static_cast<int>(m));
+}
+
+Float80x2 expm1(const Float80x2& x) {
+	if (x.hi <= static_cast<fp80>(-11356.53L)) {
+		return static_cast<Float80x2>(-1.0);
+	}
+	if (x.hi >= static_cast<fp80>(11356.53L)) {
+		return std::numeric_limits<Float80x2>::infinity();
+	}
+	if (isequal_zero(x)) {
+		return static_cast<Float80x2>(0.0);
+	}
+
+	fp80 m;
+	Float80x2 ret = taylor_expm1(x, m);
+	if (fabs(x) < static_cast<fp80>(0.5) * Float80x2_ln2) {
+		return ret; // expm1 to higher accuracy
+	}
+	ret += static_cast<fp80>(1.0);
+	ret = ldexp(ret, static_cast<int>(m));
+	return ret - static_cast<fp80>(1.0); // expm1 to standard accuracy
+}
+
 //------------------------------------------------------------------------------
 // Float80x2 sin and cos
 //------------------------------------------------------------------------------
@@ -383,6 +485,34 @@ void sincos(const Float80x2& a, Float80x2& sin_a, Float80x2& cos_a) {
 			cos_a = - u * cos_t - v * sin_t;
 		}
 	}
+}
+
+//------------------------------------------------------------------------------
+// Float80x2 erf and erfc
+//------------------------------------------------------------------------------
+
+#include "../FloatNxN/FloatNxN_erf.hpp"
+
+Float80x2 erf(const Float80x2& x) {
+	return libDDFUN_erf<
+		Float80x2, fp80, 2,
+		4096
+	>(
+		x,
+		Float80x2_sqrtpi, Float80x2_ln2.hi,
+		std::numeric_limits<Float80x2>::epsilon().hi * 0x1.0p-2L
+	);
+}
+
+Float80x2 erfc(const Float80x2& x) {
+	return libDDFUN_erfc<
+		Float80x2, fp80, 2,
+		4096
+	>(
+		x,
+		Float80x2_sqrtpi, Float80x2_ln2.hi,
+		std::numeric_limits<Float80x2>::epsilon().hi * 0x1.0p-2L
+	);
 }
 
 //------------------------------------------------------------------------------

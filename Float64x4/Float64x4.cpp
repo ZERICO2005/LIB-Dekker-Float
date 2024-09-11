@@ -181,10 +181,11 @@ Float64x4 log1p(const Float64x4& x) {
 		// qd_real::error("(qd_real::log): Non-positive argument.");
 		return std::numeric_limits<Float64x4>::quiet_NaN();
 	}
+	const Float64x4 x_plus1 = x + 1.0;
 	Float64x4 guess = log1p(x.val[0]);
-	guess = guess.val[0] + (x + 1.0) * exp(-guess) - 1.0;
-	guess = guess + (x + 1.0) * exp(-guess) - 1.0;
-	guess = guess + (x + 1.0) * exp(-guess) - 1.0;
+	guess = guess.val[0] + x_plus1 * exp(-guess) - 1.0;
+	guess = guess + x_plus1 * exp(-guess) - 1.0;
+	guess = guess + x_plus1 * exp(-guess) - 1.0;
 	return guess;
 }
 

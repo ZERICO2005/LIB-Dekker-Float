@@ -1051,6 +1051,8 @@ Float64x2 atanh(const Float64x2& x) {
 	#endif
 }
 
+#if 1
+
 //------------------------------------------------------------------------------
 // Float64x2 libDDFUN Fortran90 Functions
 //------------------------------------------------------------------------------
@@ -1837,6 +1839,39 @@ Float64x2 tgamma(const Float64x2& t) {
 
 	return z;
 }
+
+#endif
+
+#else
+
+//------------------------------------------------------------------------------
+// Float64x2 erf and erfc
+//------------------------------------------------------------------------------
+
+#include "../FloatNxN/FloatNxN_erf.hpp"
+
+Float64x2 erf(const Float64x2& x) {
+	return libDDFUN_erf<
+		Float64x2, fp64, 2,
+		256
+	>(
+		x,
+		Float64x2_sqrtpi, Float64x2_ln2.hi,
+		std::numeric_limits<Float64x2>::epsilon().hi * 0x1.0p-2
+	);
+}
+
+Float64x2 erfc(const Float64x2& x) {
+	return libDDFUN_erfc<
+		Float64x2, fp64, 2,
+		4096
+	>(
+		x,
+		Float64x2_sqrtpi, Float64x2_ln2.hi,
+		std::numeric_limits<Float64x2>::epsilon().hi * 0x1.0p-2
+	);
+}
+
 
 #endif
 

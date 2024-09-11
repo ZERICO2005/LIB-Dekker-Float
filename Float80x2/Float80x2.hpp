@@ -904,8 +904,10 @@ namespace std {
 
 /* Other Constants */
 
-constexpr Float80x2 Float80x2_2pi = {0xc.90fdaa22168c235p-1L,-0xe.ce675d1fc8f8cbbp-67L}; /**< ~6.283185307 */
-constexpr Float80x2 Float80x2_pi2 = {0xc.90fdaa22168c235p-3L,-0xe.ce675d1fc8f8cbbp-69L}; /**< ~1.570796327 */
+constexpr Float80x2 Float80x2_2pi    = {0xc.90fdaa22168c235p-1L,-0xe.ce675d1fc8f8cbbp-67L}; /**< ~6.283185307 */
+constexpr Float80x2 Float80x2_pi2    = {0xc.90fdaa22168c235p-3L,-0xe.ce675d1fc8f8cbbp-69L}; /**< ~1.570796327 */
+constexpr Float80x2 Float80x2_sqrtpi = {0xe.2dfc48da77b553dp-3L,-0xf.13eb7ca891b1f00p-70L}; /**< ~1.772453851 */
+
 
 //------------------------------------------------------------------------------
 // Float80x2 Math Functions
@@ -1186,6 +1188,22 @@ constexpr Float80x2 Float80x2_pi2 = {0xc.90fdaa22168c235p-3L,-0xe.ce675d1fc8f8cb
 	
 	inline Float80x2 logb(const Float80x2 x) { return logb(x.hi + x.lo); }
 	
+	#if 1
+
+	Float80x2 exp(const Float80x2& x);
+
+	Float80x2 expm1(const Float80x2 x);
+
+	inline Float80x2 exp2(const Float80x2 x) {
+		return exp(x * Float80x2_ln2);
+	}
+
+	inline Float80x2 exp10(const Float80x2 x) {
+		return exp(x * Float80x2_ln10);
+	}
+
+	#else
+
 	/** 
 	 * @note casts to Float80x2_Math for calculation as this function is not
 	 * currently implemeneted.
@@ -1212,6 +1230,8 @@ constexpr Float80x2 Float80x2_pi2 = {0xc.90fdaa22168c235p-3L,-0xe.ce675d1fc8f8cb
 	inline Float80x2 exp10(const Float80x2 x) {
 		return exp(x * Float80x2_ln10);
 	}
+
+	#endif
 	/** 
 	 * @note casts to Float80x2_Math for calculation as this function is not
 	 * currently implemeneted.
@@ -1372,7 +1392,13 @@ constexpr Float80x2 Float80x2_pi2 = {0xc.90fdaa22168c235p-3L,-0xe.ce675d1fc8f8cb
 	}
 
 /* Transcendental Functions */
+	#if 1
 	
+	Float80x2 erf(const Float80x2& x);
+
+	Float80x2 erfc(const Float80x2& x);
+	
+	#else
 	/** 
 	 * @note casts to Float80x2_Math for calculation as this function is not
 	 * currently implemeneted.
@@ -1391,6 +1417,7 @@ constexpr Float80x2 Float80x2_pi2 = {0xc.90fdaa22168c235p-3L,-0xe.ce675d1fc8f8cb
 			erfc(static_cast<Float80x2_Math>(x))
 		);
 	}
+	#endif
 	/** 
 	 * @note casts to Float80x2_Math for calculation as this function is not
 	 * currently implemeneted.
