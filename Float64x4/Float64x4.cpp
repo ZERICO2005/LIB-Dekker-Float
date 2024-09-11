@@ -191,38 +191,6 @@ Float64x4 log1p(const Float64x4& x) {
 
 static constexpr Float64x4 taylor_pi1024 = {0x1.921fb54442d18p-9,+0x1.1a62633145c07p-63,-0x1.f1976b7ed8fbcp-119,+0x1.4cf98e804177dp-173};
 
-/**
- * @brief Computes sin(a) and cos(a) using Taylor series.
- * @note Assumes |a| <= pi/2048.
- *
- * @author Taken from libQD dd_real.cpp which can be found under a
- * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
- */
-static void sincos_taylor(const Float64x4& a, Float64x4& sin_a, Float64x4& cos_a) {
-	const fp64 thresh = 0.5 * std::numeric_limits<Float64x4>::epsilon().val[0] * std::fabs(a.val[0]);
-	Float64x4 p, s, t, x;
-
-	if (isequal_zero(a)) {
-		sin_a = 0.0;
-		cos_a = 1.0;
-		return;
-	}
-
-	x = -square(a);
-	s = a;
-	p = a;
-	size_t i = 0;
-	do {
-		p *= x;
-		t = p * inv_fact_odd[i];
-		s += t;
-		++i;
-	} while (i < (sizeof(inv_fact_odd) / sizeof(inv_fact_odd[0])) && std::fabs(t.val[0]) > thresh);
-
-	sin_a = s;
-	cos_a = sqrt(1.0 - square(s));
-}
-
 /** 
  * @brief Computes sin(a) using Taylor series.
  * @note Assumes |a| <= pi/2048.
@@ -247,7 +215,7 @@ static Float64x4 sin_taylor(const Float64x4& a) {
 		t = p * inv_fact_odd[i];
 		s += t;
 		++i;
-	} while (i < (sizeof(inv_fact_odd) / sizeof(inv_fact_odd[0])) && std::fabs(t.val[0]) > thresh);
+	} while (i < (sizeof(inv_fact_even) / sizeof(inv_fact_even[0])) && std::fabs(t.val[0]) > thresh);
 
 	return s;
 }
@@ -281,6 +249,25 @@ static Float64x4 cos_taylor(const Float64x4& a) {
 	return s;
 }
 
+/**
+ * @brief Computes sin(a) and cos(a) using Taylor series.
+ * @note Assumes |a| <= pi/2048.
+ *
+ * @author Taken from libQD dd_real.cpp which can be found under a
+ * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
+ */
+static void sincos_taylor(
+	const Float64x4 &x, Float64x4 &p_sin, Float64x4 &p_cos
+) {
+	if (isequal_zero(x)) {
+		p_sin = 0.0;
+		p_cos = 1.0;
+		return;
+	}
+
+	p_sin = sin_taylor(x);
+	p_cos = sqrt(static_cast<fp64>(1.0) - square(p_sin));
+}
 
 /** 
  * @author Taken from libQD qd_real.cpp which can be found under a

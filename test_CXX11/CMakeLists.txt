@@ -15,7 +15,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./bin")
 	set(FEATURE_Float80       "")
 
 	# GCC quadmath __float128
-#	set(FEATURE_Float128      "")
+	set(FEATURE_Float128      "")
 	
 	# MPFR converts between dekker-floats and strings
 	set(FEATURE_FloatMPFR     "")

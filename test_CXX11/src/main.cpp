@@ -6,6 +6,7 @@
 **	this project. If not, see https://opensource.org/license/MIT
 */
 
+#include <Float80x2/Float80x2_def.h>
 #include <limits>
 #include <math.h>
 #include <algorithm>
@@ -15,7 +16,19 @@
 #include <ios>
 #include <numbers>
 
+#include <stdint.h>
+
 #include <iostream>
+
+#include <ctime>
+#include <chrono>
+inline int64_t getNanoTime(void) { 
+	using nanoseconds = std::chrono::duration<int64_t, std::nano>;
+	auto now = std::chrono::high_resolution_clock::now();
+	return std::chrono::duration_cast<nanoseconds>(now.time_since_epoch()).count();
+}
+
+#define MPFR_WANT_FLOAT128
 
 #include "Float32/Float32.h"
 #include "Float64/Float64.h"
@@ -57,6 +70,8 @@
 #include "FloatNx2_demo.hpp"
 
 #include "FloatNx2_math_demo.hpp"
+
+#include "precision_test.hpp"
 
 #endif
 
@@ -130,40 +145,111 @@ void run_math_demo(unsigned int seed) {
 void run_generate_constants(void) {
 	generate_constants<Float64x4>("Float64x4");
 }
-// void get_fact(void) {
-// 	// for (unsigned long i = 0; i <= 99; i += 1) {
-// 	// 	FloatMPFR f;
-// 	// 	mpfr_fac_ui(f.value, i, MPFR_RNDN);
-// 	// 	mpfr_d_div(f.value, 1.0, f.value, MPFR_RNDN);
-// 	// 	Float64x4 num = mpfr_get_float64x4(f.value, MPFR_RNDN);
-// 	// 	printf(
-// 	// 		"/* %2lu! */ {%-22.13a,%+-23.13a,%+-23.13a,%+-23.13a},\n", i,
-// 	// 		num.val[0], num.val[1], num.val[2], num.val[3]
-// 	// 	);
-// 	// }
-// 	for (unsigned long i = 3; i <= 3; i += 1) {
-// 		FloatMPFR f;
-// 		mpfr_set_ui(f.value, i, MPFR_RNDN);
-// 		mpfr_div_ui(f.value, f.value, 4, MPFR_RNDN);
-// 		FloatMPFR c;
-// 		mpfr_const_pi(c.value, MPFR_RNDN);
-// 		mpfr_mul(f.value, f.value, c.value, MPFR_RNDN);
-// 		// mpfr_sinpi(f.value, f.value, MPFR_RNDN);
-// 		Float64x4 num = mpfr_get_float64x4(f.value, MPFR_RNDN);
-// 		printf(
-// 			"/* sin(pi * %3lu/1024) */ {%-20.13a,%+-22.13a,%+-23.13a,%+-23.13a},\n", i,
-// 			num.val[0], num.val[1], num.val[2], num.val[3]
-// 		);
-// 	}
-// }
 
+void get_fact(void) {
+	#if 0
+		#if 1
+			for (unsigned long i = 1; i <= 99; i += 2) {
+				FloatMPFR f;
+				mpfr_fac_ui(f.value, i, MPFR_RNDN);
+				mpfr_d_div(f.value, 1.0, f.value, MPFR_RNDN);
+				Float80x2 num = mpfr_get_float80x2(f.value, MPFR_RNDN);
+				printf(
+					"/* %2lu! */ {%-24.15LaL,%+-25.15LaL},\n", i,
+					num.hi, num.lo
+				);
+			}
+		#else
+			for (unsigned long i = 0; i <= 99; i += 1) {
+				FloatMPFR f;
+				mpfr_fac_ui(f.value, i, MPFR_RNDN);
+				mpfr_d_div(f.value, 1.0, f.value, MPFR_RNDN);
+				Float64x4 num = mpfr_get_float64x4(f.value, MPFR_RNDN);
+				printf(
+					"/* %2lu! */ {%-22.13a,%+-23.13a,%+-23.13a,%+-23.13a},\n", i,
+					num.val[0], num.val[1], num.val[2], num.val[3]
+				);
+			}
+		#endif
+	#else
+		#if 1
+		for (unsigned long i = 0; i <= 256; i += 1) {
+			FloatMPFR f;
+			mpfr_set_ui(f.value, i, MPFR_RNDN);
+			mpfr_div_ui(f.value, f.value, 1024, MPFR_RNDN);
+			mpfr_cospi(f.value, f.value, MPFR_RNDN);
+			Float80x2 num = mpfr_get_float80x2(f.value, MPFR_RNDN);
+			printf(
+				"/* %3lu */ {%-22.15LaL,%+-23.15LaL},\n", i,
+				num.hi, num.lo
+			);
+		}
+		#else
+		for (unsigned long i = 0; i <= 256; i += 1) {
+			FloatMPFR f;
+			mpfr_set_ui(f.value, i, MPFR_RNDN);
+			mpfr_div_ui(f.value, f.value, 1024, MPFR_RNDN);
+			mpfr_sinpi(f.value, f.value, MPFR_RNDN);
+			Float64x4 num = mpfr_get_float64x4(f.value, MPFR_RNDN);
+			printf(
+				"/* sin(pi * %3lu/1024) */ {%-20.13a,%+-22.13a,%+-23.13a,%+-23.13a},\n", i,
+				num.val[0], num.val[1], num.val[2], num.val[3]
+			);
+		}
+		#endif
+	#endif
+}
+
+#endif
+
+#if 0
+#include <quadmath.h>
+void aaa(void) {
+	#if 0
+	{
+		int64_t start = getNanoTime();
+		char buf[999];
+		for (int i = 0; i < 65536; i++) {
+			Float80x2 ret = (fp80)((__float128)i);
+			ret = sin(ret);
+		}
+		int64_t finish = getNanoTime();
+		printf("Time: %.3Lfms\n", static_cast<long double>(finish - start) * 1.0e-6L);
+	}
+	{
+		int64_t start = getNanoTime();
+		char buf[999];
+		for (int i = 0; i < 65536; i++) {
+			__float128 ret = ((__float128)i);
+			ret = sinq(ret);
+		}
+		int64_t finish = getNanoTime();
+		printf("Time: %.3Lfms\n", static_cast<long double>(finish - start) * 1.0e-6L);
+	}
+	#endif
+	fp80 max_diff = -1000.0L;
+	for (int i = 0; i < 16777216; i++) {
+		Float80x2 x0 = (fp80)i;
+		fp128 x1 = (fp128)i;
+		x0 = sin(x0);
+		x1 = sin(x1);
+		fp80 diff = (fp80)log2q(fabsq((fp128)x0 - x1));
+		if (diff > max_diff) {
+			max_diff = diff;
+			printf("%5d: %+24.18Le %+24.18Le | %+11.8Lf\n", i, (fp80)x0, (fp80)x1, diff);
+		}
+	}
+}
 #endif
 
 int main(void) {
 	printf("\n");
+	// aaa();
 	// run_demo();
 	// run_math_demo(123456);
+	
 	// test_function();
+	precision_test<Float64x2>();
 
 	// run_generate_constants();
 	
@@ -183,7 +269,7 @@ int main(void) {
 	}
 	#endif
 	
-	#if 1
+	#if 0
 	__attribute__((unused)) char buf[999];
 	
 	Float64x2 x = "2.718281828459045235360287471352662497757247093699959574966967627724076630353547594571382"_FP64X2;

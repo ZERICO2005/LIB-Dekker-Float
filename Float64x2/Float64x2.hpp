@@ -1050,11 +1050,25 @@ namespace std {
 	Float64x2  sin (const Float64x2& x);
 	Float64x2  cos (const Float64x2& x);
 	void sincos(const Float64x2& x, Float64x2& p_sin , Float64x2& p_cos );
+	
+
+	// Float64x2 tan(const Float64x2& x);
+	
+	// #include "../Float64x4/Float64x4_def.h"
+	
+	// template<>
+	// Float64x4 LDF::div<Float64x4, Float64x2, Float64x2>(const Float64x2& x, const Float64x2& y);
+	
+	// Float64x4 tan(const Float64x4& x);
+
 	inline Float64x2 tan(const Float64x2& x) {
 		Float64x2 sin_val, cos_val;
 		sincos(x, sin_val, cos_val);
 		return sin_val / cos_val;
+		// Float64x4 ret = static_cast<Float64x4>(x);
+		// return static_cast<Float64x2>(tan(ret));
 	}
+
 	Float64x2 asin (const Float64x2& x);
 	Float64x2 acos (const Float64x2& x);
 	Float64x2 atan (const Float64x2& x);

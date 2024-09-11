@@ -66,7 +66,7 @@ static inline Float128x2 mpfr_get_float128x2(mpfr_srcptr op, const mpfr_rnd_t rn
 
 template <>
 inline int mpfr_set_type<Float128x2>(mpfr_t rop, const Float128x2& op, const mpfr_rnd_t rnd) {
-	return mpfr_get_float128x2(rop, op, rnd);
+	return mpfr_set_float128x2(rop, op, rnd);
 }
 template <>
 inline Float128x2 mpfr_get_type<Float128x2>(mpfr_srcptr op, const mpfr_rnd_t rnd) {

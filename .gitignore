@@ -5,3 +5,4 @@ desktop.ini
 .clangd
 LIB-Dekker-Float.code-workspace
 .code-workspace
+compile_commands.json

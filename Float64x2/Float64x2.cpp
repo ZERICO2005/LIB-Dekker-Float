@@ -24,6 +24,7 @@
 **	LIB-Dekker-Float/libDDFUN/DISCLAIMER_and_Limited-BSD-License.txt
 */
 
+#include <Float80x2/Float80x2.hpp>
 #include <limits>
 #include <math.h>
 #include <cmath>
@@ -41,6 +42,8 @@
 #include "Float64x2.h"
 #include "Float64x2.hpp"
 #include "Float64x2_string.h"
+
+#include "../Float64x4/Float64x4.hpp"
 
 //------------------------------------------------------------------------------
 // Float64x2 math.h functions
@@ -249,7 +252,7 @@ Float64x2 exp(const Float64x2& x) {
 		return exp(x.hi);
 	}
 	/* ln(2^1023 * (1 + (1 - 2^-52)))) = ~709.782712893 */
-	if (x.lo >= 709.79) {
+	if (x.hi >= 709.79) {
 		return std::numeric_limits<Float64x2>::infinity();
 	}
 	if (isequal_zero(x)) {
@@ -331,12 +334,12 @@ Float64x2 log(const Float64x2& x) {
 	}
 
 	Float64x2 guess = log(x.hi);   /* Initial approximation */
-	guess = guess.hi + x * exp(-guess) - 1.0;
-	return guess;
+	return guess.hi + x * exp(-guess) - 1.0;
 }
 
 /**
- * @remarks using similar methods to log(x)
+ * @remarks using similar methods to log(x). Haven't figured out how to
+ * properly implement log1p without resorting to Float64x4
  */
 Float64x2 log1p(const Float64x2& x) {
 	if (isequal_zero(x)) {
@@ -349,9 +352,9 @@ Float64x2 log1p(const Float64x2& x) {
 		// Float64x2::error("(Float64x2::log): Non-positive argument.");
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
-	Float64x2 guess = log1p(x.hi);
-	guess = guess.hi + (x + 1.0) * exp(-guess) - 1.0;
-	return guess;
+	Float64x4 guess = log1p(x.hi);
+	Float64x4 x_plus1 = LDF::add<Float64x4, Float64x2, fp64>(x, 1.0); 
+	return guess.val[0] + static_cast<Float64x2>(x_plus1 * exp(-guess) - 1.0);
 }
 
 
@@ -359,14 +362,14 @@ Float64x2 log1p(const Float64x2& x) {
 static constexpr Float64x2 sin_table [4] = {
 	{1.950903220161282758e-01, -7.991079068461731263e-18},
 	{3.826834323650897818e-01, -1.005077269646158761e-17},
-	{5.555702330196021776e-01,  4.709410940561676821e-17},
+	{5.555702330196021776e-01, +4.709410940561676821e-17},
 	{7.071067811865475727e-01, -4.833646656726456726e-17}
 };
 
 static constexpr Float64x2 cos_table [4] = {
-	{9.807852804032304306e-01,  1.854693999782500573e-17},
-	{9.238795325112867385e-01,  1.764504708433667706e-17},
-	{8.314696123025452357e-01,  1.407385698472802389e-18},
+	{9.807852804032304306e-01, +1.854693999782500573e-17},
+	{9.238795325112867385e-01, +1.764504708433667706e-17},
+	{8.314696123025452357e-01, +1.407385698472802389e-18},
 	{7.071067811865475727e-01, -4.833646656726456726e-17}
 };
 
@@ -377,26 +380,32 @@ static constexpr Float64x2 cos_table [4] = {
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-static Float64x2 sin_taylor(const Float64x2 &a) {
-	const fp64 thresh = 0.5 * fabs(a.hi) * std::numeric_limits<Float64x2>::epsilon().hi;
-	Float64x2 r, s, t, x;
+static Float64x2 sin_taylor(const Float64x2& x) {
+	const fp64 thresh = 0.5 * fabs(x.hi) * std::numeric_limits<Float64x2>::epsilon().hi;
+	Float64x2 x_power, sum, term;
 
-	if (isequal_zero(a)) {
+	if (isequal_zero(x)) {
 		return 0.0;
 	}
 
 	size_t i = 0;
-	x = -square(a);
-	s = a;
-	r = a;
-	do {
-		r *= x;
-		t = r * inv_fact_odd[i];
-		s += t;
-		++i;
-	} while (i < n_inv_fact_odd && fabs(t.hi) > thresh);
+	const Float64x2 neg_x_squared = -square(x);
+	x_power = x;
 
-	return s;
+	// sum = x;
+	sum = 0.0;
+	do {
+		x_power *= neg_x_squared;
+		term = x_power * inv_fact_odd[i];
+		sum += term;
+		++i;
+	} while (i < n_inv_fact_odd && fabs(term.hi) > thresh);
+
+	// return sum;
+	/**
+	 * @remarks Adding x towards the end improves the ULP slightly
+	 */
+	return sum + x;
 }
 
 /** 
@@ -406,26 +415,33 @@ static Float64x2 sin_taylor(const Float64x2 &a) {
  * @author Taken from libQD dd_real.cpp which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-static Float64x2 cos_taylor(const Float64x2 &a) {
+static Float64x2 cos_taylor(const Float64x2 &x) {
 	const fp64 thresh = 0.5 * std::numeric_limits<Float64x2>::epsilon().hi;
-	Float64x2 r, s, t, x;
+	Float64x2 x_power, sum, term;
 
-	if (isequal_zero(a)) {
+	if (isequal_zero(x)) {
 		return 1.0;
 	}
 
-	x = -square(a);
-	r = x;
-	s = static_cast<fp64>(1.0) + mul_pwr2(r, 0.5);
+	const Float64x2 neg_x_squared = -square(x);
+	x_power = neg_x_squared;
+
+	// sum = static_cast<fp64>(1.0) + mul_pwr2(x_power, 0.5);
+	sum = 0.0;
+
 	size_t i = 0;
 	do {
-		r *= x;
-		t = r * inv_fact_even[i];
-		s += t;
+		x_power *= neg_x_squared;
+		term = x_power * inv_fact_even[i];
+		sum += term;
 		++i;
-	} while (i < n_inv_fact_even && fabs(t.hi) > thresh);
+	} while (i < n_inv_fact_even && fabs(term.hi) > thresh);
 
-	return s;
+	// return sum;
+	/**
+	 * @remarks Adding the first two terms towards the end improves the ULP slightly
+	 */
+	return (sum + mul_pwr2(neg_x_squared, 0.5)) + static_cast<fp64>(1.0);
 }
 
 /** 
@@ -448,78 +464,64 @@ static void sincos_taylor(
 	p_cos = sqrt(static_cast<fp64>(1.0) - square(p_sin));
 }
 
-#if 0
+static constexpr Float64x4 Float64x4_pi16 = {0x1.921fb54442d18p-3,+0x1.1a62633145c07p-57,-0x1.f1976b7ed8fbcp-113,+0x1.4cf98e804177dp-167};
 
-static inline Float64x2 trig_fmod(Float64x2 x, Float64x2 y) {
-	Float64x2 floor_part = floor(x / y);
-	return x - (y * floor_part);
-}
+static inline void trig_modulo(
+	const Float64x2& x, Float64x2& ret, Float64x2& t,
+	int& j, int& k
+) {
+	#if 0
+		// approximately reduce modulo 2*pi
+		Float64x2 z = round(x / Float64x2_2pi);
+		ret = (x - Float64x2_2pi * z);
 
-Float64x2 sin(const Float64x2& x) {
-	// printf("\n\t%+-23.14a %+-23.14a\n", x.hi, x.lo);
-	Float64x2 comp;
-	comp = trig_fmod(x, Float64x2_tau);
-	// printf("\t%+-23.14a %+-23.14a\n", comp.hi, comp.lo);
-	bool neg_flag = (Float64x2_tau2 <= comp) ? true : false;
-	comp = trig_fmod(x, Float64x2_tau2);
-	// printf("\t%+-23.14a %+-23.14a\n", comp.hi, comp.lo);
-	// comp == static_cast<fp64>(0.0)
-	bool flip_side = (
-		Float64x2_tau4 <= comp &&
-		dekker_notequal_zero(comp)
-	) ? true : false;
-	x = trig_fmod(x, Float64x2_tau4);
-	printf("\t%+-23.14a %+-23.14a\n", x.hi, x.lo);
-	flip_side = (
-		dekker_notequal_zero(comp)
-	) ? flip_side : false;
-	x = flip_side ? (Float64x2_tau4 - x) : x;
-	Float64x2 ret = x;
-	Float64x2 x_pow = x;
-	const Float64x2 neg_x_sqr = -square(x);
-	size_t i = 0;
-	do {
-		x_pow *= neg_x_sqr;
-		ret += x_pow * inv_fact_odd[i];
-		i++;
-	} while (i < n_inv_fact_odd && i < 16);
-	ret = neg_flag ? -ret : ret;
-	return ret;
-}
+		// approximately reduce modulo pi/2 and then modulo pi/16.
+		fp64 q = floor(ret.hi / Float64x2_pi2.hi + 0.5);
+		t = ret - Float64x2_pi2 * q;
+		j = static_cast<int>(q);
+		q = floor(t.hi / Float64x2_pi16.hi + 0.5);
+		t -= Float64x2_pi16 * q;
+		k = static_cast<int>(q);
+	#elif 0
+		// approximately reduce modulo 2*pi
+		Float64x4 z = round(x / Float64x4_2pi);
+		ret = static_cast<Float64x2>(x - Float64x4_2pi * z);
 
-#endif
+		// approximately reduce modulo pi/2 and then modulo pi/16.
+		fp64 q = floor(ret.hi / Float64x2_pi2.hi + 0.5);
+		t = ret - Float64x2_pi2 * q;
+		j = static_cast<int>(q);
+		q = floor(t.hi / Float64x2_pi16.hi + 0.5);
+		t -= Float64x2_pi16 * q;
+		k = static_cast<int>(q);
+	#elif 0
+		// approximately reduce modulo 2*pi
+		Float64x4 z = round(x / Float64x4_2pi);
+		ret = static_cast<Float64x2>(x - Float64x4_2pi * z);
 
-#if 0
-
-Float64x2 sin(const Float64x2& x) {
-	x = fmod(x, Float64x2_tau);
-	Float64x2 ret_hi = x;
-	Float64x2 ret_lo = 0.0;
-	Float64x2 x_pow = x;
-	const Float64x2 neg_x_sqr = -square(x);
-	
-	
-	x_pow *= neg_x_sqr;
-	ret_hi += x_pow * inv_fact_odd[0];
-
-	x_pow *= neg_x_sqr;
-	ret_hi += x_pow * inv_fact_odd[1];
-	size_t i = 2;
-	do {
-		x_pow *= neg_x_sqr;
-
-			ret_lo += x_pow * inv_fact_odd[i];
+		// approximately reduce modulo pi/2 and then modulo pi/16.
+		Float64x2 q = floor(ret / Float64x2_pi2 + 0.5);
+		t = ret - Float64x2_pi2 * q;
+		j = static_cast<int>(q);
+		q = floor(t / Float64x2_pi16 + 0.5);
+		t -= Float64x2_pi16 * q;
+		k = static_cast<int>(q);
+	#else
+		// approximately reduce modulo 2*pi
+		Float64x4 z = round(x / Float64x4_2pi);
+		Float64x4 ret_temp = x - Float64x4_2pi * z;
 		
-		i++;
-	} while (/* i < n_inv_fact && */ i < 16);
-	// 32 = 2^-104.1270 max-error
-	// 34 = 2^-104.1312 max-error
-	return ret_hi + ret_lo;
+		// approximately reduce modulo pi/2 and then modulo pi/16.
+		Float64x4 q = floor(ret_temp / Float64x4_pi2 + 0.5);
+		Float64x4 t_temp = ret_temp - Float64x4_pi2 * q;
+		j = static_cast<int>(q);
+		q = floor(t / Float64x4_pi16 + 0.5);
+		t_temp -= Float64x4_pi16 * q;
+		k = static_cast<int>(q);
+		ret = static_cast<Float64x2>(ret_temp);
+		t = static_cast<Float64x2>(t_temp);
+	#endif
 }
-
-#endif
-
-#if 1
 
 /** 
  * @author Taken from libQD dd_real.cpp which can be found under a
@@ -542,27 +544,20 @@ Float64x2 sin(const Float64x2& x) {
 		return 0.0;
 	}
 
-	// approximately reduce modulo 2*pi
-	Float64x2 z = round(x / Float64x2_2pi);
-	Float64x2 r = x - Float64x2_2pi * z;
-
-	// approximately reduce modulo pi/2 and then modulo pi/16.
-	Float64x2 t;
-	fp64 q = floor(r.hi / Float64x2_pi2.hi + 0.5);
-	t = r - Float64x2_pi2 * q;
-	int j = static_cast<int>(q);
-	q = floor(t.hi / Float64x2_pi16.hi + 0.5);
-	t -= Float64x2_pi16 * q;
-	int k = static_cast<int>(q);
-	int abs_k = abs(k);
+	Float64x2 ret, t;
+	int j, k;
+	trig_modulo(x, ret, t, j, k);
+	unsigned int abs_k = static_cast<unsigned int>(abs(k));
 
 	if (j < -2 || j > 2) {
 		// Float64x2::error("(Float64x2::sin): Cannot reduce modulo pi/2.");
+		// printf("ERROR: %+#.10Lg Cannot reduce modulo pi/2.\n", static_cast<long double>(x));
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
 
 	if (abs_k > 4) {
 		// Float64x2::error("(Float64x2::sin): Cannot reduce modulo pi/16.");
+		// printf("ERROR: %+#.10Lg Cannot reduce modulo pi/16.\n", static_cast<long double>(x));
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
 
@@ -583,34 +578,34 @@ Float64x2 sin(const Float64x2& x) {
 	Float64x2 v(sin_table[abs_k-1].hi, sin_table[abs_k-1].lo);
 	Float64x2 t_sin, t_cos;
 	sincos_taylor(t, t_sin, t_cos);
+
 	if (j == 0) {
 		if (k > 0) {
-			r = u * t_sin + v * t_cos;
+			ret = u * t_sin + v * t_cos;
 		} else {
-			r = u * t_sin - v * t_cos;
+			ret = u * t_sin - v * t_cos;
 		}
 	} else if (j == 1) {
 		if (k > 0) {
-			r = u * t_cos - v * t_sin;
+			ret = u * t_cos - v * t_sin;
 		} else {
-			r = u * t_cos + v * t_sin;
+			ret = u * t_cos + v * t_sin;
 		}
 	} else if (j == -1) {
 		if (k > 0) {
-			r = v * t_sin - u * t_cos;
+			ret = v * t_sin - u * t_cos;
 		} else if (k < 0) {
-			r = -u * t_cos - v * t_sin;
+			ret = -u * t_cos - v * t_sin;
 		}
 	} else {
 		if (k > 0) {
-			r = -u * t_sin - v * t_cos;
+			ret = -u * t_sin - v * t_cos;
 		} else {
-			r = v * t_cos - u * t_sin;
+			ret = v * t_cos - u * t_sin;
 		}
 	}
-	return r;
+	return ret;
 }
-#endif
 
 /** 
  * @author Taken from libQD dd_real.cpp which can be found under a
@@ -622,27 +617,20 @@ Float64x2 cos(const Float64x2& x) {
 		return 1.0;
 	}
 
-	// approximately reduce modulo 2*pi
-	Float64x2 z = round(x / Float64x2_2pi);
-	Float64x2 ret = x - z * Float64x2_2pi;
-
-	// approximately reduce modulo pi/2 and then modulo pi/16
-	Float64x2 t;
-	fp64 q = floor(ret.hi / Float64x2_pi2.hi + 0.5);
-	t = ret - Float64x2_pi2 * q;
-	int j = static_cast<int>(q);
-	q = floor(t.hi / Float64x2_pi16.hi + 0.5);
-	t -= Float64x2_pi16 * q;
-	int k = static_cast<int>(q);
-	int abs_k = abs(k);
+	Float64x2 ret, t;
+	int j, k;
+	trig_modulo(x, ret, t, j, k);
+	unsigned int abs_k = static_cast<unsigned int>(abs(k));
 
 	if (j < -2 || j > 2) {
 		// Float64x2::error("(Float64x2::cos): Cannot reduce modulo pi/2.");
+		// printf("ERROR: %+#.10Lg Cannot reduce modulo pi/2.\n", static_cast<long double>(x));
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
 
 	if (abs_k > 4) {
 		// Float64x2::error("(Float64x2::cos): Cannot reduce modulo pi/16.");
+		// printf("ERROR: %+#.10Lg Cannot reduce modulo pi/16.\n", static_cast<long double>(x));
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
 
@@ -705,20 +693,11 @@ void sincos(const Float64x2& x, Float64x2& p_sin, Float64x2& p_cos) {
 		return;
 	}
 
-	// approximately reduce modulo 2*pi
-	Float64x2 z = round(x / Float64x2_2pi);
-	Float64x2 ret = x - Float64x2_2pi * z;
-
-	// approximately reduce module pi/2 and pi/16
-	Float64x2 t;
-	fp64 q = floor(ret.hi / Float64x2_pi2.hi + 0.5);
-	t = ret - Float64x2_pi2 * q;
-	int j = static_cast<int>(q);
-	int abs_j = abs(j);
-	q = floor(t.hi / Float64x2_pi16.hi + 0.5);
-	t -= Float64x2_pi16 * q;
-	int k = static_cast<int>(q);
-	int abs_k = abs(k);
+	Float64x2 ret, t;
+	int j, k;
+	trig_modulo(x, ret, t, j, k);
+	unsigned int abs_k = static_cast<unsigned int>(abs(k));
+	unsigned int abs_j = static_cast<unsigned int>(abs(j));
 
 	if (abs_j > 2) {
 		// Float64x2::error("(Float64x2::sincos): Cannot reduce modulo pi/2.");
@@ -867,22 +846,18 @@ Float64x2 atan2(const Float64x2& y, const Float64x2& x) {
 		return (isgreater_zero(y)) ? Float64x2_3pi4 : -Float64x2_pi4;
 	}
 
-	Float64x2 r = sqrt(square(x) + square(y));
-	Float64x2 xx = x / r;
-	Float64x2 yy = y / r;
-
 	/* Compute double precision approximation to atan. */
+	const Float64x2 radius = sqrt(square(x) + square(y));
 	Float64x2 z = atan2(y.hi, x.hi);
 	Float64x2 sin_z, cos_z;
+	sincos(z, sin_z, cos_z);
 
-	if (fabs(xx.hi) > fabs(yy.hi)) {
+	if (fabs(x.hi) > fabs(y.hi)) {
 		/* Use Newton iteration 1.  z' = z + (y - sin(z)) / cos(z)  */
-		sincos(z, sin_z, cos_z);
-		z += (yy - sin_z) / cos_z;
+		z += ((y / radius) - sin_z) / cos_z;
 	} else {
 		/* Use Newton iteration 2.  z' = z - (x - cos(z)) / sin(z)  */
-		sincos(z, sin_z, cos_z);
-		z -= (xx - cos_z) / sin_z;
+		z -= ((x / radius) - cos_z) / sin_z;
 	}
 
 	return z;
@@ -893,14 +868,14 @@ Float64x2 atan2(const Float64x2& y, const Float64x2& x) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 Float64x2 asin(const Float64x2& x) {
-	Float64x2 abs_a = fabs(x);
+	const Float64x2 abs_x = fabs(x);
 
-	if (abs_a > static_cast<fp64>(1.0)) {
+	if (abs_x > static_cast<fp64>(1.0)) {
 		// Float64x2::error("(Float64x2::asin): Argument out of domain.");
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
 
-	if (abs_a == static_cast<fp64>(1.0)) {
+	if (abs_x == static_cast<fp64>(1.0)) {
 		return (isgreater_zero(x)) ? Float64x2_pi2 : -Float64x2_pi2;
 	}
 
@@ -912,14 +887,14 @@ Float64x2 asin(const Float64x2& x) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 Float64x2 acos(const Float64x2& x) {
-	Float64x2 abs_a = fabs(x);
+	const Float64x2 abs_x = fabs(x);
 
-	if (abs_a > static_cast<fp64>(1.0)) {
+	if (abs_x > static_cast<fp64>(1.0)) {
 		// Float64x2::error("(Float64x2::acos): Argument out of domain.");
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
 
-	if (abs_a == static_cast<fp64>(1.0)) {
+	if (abs_x == static_cast<fp64>(1.0)) {
 		return (isgreater_zero(x)) ? Float64x2(0.0) : Float64x2_pi;
 	}
 
@@ -940,24 +915,31 @@ Float64x2 sinh(const Float64x2& x) {
 		return mul_pwr2((ea - recip(ea)), 0.5);
 	}
 
-	/* since a is small, using the above formula gives
+	/* since x is small, using the above formula gives
 		a lot of cancellation.  So use Taylor series.   */
-	Float64x2 s = x;
+	
+
 	Float64x2 t = x;
 	Float64x2 r = square(t);
-	fp64 m = 1.0;
-	fp64 thresh = fabs(x.hi * std::numeric_limits<Float64x2>::epsilon().hi);
+	const fp64 thresh = fabs(x.hi * std::numeric_limits<Float64x2>::epsilon().hi);
 
-	do {
+	fp64 m = 3.0;
+	t *= r;
+	t /= (m - 1.0) * m;
+
+	// Float64x2 s = x + t;
+	Float64x2 s = t;
+
+	while (fabs(t.hi) > thresh) {
 		m += 2.0;
 		t *= r;
 		t /= (m - 1.0) * m;
 
 		s += t;
-	} while (fabs(t.hi) > thresh);
+	}
 
-	return s;
-
+	// return s;
+	return s + x; // Adding x towards the end improves the ULP slightly
 }
 
 /** 
@@ -1039,8 +1021,34 @@ Float64x2 atanh(const Float64x2& x) {
 		// Float64x2::error("(Float64x2::atanh): Argument out of domain.");
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
+	#if 1
+		// Value of ~0.472 found experimentally, but set to 0.48 just to be safe
+		if (fabs(x) >= static_cast<fp64>(0.48)) {
+			// Accurate for larger numbers
+			return mul_pwr2(log((static_cast<fp64>(1.0) + x) / (static_cast<fp64>(1.0) - x)), 0.5);
 
-	return mul_pwr2(log((static_cast<fp64>(1.0) + x) / (static_cast<fp64>(1.0) - x)), 0.5);
+		}
+		// Accurate for smaller numbers
+		return mul_pwr2(log1p(x) - log1p(-x), 0.5);
+	#else
+		#if 1
+			// Original code
+			return mul_pwr2(log((static_cast<fp64>(1.0) + x) / (static_cast<fp64>(1.0) - x)), 0.5);
+		#elif 0
+			// Removes division
+			return mul_pwr2(
+				log(x + 1.0) - log(static_cast<fp64>(1.0) - x), 0.5
+			);
+		#elif 1
+			// Uses log1p
+			return mul_pwr2(
+				log1p(x) - log1p(-x), 0.5
+			);
+		#else
+			// Can be used with log1p in this form: ln(2x / (1 - x) + 1)
+			return mul_pwr2(log1p((mul_pwr2(x, static_cast<fp64>(2.0))) / (static_cast<fp64>(1.0) - x)), 0.5);
+		#endif
+	#endif
 }
 
 //------------------------------------------------------------------------------

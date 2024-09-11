@@ -9,7 +9,7 @@
 #define FLOAT128X2_HPP
 
 #include "Float128.hpp"
-#include "Float128_def.h"
+#include "Float128x2_def.h"
 
 //------------------------------------------------------------------------------
 // Float128x2 Constants

@@ -12,6 +12,7 @@
 #include <math.h>
 #include <cmath>
 #include <cfenv>
+#include <limits>
 
 #include "Float80.hpp"
 #include "Float80x2_def.h"
@@ -164,7 +165,7 @@ inline constexpr bool isgreaterequal_zero(const Float80x2& x) {
 	 * multiplication for use in the dekker_mul12 function.
 	 */
 	inline Float80x2 dekker_split(const fp80 x) {
-		constexpr fp80 Dekker_Scale = 4294967297.0; // (2^ceil(64 / 2) + 1)
+		constexpr fp80 Dekker_Scale = 4294967297.0L; // (2^ceil(64 / 2) + 1)
 		fp80 p = x * Dekker_Scale;
 		Float80x2 r;
 		r.hi = (x - p) + p;
@@ -788,6 +789,79 @@ inline Float80x2 operator--(Float80x2& x, int) {
 }
 
 //------------------------------------------------------------------------------
+// Float80x2 Limits
+//------------------------------------------------------------------------------
+
+namespace std {
+	template <>
+	class numeric_limits<Float80x2> {
+	public:
+		static constexpr bool is_signed = true;
+		static constexpr bool is_integer = false;
+		static constexpr bool is_exact = false;
+		static constexpr bool has_infinity = std::numeric_limits<fp80>::has_infinity;
+		static constexpr bool has_quiet_NaN = std::numeric_limits<fp80>::has_quiet_NaN;
+		static constexpr bool has_signaling_NaN = std::numeric_limits<fp80>::has_signaling_NaN;
+		static constexpr std::float_denorm_style has_denorm = std::numeric_limits<fp80>::has_denorm;
+		static constexpr bool is_bounded = true;
+		static constexpr int digits = 128; // 2 * (63 mantissa bits + 1 implicit bit)
+		static constexpr int digits10 = 38; // floor(mantissa bits * log10(2))
+		/**
+		 * @brief Dekker floats can represent FLT_MAX + FLT_MIN exactly, which
+		 * is why an absurd amount of digits may be required.
+		 */
+		static constexpr int max_digits10 =
+			std::numeric_limits<fp80>::max_exponent10 - std::numeric_limits<fp80>::min_exponent10 + std::numeric_limits<fp80>::digits10 + 1;
+		static constexpr int radix = std::numeric_limits<fp80>::radix;
+		static constexpr int min_exponent   = std::numeric_limits<fp80>::min_exponent   + 64;
+		static constexpr int min_exponent10 = std::numeric_limits<fp80>::min_exponent10 + 20 /* ceil(64 * log10(2)) */;
+		static constexpr int max_exponent   = std::numeric_limits<fp80>::max_exponent  ;
+		static constexpr int max_exponent10 = std::numeric_limits<fp80>::max_exponent10;
+		static constexpr bool traps = std::numeric_limits<fp80>::traps;
+		inline static constexpr Float80x2 min() {
+			/** 
+			 * @remarks libQD lists this as the minimum value that is fully
+			 * normalized, although I am not sure if this is the best
+			 * definition to use for min()
+			 */
+			return {std::numeric_limits<fp80>::min() * static_cast<fp80>(0x1.0p+64), std::numeric_limits<fp80>::min()};
+			// return {std::numeric_limits<fp80>::min(), static_cast<fp80>(0.0)};
+		}
+	
+		inline static constexpr Float80x2 max() {
+			return {
+				std::numeric_limits<fp80>::max(),
+				std::numeric_limits<fp80>::max() * static_cast<fp80>(0x1.0p-65)
+			};
+		}
+		inline static constexpr Float80x2 lowest() { return -max(); }
+		inline static constexpr Float80x2 epsilon() { return {static_cast<fp80>(0x1.0p-126), static_cast<fp80>(0.0)}; } // LDBL_EPSILON seems to be 0x1.0p-63
+		inline static constexpr Float80x2 round_error() { return {static_cast<fp80>(0.5), static_cast<fp80>(0.0)}; }
+		inline static constexpr Float80x2 infinity() {
+			return {
+				std::numeric_limits<fp80>::infinity(),
+				std::numeric_limits<fp80>::infinity()
+			};
+		}
+		inline static constexpr Float80x2 quiet_NaN() {
+			return {
+				std::numeric_limits<fp80>::quiet_NaN(),
+				std::numeric_limits<fp80>::quiet_NaN()
+			};
+		}
+		inline static constexpr Float80x2 signaling_NaN() {
+			return {
+				std::numeric_limits<fp80>::signaling_NaN(),
+				std::numeric_limits<fp80>::signaling_NaN()
+			};
+		}
+		inline static constexpr Float80x2 denorm_min() {
+			return {std::numeric_limits<fp80>::denorm_min(), static_cast<fp80>(0.0)};
+		}
+	};
+}
+
+//------------------------------------------------------------------------------
 // Float80x2 Constants
 //------------------------------------------------------------------------------
 
@@ -827,6 +901,11 @@ namespace std {
 	}
 }
 #endif
+
+/* Other Constants */
+
+constexpr Float80x2 Float80x2_2pi = {0xc.90fdaa22168c235p-1L,-0xe.ce675d1fc8f8cbbp-67L}; /**< ~6.283185307 */
+constexpr Float80x2 Float80x2_pi2 = {0xc.90fdaa22168c235p-3L,-0xe.ce675d1fc8f8cbbp-69L}; /**< ~1.570796327 */
 
 //------------------------------------------------------------------------------
 // Float80x2 Math Functions
@@ -973,6 +1052,19 @@ namespace std {
 
 /* Trigonometry */
 
+	#if 1
+
+	Float80x2 sin(const Float80x2& x);
+	Float80x2 cos(const Float80x2& x);
+	void sincos(const Float80x2& x, Float80x2& p_sin, Float80x2& p_cos);
+	inline Float80x2 tan(const Float80x2& x) {
+		Float80x2 sin_val, cos_val;
+		sincos(x, sin_val, cos_val);
+		return sin_val / cos_val;
+	}
+
+	#else
+
 	/** 
 	 * @note casts to Float80x2_Math for calculation as this function is not
 	 * currently implemeneted.
@@ -1000,6 +1092,8 @@ namespace std {
 		sincos(x, sin_val, cos_val);
 		return sin_val / cos_val;
 	}
+
+	#endif
 	/** 
 	 * @note casts to Float80x2_Math for calculation as this function is not
 	 * currently implemeneted.

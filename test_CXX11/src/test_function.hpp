@@ -49,7 +49,7 @@ void test_function(void) {
 	FloatMPFR y0, y1;
 	FloatMPFR diff_temp;
 
-	fp80 max_diff = -121.0L; //-9999999.0L;
+	fp80 max_diff = -9999999.0L;
 
 	for (size_t i = 0; i < points; i++) {
 		#if 1
@@ -60,21 +60,21 @@ void test_function(void) {
 		fp80 offset = 3.0L * TAU / 4.0L;
 		#endif
 		
-		fp80 x = (fp80)(fp64)linearInterpolation((fp80)i, 0.0L, (fp80)points, offset - EP,  offset + EP);
+		fp80 x = linearInterpolation((fp80)i, 0.0L, (fp80)points, offset - EP,  offset + EP);
 		// 6.2831 * ((fp64)i / (fp64)(points)) - (12345678901234567891.0 * 0.5 * TAU);
 
-		Float64x2 y = erf(static_cast<Float64x2>(x));
+		Float80x2 y = sin(static_cast<Float80x2>(x));
 
 
-		mpfr_set_float64x2(y0.value, y, MPFR_RNDN);
-		y1 = erf((FloatMPFR)x);
+		mpfr_set_float80x2(y0.value, y, MPFR_RNDN);
+		y1 = sin((FloatMPFR)x);
 		diff_temp = log2(fabs(y0 - y1));
 		fp80 diff = mpfr_get_ld(diff_temp.value, MPFR_RNDN);
 		if (std::isinf(diff)) {
-			diff = -9999.99;
+			diff = -9999.99L;
 		}
 		char comp_sign = (y0 == y1) ? '=' : ((y0 > y1) ? '>' : '<');
-		if (diff > max_diff || (diff >= -204.0 && false) || false) {
+		if (diff > max_diff || (diff >= -204.0L && false) || false) {
 			max_diff = diff;
 			mpfr_printf(
 				"%6zu: %+20.15Lf | %+#25.18Lf | %+#25.18Rg %c%+#25.18Rg\n",
