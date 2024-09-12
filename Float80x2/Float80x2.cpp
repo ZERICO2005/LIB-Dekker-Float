@@ -539,8 +539,7 @@ Float80x2 erf(const Float80x2& x) {
 		4096
 	>(
 		x,
-		Float80x2_sqrtpi, Float80x2_ln2.hi,
-		std::numeric_limits<Float80x2>::epsilon().hi * 0x1.0p-2L
+		Float80x2_sqrtpi, Float80x2_ln2.hi
 	);
 }
 
@@ -550,8 +549,7 @@ Float80x2 erfc(const Float80x2& x) {
 		4096
 	>(
 		x,
-		Float80x2_sqrtpi, Float80x2_ln2.hi,
-		std::numeric_limits<Float80x2>::epsilon().hi * 0x1.0p-2L
+		Float80x2_sqrtpi, Float80x2_ln2.hi
 	);
 }
 

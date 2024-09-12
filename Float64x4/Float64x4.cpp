@@ -808,6 +808,50 @@ Float64x4 atanh(const Float64x4& a) {
 }
 
 //------------------------------------------------------------------------------
+// Float64x2 erf and erfc
+//------------------------------------------------------------------------------
+
+#include "../FloatNxN/FloatNxN_erf.hpp"
+
+Float64x4 erf(const Float64x4& x) {
+	return libDDFUN_erf<
+		Float64x4, fp64, 4,
+		4096
+	>(
+		x,
+		Float64x4_sqrtpi, Float64x4_ln2.val[0]
+	);
+}
+
+Float64x4 erfc(const Float64x4& x) {
+	return libDDFUN_erfc<
+		Float64x4, fp64, 4,
+		4096
+	>(
+		x,
+		Float64x4_sqrtpi, Float64x4_ln2.val[0]
+	);
+}
+
+//------------------------------------------------------------------------------
+// Float64x4 tgamma
+//------------------------------------------------------------------------------
+
+#include "../FloatNxN/FloatNxN_tgamma.hpp"
+
+Float64x4 tgamma(const Float64x4& t) {
+	return libDQFUN_tgamma<
+		Float64x4, fp64, 4,
+		100000
+	>(
+		t,
+		Float64x4_pi, Float64x4_sqrtpi,
+		Float64x4_ln2.val[0]
+	);
+}
+
+
+//------------------------------------------------------------------------------
 // Float64x4 math.h wrapper functions
 //------------------------------------------------------------------------------
 
@@ -862,21 +906,17 @@ void Float64x4_sinhcosh(Float64x4 theta, Float64x4* p_sinh, Float64x4* p_cosh) {
 	sinhcosh(theta, *p_sinh, *p_cosh);
 }
 
-//------------------------------------------------------------------------------
-// Float64x4 tgamma
-//------------------------------------------------------------------------------
-
-#include "../FloatNxN/FloatNxN_tgamma.hpp"
-
-Float64x4 tgamma(const Float64x4& t) {
-	return libDQFUN_tgamma<
-		Float64x4, fp64, 4,
-		100000
-	>(
-		t,
-		Float64x4_pi, Float64x4_sqrtpi,
-		Float64x4_ln2.val[0]
-	);
+Float64x4 Float64x4_erf(Float64x4 x) {
+	return erf(x);
+}
+Float64x4 Float64x4_erfc(Float64x4 x) {
+	return erfc(x);
+}
+Float64x4 Float64x4_tgamma(Float64x4 x) {
+	return tgamma(x);
+}
+Float64x4 Float64x4_lgamma(Float64x4 x) {
+	return lgamma(x);
 }
 
 //------------------------------------------------------------------------------

@@ -1363,26 +1363,9 @@ constexpr Float64x4 Float64x4_tau    = Float64x4_2pi; /**< ~6.283185307 */
 
 /* Transcendental Functions */
 	
-	/** 
-	 * @note casts to long double for calculation as this function is not
-	 * currently implemeneted.
-	 */
-	inline Float64x4 erf(const Float64x4& x) {
-		return static_cast<Float64x4>(
-			erf(static_cast<long double>(x))
-		);
-	}
-	/** 
-	 * @note casts to long double for calculation as this function is not
-	 * currently implemeneted.
-	 */
-	inline Float64x4 erfc(const Float64x4& x) {
-		return static_cast<Float64x4>(
-			erfc(static_cast<long double>(x))
-		);
-	}
+	Float64x4 erf(const Float64x4& x);
 
-#if 1
+	Float64x4 erfc(const Float64x4& x);
 
 	Float64x4 tgamma(const Float64x4& x);
 
@@ -1392,26 +1375,5 @@ constexpr Float64x4 Float64x4_tau    = Float64x4_2pi; /**< ~6.283185307 */
 	inline Float64x4 lgamma(const Float64x4& x) {
 		return log(fabs(tgamma(x)));
 	}
-
-#else
-	/** 
-	 * @note casts to long double for calculation as this function is not
-	 * currently implemeneted.
-	 */
-	inline Float64x4 lgamma(const Float64x4& x) {
-		return static_cast<Float64x4>(
-			lgamma(static_cast<long double>(x))
-		);
-	}
-	/** 
-	 * @note casts to long double for calculation as this function is not
-	 * currently implemeneted.
-	 */
-	inline Float64x4 tgamma(const Float64x4& x) {
-		return static_cast<Float64x4>(
-			tgamma(static_cast<long double>(x))
-		);
-	}
-#endif
 
 #endif /* FLOAT64X4_HPP */

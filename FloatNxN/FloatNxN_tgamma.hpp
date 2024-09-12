@@ -457,7 +457,7 @@ static inline FloatNxN libDQFUN_tgamma(
 	
 	FloatNxN z;
 	FloatBase d2;
-	FloatNxN taylor_sum, sum_pos, sum_neg, tn;
+	FloatNxN taylor_sum, sum_t_pos, sum_t_neg, tn;
 	FloatBase target_epsilon;
 
 	target_epsilon = ldexp(
@@ -524,16 +524,33 @@ static inline FloatNxN libDQFUN_tgamma(
 		return z;
 	}
 
-	// // Checks if `t` is an integer multiple of 0.5
-	// const FloatNxN t_mul2 = mul_pwr2(t, static_cast<FloatBase>(2.0));
-	// const FloatNxN t_mul2_trunc_part = trunc(t_mul2);
-	// if (t_mul2_trunc_part == t_mul2) {
-	// 	FloatNxN double_fact_sum;
-	// 	int term_count = static_cast<int>(t_trunc_part) * 2 - 1;
-	// 	for (int i = 0; i < term_count; i++) {
-	// 		// Do this later
-	// 	}
-	// }
+	// Checks if `t` is an integer multiple of 0.5
+	const FloatNxN t_mul2 = mul_pwr2(t, static_cast<FloatBase>(2.0));
+	const FloatNxN t_mul2_trunc_part = trunc(t_mul2);
+	if (t_mul2_trunc_part == t_mul2) {
+		
+		const int t_fabs = static_cast<int>(fabs(floor(t)));
+		const int term_count = t_fabs * 2 - 1;
+		
+		z = static_cast<FloatBase>(1.0);
+		FloatBase term_iter = static_cast<FloatBase>(1.0);
+
+		// Computes (2n - 1)!!
+		for (int i = 0; i < term_count; i += 2) {
+			z *= term_iter;
+			term_iter += static_cast<FloatBase>(2.0);
+		}
+		if (isgreater_zero(t)) {
+			z = ldexp(z, -t_fabs);
+		} else {
+			z = ldexp(recip(z), t_fabs);
+			if (t_fabs % 2 != 0) {
+				z = -z;
+			}
+		}
+		// (n + 0.5)! will be a multiple of sqrt(pi)
+		return z * FloatNxN_sqrtpi;
+	}
 
 	if (isgreater_zero(t)) {
 
@@ -579,24 +596,26 @@ static inline FloatNxN libDQFUN_tgamma(
 		int iter;
 		FloatBase term_iter = static_cast<FloatBase>(1.0);
 		FloatNxN term = recip(tn); 
-		sum_pos = term;
+		sum_t_pos = term;
 		for (iter = 1; iter <= max_iter; iter++) {
 			term /= (tn + term_iter) * term_iter;
 			term *= d2;
-			sum_pos += term;
+			sum_t_pos += term;
 
-			if (fabs(term) <= fabs(mul_pwr2(target_epsilon, sum_pos))) {
+			if (fabs(term) <= fabs(mul_pwr2(target_epsilon, sum_t_pos))) {
 				break;
 			}
 			term_iter++;
 		}
-		if (iter > max_iter) {
-			// write (dq_ldb, 3) 1, max_iter
-			// 3 format ('*** DQGAMMAR: iteration limit exceeded',2i10);
-			// call_dq_abrt
-			printf("*** DQGAMMAR: +t iteration limit exceeded %d\n", max_iter);
-			return z;
-		}
+		#if 0
+			if (iter > max_iter) {
+				// write (dq_ldb, 3) 1, max_iter
+				// 3 format ('*** DQGAMMAR: iteration limit exceeded',2i10);
+				// call_dq_abrt
+				printf("*** DQGAMMAR: +t iteration limit exceeded %d\n", max_iter);
+				return z;
+			}
+		#endif
 	}
 
 	/* Evaluate the series with +t */ {
@@ -604,33 +623,35 @@ static inline FloatNxN libDQFUN_tgamma(
 		int iter;
 		FloatBase term_iter = static_cast<FloatBase>(1.0);
 		FloatNxN term = recip(-tn); 
-		sum_neg = term;
+		sum_t_neg = term;
 
 		for (iter = 1; iter <= max_iter; iter++) {
 			term /= (term_iter - tn) * term_iter;
 			term *= d2;
-			sum_neg += term;
+			sum_t_neg += term;
 
-			if (fabs(term) <= fabs(mul_pwr2(target_epsilon, sum_neg))) {
+			if (fabs(term) <= fabs(mul_pwr2(target_epsilon, sum_t_neg))) {
 				break;
 			}
 			term_iter++;
 		}
-		if (iter > max_iter) {
-			// write (dq_ldb, 3) 2, max_iter
-			// call_dq_abrt
-			printf("*** DQGAMMAR: -t iteration limit exceeded %d\n", max_iter);
-			return z;
-		}
+		#if 0
+			if (iter > max_iter) {
+				// write (dq_ldb, 3) 2, max_iter
+				// call_dq_abrt
+				printf("*** DQGAMMAR: -t iteration limit exceeded %d\n", max_iter);
+				return z;
+			}
+		#endif
 	}
 
-	// Compute sqrt (pi * sum_pos / (tn * sin (pi * tn) * sum_neg))
+	// Compute sqrt (pi * sum_t_pos / (tn * sin (pi * tn) * sum_t_neg))
 	// and (alpha/2)^tn terms. Also, multiply by the factor taylor_sum, from the
 	// If block above.
 
 	z = taylor_sum * (
 		sqrt(-(
-			(FloatNxN_pi * sum_pos) / (tn * (sin(FloatNxN_pi * tn) * sum_neg))
+			(FloatNxN_pi * sum_t_pos) / (tn * (sin(FloatNxN_pi * tn) * sum_t_neg))
 		)) * exp(tn * log(
 			static_cast<FloatNxN>(static_cast<FloatBase>(0.5) * alpha)
 		))

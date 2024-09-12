@@ -1122,8 +1122,7 @@ Float64x2 erf(const Float64x2& x) {
 		256
 	>(
 		x,
-		Float64x2_sqrtpi, Float64x2_ln2.hi,
-		std::numeric_limits<Float64x2>::epsilon().hi * 0x1.0p-2
+		Float64x2_sqrtpi, Float64x2_ln2.hi
 	);
 }
 
@@ -1136,8 +1135,7 @@ Float64x2 erfc(const Float64x2& x) {
 		256
 	>(
 		x,
-		Float64x2_sqrtpi, Float64x2_ln2.hi,
-		std::numeric_limits<Float64x2>::epsilon().hi * 0x1.0p-2
+		Float64x2_sqrtpi, Float64x2_ln2.hi
 	);
 }
 

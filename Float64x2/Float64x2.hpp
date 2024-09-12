@@ -1264,8 +1264,6 @@ namespace std {
 
 	Float64x2 erfc(const Float64x2& x);
 
-#if 1
-
 	Float64x2 tgamma(const Float64x2& x);
 
 	/** 
@@ -1274,28 +1272,5 @@ namespace std {
 	inline Float64x2 lgamma(const Float64x2& x) {
 		return log(fabs(tgamma(x)));
 	}
-
-#else
-
-	/** 
-	 * @note casts to long double for calculation as this function is not
-	 * currently implemeneted.
-	 */
-	inline Float64x2 lgamma(const Float64x2& x) {
-		return static_cast<Float64x2>(
-			lgamma(static_cast<long double>(x))
-		);
-	}
-	/** 
-	 * @note casts to long double for calculation as this function is not
-	 * currently implemeneted.
-	 */
-	inline Float64x2 tgamma(const Float64x2& x) {
-		return static_cast<Float64x2>(
-			tgamma(static_cast<long double>(x))
-		);
-	}
-
-#endif
 
 #endif /* FLOAT64X2_HPP */

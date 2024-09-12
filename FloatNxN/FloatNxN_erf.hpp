@@ -40,44 +40,51 @@ static inline void call_dd_dmc(const FloatBase x, const int n, FloatNxN& ret) {
  */
 template<typename FloatNxN>
 static inline void call_dd_cpr(const FloatNxN& x, const FloatNxN& y, int& ret) {
-	// ret = (x < y) ? -1 : (x > y) ? 1 : 0;
-
-	if (x.hi < y.hi) {
-		ret = -1;
-	} else if (x.hi == y.hi) {
-		if (x.lo < y.lo) {
+	#if 1
+		if (x < y) {
 			ret = -1;
-		} else if (x.lo == y.lo) {
+			return;
+		}
+		if (x == y) {
 			ret = 0;
+			return;
+		}
+		ret = 1;
+		return;
+	#else
+		// ret = (x < y) ? -1 : (x > y) ? 1 : 0;
+
+		if (x.hi < y.hi) {
+			ret = -1;
+		} else if (x.hi == y.hi) {
+			if (x.lo < y.lo) {
+				ret = -1;
+			} else if (x.lo == y.lo) {
+				ret = 0;
+			} else {
+				ret = 1;
+			}
 		} else {
 			ret = 1;
 		}
-	} else {
-		ret = 1;
-	}
+	#endif
 }
 
 /**
  * @brief Three way comparison <=> possibly?
  */
 template<typename FloatNxN, typename FloatBase>
-static inline void call_dd_cpr(const FloatNxN& x, const FloatBase y_temp, int& ret) {
-	// ret = (x < y) ? -1 : (x > y) ? 1 : 0;
-
-	FloatNxN y = y_temp;
-	if (x.hi < y.hi) {
+static inline void call_dd_cpr(const FloatNxN& x, const FloatBase y, int& ret) {
+	if (x < y) {
 		ret = -1;
-	} else if (x.hi == y.hi) {
-		if (x.lo < y.lo) {
-			ret = -1;
-		} else if (x.lo == y.lo) {
-			ret = 0;
-		} else {
-			ret = 1;
-		}
-	} else {
-		ret = 1;
+		return;
 	}
+	if (x == y) {
+		ret = 0;
+		return;
+	}
+	ret = 1;
+	return;
 }
 
 //------------------------------------------------------------------------------
@@ -93,14 +100,12 @@ static inline void call_dd_cpr(const FloatNxN& x, const FloatBase y_temp, int& r
  * libQDFUN as well.
  */
 template<
-	typename FloatNxN, typename FloatBase, int FloatBase_count,
+	typename FloatNxN, typename FloatBase, int FloatBase_Count,
 	int max_iter
 >
 static inline FloatNxN libDDFUN_erf(
 	const FloatNxN& z,
-	const FloatNxN FloatNxN_sqrtpi,
-	const FloatBase FloatBase_ln2,
-	const FloatBase target_epsilon
+	const FloatNxN FloatNxN_sqrtpi, const FloatBase FloatBase_ln2
 ) {
 	//   This evaluates the erf function, using a combination of two series.
 	//   In particular, the algorithm is
@@ -137,6 +142,10 @@ static inline FloatNxN libDDFUN_erf(
 	// int dd_nw, dd_nw1;
 	// dd_nw = FloatNxN_count;
 	// dd_nw1 = std::min(dd_nw + 1, FloatNxN_count);
+	const FloatBase target_epsilon = ldexp(
+		static_cast<FloatBase>(1.0),
+		-FloatBase_Count * std::numeric_limits<FloatBase>::digits
+	);
 
 	tc1 = static_cast<FloatBase>(2.0);
 
@@ -250,14 +259,12 @@ static inline FloatNxN libDDFUN_erf(
  * libQDFUN as well.
  */
 template<
-	typename FloatNxN, typename FloatBase, int FloatBase_count,
+	typename FloatNxN, typename FloatBase, int FloatBase_Count,
 	int max_iter
 >
 static inline FloatNxN libDDFUN_erfc(
 	const FloatNxN& z,
-	const FloatNxN FloatNxN_sqrtpi,
-	const FloatBase FloatBase_ln2,
-	const FloatBase target_epsilon
+	const FloatNxN FloatNxN_sqrtpi, const FloatBase FloatBase_ln2
 ) {
 	//   This evaluates the erf function, using a combination of two series.
 	//   In particular, the algorithm is
@@ -293,6 +300,10 @@ static inline FloatNxN libDDFUN_erfc(
 	// int dd_nw, dd_nw1;
 	// dd_nw = Float80x2_count;
 	// dd_nw1 = std::min(dd_nw + 1, Float80x2_count);
+	const FloatBase target_epsilon = ldexp(
+		static_cast<FloatBase>(1.0),
+		-FloatBase_Count * std::numeric_limits<FloatBase>::digits
+	);
 
 	tc1 = static_cast<FloatBase>(2.0);
 	d1 = trunc(static_cast<FloatBase>(1.0) + sqrt(
