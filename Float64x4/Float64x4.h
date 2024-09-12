@@ -992,7 +992,7 @@ static inline Float64x4 Float64x4_add_dx2_dx2(const Float64x2 x, const Float64x2
 	s.val[2] = Float64_two_sum(t0, t1, &t0);
 	s.val[3] = t0;
 
-	Float64x4_renorm_err(&s, &t1);
+	// Float64x4_renorm_err(&s, &t1);
 	return s;
 }
 
@@ -1280,7 +1280,7 @@ static inline Float64x4 Float64x4_sub_dx2_dx2(const Float64x2 x, const Float64x2
 	s.val[2] = Float64_two_sum(t0, t1, &t0);
 	s.val[3] = t0;
 
-	Float64x4_renorm_err(&s, &t1);
+	// Float64x4_renorm_err(&s, &t1);
 	return s;
 }
 

@@ -1,0 +1,1 @@
+Float64x6 is intended to provided extended precision to Float64x4 functions and etc.
