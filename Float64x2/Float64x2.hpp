@@ -1007,10 +1007,15 @@ namespace std {
 	inline constexpr Float64x2 fdim(const Float64x2& x, const Float64x2& y) {
 		return (x > y) ? (x - y) : static_cast<Float64x2>(0.0);
 	}
-	/** @note Naive implementation of fma (Fused multiply add). May lose precision */
-	inline Float64x2 fma(const Float64x2& x, const Float64x2& y, const Float64x2& z) {
-		return (x * y) + z;
-	}
+
+	/**
+	 * @brief `(x * y) + z` Performs a Fused-Multiply-Add operation, avoiding
+	 * rounding errors.
+	 * @note Uses Float64x4 for calculations, which may cause this function to
+	 * run slowly.
+	 */
+	Float64x2 fma(const Float64x2& x, const Float64x2& y, const Float64x2& z);
+
 	inline constexpr Float64x2 copysign(const Float64x2& x, const Float64x2& y) {
 		return (
 			(signbit(x)) != (signbit(y))
@@ -1029,7 +1034,7 @@ namespace std {
 		}
 		fp64 guess = cbrt(x.hi);
 		return (
-			(static_cast<fp64>(2.0) * guess) + (x / LDF::square<Float64x2, fp64>(guess))
+			(static_cast<fp64>(2.0) * guess) + (x / LDF::square<Float64x2>(guess))
 		) / static_cast<fp64>(3.0);
 	}
 	/** @note Naive implementation of hypot, may overflow for large inputs */
@@ -1122,7 +1127,7 @@ namespace std {
 		fp64 frac_lo = x.lo - int_lo.hi;
 		// Sum in increasing order
 		Float64x2 trunc_all = (
-			LDF::add<Float64x2, fp64, fp64>(frac_hi, frac_lo) >= static_cast<fp64>(1.0)
+			LDF::add<Float64x2>(frac_hi, frac_lo) >= static_cast<fp64>(1.0)
 		) ? static_cast<Float64x2>(1.0) : static_cast<Float64x2>(0.0);
 		trunc_all += int_lo;
 		trunc_all += int_hi;

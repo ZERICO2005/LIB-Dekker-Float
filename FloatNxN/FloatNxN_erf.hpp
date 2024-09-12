@@ -175,7 +175,7 @@ static inline FloatNxN libDDFUN_erf(
 		t3 = static_cast<FloatBase>(1.0);
 		call_dd_dmc(static_cast<FloatBase>(1.0e10), 0, t5);
 
-		for (int k = 0; k < max_iter; k++) {
+		for (int k = 0; k <= max_iter; k++) {
 			if (k > 0) {
 				t6 = mul_pwr2(z2, static_cast<FloatBase>(2.0));
 				t2 *= t6;
@@ -209,7 +209,7 @@ static inline FloatNxN libDDFUN_erf(
 		t3 = fabs(z);
 		call_dd_dmc(static_cast<FloatBase>(1.0e10), 0, t5);
 
-		for (int k = 0; k < max_iter; k++) {
+		for (int k = 0; k <= max_iter; k++) {
 			if (k > 0) {
 				d1 = -(static_cast<FloatBase>(2.0) * static_cast<FloatBase>(k) - static_cast<FloatBase>(1.0));
 				t2 *= d1;
@@ -329,7 +329,7 @@ static inline FloatNxN libDDFUN_erfc(
 		t3 = static_cast<FloatBase>(1.0);
 		call_dd_dmc(static_cast<FloatBase>(1.0e10), 0, t5);
 
-		for (int k = 0; k < max_iter; k++) {
+		for (int k = 0; k <= max_iter; k++) {
 			if (k > 0) {
 				t6 = mul_pwr2(z2, static_cast<FloatBase>(2.0));
 				
@@ -364,7 +364,7 @@ static inline FloatNxN libDDFUN_erfc(
 		t3 = fabs(z);
 		t5 = static_cast<FloatBase>(1.0e10);
 
-		for (int k = 0; k < max_iter; k++) {
+		for (int k = 0; k <= max_iter; k++) {
 			if (k > 0) {
 				d1 = -(static_cast<FloatBase>(2.0) * static_cast<FloatBase>(k) - static_cast<FloatBase>(1.0));
 				t2 *= d1;

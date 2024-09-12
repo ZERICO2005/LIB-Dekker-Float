@@ -23,6 +23,7 @@
 #include <limits>
 #include <cassert>
 
+#if 0
 /* Unary */
 
 #define call_dq_eq(x, ret) ret = x
@@ -47,6 +48,8 @@
 /* Math Functions */
 
 #define call_dq_cssnr(theta, ret_cos, ret_sin) sincos(theta, ret_sin, ret_cos)
+#endif
+
 // #define call_dq_npwr(x, n, ret) ret = pown(x, n)
 #define call_dq_npwr(x, n, ret) ret = pow(x, n)
 
@@ -140,6 +143,7 @@ static inline void call_dq_cpr(const FloatNxN& x, const FloatNxN& y, int& ret) {
 	#endif
 }
 
+/** @brief similar to modf `c = modf(a, b)` */
 template<typename FloatNxN, typename FloatBase>
 static inline void T_call_dd_infr(const FloatNxN& a, FloatNxN& b, FloatNxN& c) {
 #if 1
@@ -182,7 +186,7 @@ static inline void T_call_dd_infr(const FloatNxN& a, FloatNxN& b, FloatNxN& c) {
 	if (isequal_zero(a))  {
 		b = static_cast<FloatBase>(0.0);
 		c = static_cast<FloatBase>(0.0);
-		goto JMP_120;
+		return;
 	}
 
 	if (static_cast<FloatBase>(a) >= largest_ipwr2) {
@@ -217,9 +221,6 @@ static inline void T_call_dd_infr(const FloatNxN& a, FloatNxN& b, FloatNxN& c) {
 			call_dq_sub (a, b, c);
 		}
 	}
-
-	/* continue */ JMP_120:
-	return;
 #elif 1
 	//   Sets B to the integer part of the DDR number A and sets C equal to the
 	//   fractional part of A. Note that if A = -3.3, then B = -3 and C = -0.3.
@@ -241,7 +242,7 @@ static inline void T_call_dd_infr(const FloatNxN& a, FloatNxN& b, FloatNxN& c) {
 	if (isequal_zero(a))  {
 		b = static_cast<FloatBase>(0.0);
 		c = static_cast<FloatBase>(0.0);
-		goto JMP_120;
+		return;
 	}
 
 	if (static_cast<FloatBase>(a) >= t105) {
@@ -276,9 +277,6 @@ static inline void T_call_dd_infr(const FloatNxN& a, FloatNxN& b, FloatNxN& c) {
 			call_dq_sub (a, b, c);
 		}
 	}
-
-	/* continue */ JMP_120:
-	return;
 #else
 	// Original code
 	//   Sets B to the integer part of the DDR number A and sets C equal to the
@@ -303,7 +301,7 @@ static inline void T_call_dd_infr(const FloatNxN& a, FloatNxN& b, FloatNxN& c) {
 		b.lo = static_cast<FloatBase>(0.0);
 		c.hi = static_cast<FloatBase>(0.0);
 		c.lo = static_cast<FloatBase>(0.0);
-		goto JMP_120;
+		return;
 	}
 
 	if (a.hi >= t105) {
@@ -341,9 +339,6 @@ static inline void T_call_dd_infr(const FloatNxN& a, FloatNxN& b, FloatNxN& c) {
 			call_dq_sub (a, b, c);
 		}
 	}
-
-	/* continue */ JMP_120:
-	return;
 #endif
 }
 
@@ -372,7 +367,7 @@ void T_call_dd_nint(const FloatNxN& a, FloatNxN& b) {
 
 	if (isequal_zero(a)) {
 		b = static_cast<FloatBase>(0.0);
-		goto JMP_120;
+		return;
 	}
 
 	if (static_cast<FloatBase>(a) >= t105) {
@@ -390,9 +385,6 @@ void T_call_dd_nint(const FloatNxN& a, FloatNxN& b) {
 		call_dq_sub (a, con, s0);
 		call_dq_add (s0, con, b);
 	}
-
-	/* continue */ JMP_120:
-	return;
 #else
 	//   This sets B equal to the integer (type DDR) nearest to the DDR number A.
 
@@ -412,7 +404,7 @@ void T_call_dd_nint(const FloatNxN& a, FloatNxN& b) {
 	if (a.hi == static_cast<FloatBase>(0.0)) {
 		b.hi = static_cast<FloatBase>(0.0);
 		b.lo = static_cast<FloatBase>(0.0);
-		goto JMP_120;
+		return;
 	}
 
 	if (a.hi >= t105) {
@@ -430,9 +422,6 @@ void T_call_dd_nint(const FloatNxN& a, FloatNxN& b) {
 		call_dq_sub (a, con, s0);
 		call_dq_add (s0, con, b);
 	}
-
-	/* continue */ JMP_120:
-	return;
 #endif
 }
 
@@ -442,221 +431,200 @@ void T_call_dd_nint(const FloatNxN& a, FloatNxN& b) {
 // FloatNxN tgamma
 //------------------------------------------------------------------------------
 
+/**
+ * @brief Computes the Gamma function, or (t - 1)!
+ */
 template <
 	typename FloatNxN, typename FloatBase, int FloatBase_Count,
 	int max_iter
 >
 static inline FloatNxN libDQFUN_tgamma(
 	const FloatNxN& t,
-	const FloatNxN dq_picon, const FloatBase al2
+	const FloatNxN FloatNxN_pi, const FloatBase FloatBase_ln2
 ) {
-	FloatNxN z;
-	const int dq_nwx = FloatBase_Count;
-	const int dq_nbt = std::numeric_limits<FloatBase>::digits;
-	//	 This evaluates the gamma function, using an algorithm of R. W. Potter.
-	//	 The argument t must not exceed 10^8 in size (this limit is set below),
-	//	 must not be zero, and if negative must not be integer.
+	// This evaluates the gamma function, using an algorithm of R. W. Potter.
+	// The argument t must not exceed 10^8 in size (this limit is set below),
+	// must not be zero, and if negative must not be integer.
 
-	//	 In the parameter statement below:
-	//		 max_iter = limit of number of iterations in series; default = 100000.
-	//		 con1 = 1/2 * log (10) to DP accuracy.
-	//		 dmax = maximum size of input argument.
+	// In the parameter statement below:
+	// 	max_iter = limit of number of iterations in series; default = 100000.
+	// 	con1 = 1/2 * log (10) to DP accuracy.
+	// 	dmax = maximum size of input argument.
 
-	// implicit none
 	// FloatNxN, intent(in):: t;
 	// FloatNxN, intent(out):: z;
-	// constexpr int max_iter = 100000;
-
-	// This constant appears to be very conservative
-	__attribute__((unused)) constexpr FloatBase dmax = static_cast<FloatBase>(1.0e+8);
 	
-	int i, i1, ic1, j, nt, n1, n2, n3;
-	FloatBase alpha, d1, d2, d3;
-	FloatNxN f1, sum1, sum2, tn;
-	FloatNxN t1, t2, t3, t4, t5, t6;
-	FloatNxN tc1, tc2, tc3, target_epsilon;
+	FloatNxN z;
+	int ic1, j, nt, n2, n3;
+	FloatBase d2, d3;
+	FloatNxN taylor_sum, sum1, sum2, tn;
+	FloatNxN t2, t3, t5, t6;
+	FloatNxN tc1, tc2, target_epsilon;
 
-	//	End of declaration
-	int dq_nw, dq_nw1 /*, dq_nw2 */;
+	target_epsilon = ldexp(
+		static_cast<FloatBase>(1.0),
+		-FloatBase_Count * std::numeric_limits<FloatBase>::digits
+	);
+	const FloatNxN t_truncated = trunc(t);
+	const bool input_is_integer = (t_truncated == t);
 
+	#if 1
+		// Checks if `t` is a non-positive integer
+		if (input_is_integer && islessequal_zero(t)) {
+			return std::numeric_limits<FloatNxN>::quiet_NaN();
+		}
+	#else
+		// Original Code
 
+		// This constant appears to be very conservative
+		constexpr FloatBase dmax = static_cast<FloatBase>(1.0e+8);
+		FloatBase d1;
+		int i1, n1;
 
-	dq_nw = dq_nwx;
+		/**
+		 * @remarks Checks if `t` is too large for the algorithm
+		 */
+		call_dq_mdc(t, d1, n1);
+		d1 = ldexp(d1, n1);
+		
+		call_dq_nint(t, taylor_sum);
+		call_dq_cpr(t, taylor_sum, ic1);
+		i1 = call_dq_sgn(t);
+		if (i1 == 0 || d1 > dmax || (i1 < 0 && ic1 == 0)) {
+			// write (dq_ldb, 2) dmax
+			// 2 format ('*** DQGAMMAR: input argument must have absolute value <=',f10.0,','/ &
+			// 'must not be zero, and if negative must not be an integer.')
+			// call_dq_abrt
+			printf(
+				"*** DQGAMMAR: input argument must have absolute value <= %#Lg, must not be zero, and if negative must not be an integer.\n",
+				static_cast<long double>(dmax)
+			);
+			
+			return std::numeric_limits<FloatNxN>::quiet_NaN();
+		}
+	#endif
 
-	dq_nw1 = std::min(dq_nw + 1, dq_nwx);
-	call_dq_dmc (static_cast<FloatBase>(2.0), 0, tc1);
-	call_dq_npwr (tc1, -dq_nw1 * dq_nbt, target_epsilon);
+	if (input_is_integer) {
 
-	call_dq_mdc (t, d1, n1);
-	d1 = ldexp(d1, n1);
-	call_dq_nint (t, t1);
-	call_dq_cpr (t, t1, ic1);
-	i1 = call_dq_sgn (t);
-	if (i1 == 0 || /* d1 > dmax || */ (i1 < 0 && ic1 == 0)) {
-		// write (dq_ldb, 2) dmax
-		// 2 format ('*** DQGAMMAR: input argument must have absolute value <=',f10.0,','/ &
-		// 'must not be zero, and if negative must not be an integer.')
-		// call_dq_abrt
-		// printf(
-		// 	"*** DQGAMMAR: input argument must have absolute value <= %lf, must not be zero, and if negative must not be an integer.\n",
-		// 	dmax
-		// );
-		// return;
+	// If t is a positive integer, then apply the usual factorial recursion.
+
+		call_dq_mdc(t2, d2, n2);
+		nt = call_dq_int_ldexp(d2, n2);
+		
+		z = static_cast<FloatBase>(1.0);
+
+		for (int i = 2; i <= nt - 1; i++) {
+			z *= static_cast<FloatBase>(i);
+		}
+		return z;
 	}
 
-	call_dq_dmc (static_cast<FloatBase>(1.0), 0, f1);
+	// Find the integer and fractional parts of t.
+	// t3 = modf(t, t2)
+	call_dq_infr(t, t2, t3);
 
-	//	 Find the integer and fractional parts of t.
+	if (isgreater_zero(t)) {
 
-	call_dq_infr (t, t2, t3);
+	// Apply the identity Gamma[t+1] = t * Gamma[t] to reduce the input argument
+	// to the unit interval.
 
-	if (call_dq_sgn (t3) == 0) {
-
-	//	 If t is a positive integer, { apply the usual factorial recursion.
-
-		call_dq_mdc (t2, d2, n2);
+		call_dq_mdc(t2, d2, n2);
 		nt = call_dq_int_ldexp(d2, n2);
-		call_dq_eq (f1, t1);
+		
+		taylor_sum = static_cast<FloatBase>(1.0);
+		tn = t3;
 
-		for (i = 2; i <= nt - 1; i++) {
-			call_dq_muld (t1, static_cast<FloatBase>(i), t2);
-			call_dq_eq (t2, t1);
-		}
-
-		call_dq_eq (t1, z);
-		goto JMP_120;
-	} else if (call_dq_sgn (t) > 0) {
-
-	//	 Apply the identity Gamma[t+1] = t * Gamma[t] to reduce the input argument
-	//	 to the unit interval.
-
-		call_dq_mdc (t2, d2, n2);
-		nt = call_dq_int_ldexp(d2, n2);
-		call_dq_eq (f1, t1);
-		call_dq_eq (t3, tn);
-
-		for (i = 1; i <= nt; i++) {
-			call_dq_dmc (static_cast<FloatBase>(i), 0, t4);
-			call_dq_sub (t, t4, t5);
-			call_dq_mul (t1, t5, t6);
-			call_dq_eq (t6, t1);
+		for (int i = 1; i <= nt; i++) {
+			taylor_sum *= (t - static_cast<FloatBase>(i));
 		}
 	} else {
 
-	//	 Apply the gamma identity to reduce a negative argument to the unit interval.
+	// Apply the gamma identity to reduce a negative argument to the unit interval.
 
-		call_dq_sub (f1, t, t4);
-		call_dq_infr (t4, t3, t5);
-		call_dq_mdc (t3, d3, n3);
+		call_dq_infr(static_cast<FloatBase>(1.0) - t, t3, t5);
+		call_dq_mdc(t3, d3, n3);
 		nt = call_dq_int_ldexp(d3, n3);
 
-		call_dq_eq (f1, t1);
-		call_dq_sub (f1, t5, t2);
-		call_dq_eq (t2, tn);
+		taylor_sum = static_cast<FloatBase>(1.0);
+		tn = static_cast<FloatBase>(1.0) - t5;
 
-		for (i = 0; i <= nt - 1; i++) {
-			call_dq_dmc (static_cast<FloatBase>(i), 0, t4);
-			call_dq_add (t, t4, t5);
-			call_dq_div (t1, t5, t6);
-			call_dq_eq (t6, t1);
+		for (int i = 0; i <= nt - 1; i++) {
+			taylor_sum /= (t + static_cast<FloatBase>(i));
 		}
 	}
 
-	//	 Calculate alpha = bits of precision * log(2) / 2, { take the next even
-	//	 integer value, so that alpha/2 and alpha^2/4 can be calculated exactly in DP.
+	// Calculate alpha = bits of precision * log(2) / 2, { take the next even
+	// integer value, so that alpha/2 and alpha^2/4 can be calculated exactly in DP.
 
-	alpha = static_cast<FloatBase>(2.0) * trunc(
-		static_cast<FloatBase>(0.25) * (dq_nw1 + 1) * dq_nbt * al2 + static_cast<FloatBase>(1.0)
+	FloatBase alpha = static_cast<FloatBase>(2.0) * trunc(
+		static_cast<FloatBase>(1.0) + (static_cast<FloatBase>(
+				(FloatBase_Count + 1) * std::numeric_limits<FloatBase>::digits
+		) * FloatBase_ln2) * static_cast<FloatBase>(0.25)
 	);
 	d2 = static_cast<FloatBase>(0.25) * (alpha * alpha);
-	call_dq_eq (tn, t2);
-	call_dq_div (f1, t2, t3);
-	call_dq_eq (t3, sum1);
+	t3 = recip(tn);
+	sum1 = t3;
 
 	//	 Evaluate the series with t.
 
 	for (j = 1; j <= max_iter; j++) {
-		call_dq_dmc (static_cast<FloatBase>(j), 0, t6);
-		call_dq_add (t2, t6, t4);
-		call_dq_muld (t4, static_cast<FloatBase>(j), t5);
-		call_dq_div (t3, t5, t6);
-		call_dq_muld (t6, d2, t3);
-		call_dq_add (sum1, t3, t4);
-		call_dq_eq (t4, sum1);
+		t5 = (tn + static_cast<FloatBase>(j)) * static_cast<FloatBase>(j);
+		t3 = (t3 / t5) * d2;
+		sum1 += t3;
 
-		call_dq_abs (t3, tc1);
-		call_dq_mul (target_epsilon, sum1, tc3);
-		call_dq_abs (tc3, tc2);
-		call_dq_cpr (tc1, tc2, ic1);
+		tc1 = fabs(t3);
+		tc2 = fabs(target_epsilon * sum1);
+		call_dq_cpr(tc1, tc2, ic1);
 		if (ic1 <= 0) {
-			goto JMP_100;
+			break;
 		}
 	}
+	if (j > max_iter) {
+		// write (dq_ldb, 3) 1, max_iter
+		// 3 format ('*** DQGAMMAR: iteration limit exceeded',2i10);
+		// call_dq_abrt
+		printf("*** DQGAMMAR: +t iteration limit exceeded %d\n", max_iter);
+		return z;
+	}
 
-	// write (dq_ldb, 3) 1, max_iter
-	// 3 format ('*** DQGAMMAR: iteration limit exceeded',2i10);
-	// call_dq_abrt
+	t3 = recip(-tn);
+	sum2 = t3;
 
-	printf("*** DQGAMMAR: iteration limit exceeded %d", max_iter);
-	return z;
-
-	/* continue */ JMP_100:
-
-	call_dq_neg (tn, t2);
-	call_dq_div (f1, t2, t3);
-	call_dq_eq (t3, sum2);
-
-	//	 Evaluate the same series with -t.
+	// Evaluate the same series with -t.
 
 	for (j = 1; j <= max_iter; j++) {
-		call_dq_dmc (static_cast<FloatBase>(j), 0, t6);
-		call_dq_add (t2, t6, t4);
-		call_dq_muld (t4, static_cast<FloatBase>(j), t5);
-		call_dq_div (t3, t5, t6);
-		call_dq_muld (t6, d2, t3);
-		call_dq_add (sum2, t3, t4);
-		call_dq_eq (t4, sum2);
+		t5 = (static_cast<FloatBase>(j) - tn) * static_cast<FloatBase>(j);
+		t6 = t3 / t5;
+		t3 = t6 * d2;
+		sum2 += t3;
 
-		call_dq_abs (t3, tc1);
-		call_dq_mul (target_epsilon, sum2, tc3);
-		call_dq_abs (tc3, tc2);
-		call_dq_cpr (tc1, tc2, ic1);
+		tc1 = fabs(t3);
+		tc2 = fabs(target_epsilon * sum2);
+		call_dq_cpr(tc1, tc2, ic1);
 		if (ic1 <= 0) {
-			goto JMP_110;
+			break;
 		}
 	}
+	if (j > max_iter) {
+		// write (dq_ldb, 3) 2, max_iter
+		// call_dq_abrt
+		printf("*** DQGAMMAR: -t iteration limit exceeded %d\n", max_iter);
+		return z;
+	}
 
-	// write (dq_ldb, 3) 2, max_iter
-	// call_dq_abrt
+	// Compute sqrt (pi * sum1 / (tn * sin (pi * tn) * sum2))
+	// and (alpha/2)^tn terms. Also, multiply by the factor taylor_sum, from the
+	// If block above.
 
-	/* continue */ JMP_110:
+	z = taylor_sum * (
+		sqrt(-(
+			(FloatNxN_pi * sum1) / (tn * (sin(FloatNxN_pi * tn) * sum2))
+		)) * exp(tn * log(
+			static_cast<FloatNxN>(static_cast<FloatBase>(0.5) * alpha)
+		))
+	);
 
-	//	 Compute sqrt (pi * sum1 / (tn * sin (pi * tn) * sum2))
-	//	 and (alpha/2)^tn terms. Also, multiply by the factor t1, from the
-	//	 If block above.
-
-	call_dq_eq (dq_picon, t2);
-	call_dq_mul (t2, tn, t3);
-	call_dq_cssnr (t3, t4, t5);
-	call_dq_mul (t5, sum2, t6);
-	call_dq_mul (tn, t6, t5);
-	call_dq_mul (t2, sum1, t3);
-	call_dq_div (t3, t5, t6);
-	call_dq_neg (t6, t4);
-	call_dq_eq (t4, t6);
-	call_dq_sqrt (t6, t2);
-	call_dq_dmc (static_cast<FloatBase>(0.5) * alpha, 0, t3);
-	call_dq_log (t3, t4);
-	call_dq_mul (tn, t4, t5);
-	call_dq_exp (t5, t6);
-	call_dq_mul (t2, t6, t3);
-	call_dq_mul (t1, t3, t4);
-
-	//	 Round to mpnw words precision.
-
-	call_dq_eq (t4, z);
-
-	/* continue */ JMP_120:
+	// Round to mpnw words precision.
 
 	return z;
 }

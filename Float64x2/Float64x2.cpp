@@ -325,8 +325,8 @@ Float64x2 log(const Float64x2& x) {
 		return 0.0;
 	}
 
-	if (x.hi <= 0.0) {
-		if (x == 0.0) {
+	if (islessequal_zero(x)) {
+		if (isequal_zero(x)) {
 			return -std::numeric_limits<Float64x2>::infinity();
 		}
 		// Float64x2::error("(Float64x2::log): Non-positive argument.");
@@ -353,7 +353,7 @@ Float64x2 log1p(const Float64x2& x) {
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
 	Float64x4 guess = log1p(x.hi);
-	Float64x4 x_plus1 = LDF::add<Float64x4, Float64x2, fp64>(x, 1.0); 
+	Float64x4 x_plus1 = LDF::add<Float64x4>(x, 1.0); 
 	return guess.val[0] + static_cast<Float64x2>(x_plus1 * exp(-guess) - 1.0);
 }
 
@@ -1052,6 +1052,16 @@ Float64x2 atanh(const Float64x2& x) {
 }
 
 //------------------------------------------------------------------------------
+// Float64x2 fma
+//------------------------------------------------------------------------------
+
+Float64x2 fma(const Float64x2& x, const Float64x2& y, const Float64x2& z) {
+	Float64x4 ret = LDF::mul<Float64x4>(x, y);
+	ret = LDF::add<Float64x4>(ret, z);
+	return static_cast<Float64x2>(ret);
+}
+
+//------------------------------------------------------------------------------
 // Float64x2 pown
 //------------------------------------------------------------------------------
 
@@ -1098,8 +1108,8 @@ __attribute__((unused)) static inline Float64x2 pown(const Float64x2& x, int n) 
 #include "../FloatNxN/FloatNxN_erf.hpp"
 
 /**
- * @remarks the lower bound of max_iter for erf and erfc seems to be 148.
- * 147 gives a few results that are accurate to 74bits instead of 108bits or
+ * @remarks the lower bound of max_iter for erf and erfc seems to be 147.
+ * 146 gives a few results that are accurate to 74bits instead of 108bits or
  * more. I am not sure why max_iter was set to 10000 initially instead of 1000.
  * A max_iter of 152 is choosen to cover any missed edge cases, and
  * because it is a multiple of 4 (Should that help the compiler at all).

@@ -58,7 +58,7 @@ void precision_test(void) {
 	long double max_diff = -9999999.0L;
 	size_t values_printed = 0;
 	for (size_t i = 0; i < points; i++) {
-		long double EP =     10.0L;
+		long double EP =     101.0L;
 		long double offset = 0.0L;
 		
 		fpX x = linearInterpolation(
