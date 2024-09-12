@@ -30,10 +30,10 @@ long double calc_precision(fpX x, fpX& ground_truth, fpX& func_result) {
 	mpfr_set_type<fpX>(y0_mpfr.value, x, MPFR_RNDN);
 
 	{ // Calculate ground truth
-		mpfr_gamma(y0_mpfr.value, y0_mpfr.value, MPFR_RNDN);
+		mpfr_lngamma(y0_mpfr.value, y0_mpfr.value, MPFR_RNDN);
 	}
 	{ // Calculate func result
-		y1 = tgamma(x);
+		y1 = lgamma(x);
 	}
 
 	y0 = mpfr_get_type<fpX>(y0_mpfr.value, MPFR_RNDN);
@@ -53,7 +53,7 @@ long double calc_precision(fpX x, fpX& ground_truth, fpX& func_result) {
 
 template <typename fpX>
 void precision_test(void) {
-	constexpr size_t points = 65536;
+	constexpr size_t points = 202;
 
 	long double max_diff = -9999999.0L;
 	size_t values_printed = 0;

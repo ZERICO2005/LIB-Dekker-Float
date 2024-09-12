@@ -1153,7 +1153,8 @@ Float64x2 tgamma(const Float64x2& t) {
 		100000
 	>(
 		t,
-		Float64x2_pi, Float64x2_ln2.hi
+		Float64x2_pi, Float64x2_sqrtpi,
+		Float64x2_ln2.hi
 	);
 }
 

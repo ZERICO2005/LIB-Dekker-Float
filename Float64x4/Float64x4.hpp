@@ -1021,11 +1021,13 @@ namespace std {
 }
 #endif
 
-constexpr Float64x4 Float64x4_2pi  = {0x1.921fb54442d18p+2,+0x1.1a62633145c07p-52,-0x1.f1976b7ed8fbcp-108,+0x1.4cf98e804177dp-162}; /**< ~6.283185307 */
-constexpr Float64x4 Float64x4_pi2  = {0x1.921fb54442d18p+0,+0x1.1a62633145c07p-54,-0x1.f1976b7ed8fbcp-110,+0x1.4cf98e804177dp-164}; /**< ~1.570796327 */
-constexpr Float64x4 Float64x4_pi4  = {0x1.921fb54442d18p-1,+0x1.1a62633145c07p-55,-0x1.f1976b7ed8fbcp-111,+0x1.4cf98e804177dp-165}; /**< ~0.785398163 */
-constexpr Float64x4 Float64x4_3pi4 = {0x1.2d97c7f3321d2p+1,+0x1.a79394c9e8a0ap-54,+0x1.456737b06ea1ap-108,-0x1.83226a8fe7731p-162}; /**< ~2.356194490 */
-constexpr Float64x4 Float64x4_tau  = Float64x4_2pi; /**< ~6.283185307 */
+constexpr Float64x4 Float64x4_sqrtpi = {0x1.c5bf891b4ef6bp+0,-0x1.618f13eb7ca89p-54,-0x1.b1f0071b7aae4p-110,-0x1.389b5a46bdfe8p-165}; /**< ~1.772453851 */
+
+constexpr Float64x4 Float64x4_2pi    = {0x1.921fb54442d18p+2,+0x1.1a62633145c07p-52,-0x1.f1976b7ed8fbcp-108,+0x1.4cf98e804177dp-162}; /**< ~6.283185307 */
+constexpr Float64x4 Float64x4_pi2    = {0x1.921fb54442d18p+0,+0x1.1a62633145c07p-54,-0x1.f1976b7ed8fbcp-110,+0x1.4cf98e804177dp-164}; /**< ~1.570796327 */
+constexpr Float64x4 Float64x4_pi4    = {0x1.921fb54442d18p-1,+0x1.1a62633145c07p-55,-0x1.f1976b7ed8fbcp-111,+0x1.4cf98e804177dp-165}; /**< ~0.785398163 */
+constexpr Float64x4 Float64x4_3pi4   = {0x1.2d97c7f3321d2p+1,+0x1.a79394c9e8a0ap-54,+0x1.456737b06ea1ap-108,-0x1.83226a8fe7731p-162}; /**< ~2.356194490 */
+constexpr Float64x4 Float64x4_tau    = Float64x4_2pi; /**< ~6.283185307 */
 
 //------------------------------------------------------------------------------
 // Float64x4 math.h functions

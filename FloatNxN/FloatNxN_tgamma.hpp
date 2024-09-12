@@ -342,7 +342,7 @@ static inline void T_call_dd_infr(const FloatNxN& a, FloatNxN& b, FloatNxN& c) {
 #endif
 }
 
-#define call_dq_infr(a, b, c) T_call_dd_infr<FloatNxN, FloatBase>(a, b, c)
+#define call_dq_infr(a, b_int, c_frac) T_call_dd_infr<FloatNxN, FloatBase>(a, b_int, c_frac)
 
 template<typename FloatNxN, typename FloatBase>
 void T_call_dd_nint(const FloatNxN& a, FloatNxN& b) {
@@ -440,7 +440,8 @@ template <
 >
 static inline FloatNxN libDQFUN_tgamma(
 	const FloatNxN& t,
-	const FloatNxN FloatNxN_pi, const FloatBase FloatBase_ln2
+	const FloatNxN FloatNxN_pi, const FloatNxN FloatNxN_sqrtpi,
+	const FloatBase FloatBase_ln2
 ) {
 	// This evaluates the gamma function, using an algorithm of R. W. Potter.
 	// The argument t must not exceed 10^8 in size (this limit is set below),
@@ -455,31 +456,31 @@ static inline FloatNxN libDQFUN_tgamma(
 	// FloatNxN, intent(out):: z;
 	
 	FloatNxN z;
-	int ic1, j, nt, n2, n3;
-	FloatBase d2, d3;
-	FloatNxN taylor_sum, sum1, sum2, tn;
-	FloatNxN t2, t3, t5, t6;
-	FloatNxN tc1, tc2, target_epsilon;
+	FloatBase d2;
+	FloatNxN taylor_sum, sum_pos, sum_neg, tn;
+	FloatBase target_epsilon;
 
 	target_epsilon = ldexp(
 		static_cast<FloatBase>(1.0),
 		-FloatBase_Count * std::numeric_limits<FloatBase>::digits
 	);
-	const FloatNxN t_truncated = trunc(t);
-	const bool input_is_integer = (t_truncated == t);
 
-	#if 1
-		// Checks if `t` is a non-positive integer
-		if (input_is_integer && islessequal_zero(t)) {
-			return std::numeric_limits<FloatNxN>::quiet_NaN();
-		}
-	#else
+	// const FloatNxN t_trunc_part = trunc(t);
+	FloatNxN t_trunc_part, t_frac_part;
+
+	// Find the integer and fractional parts of t.
+	call_dq_infr(t, t_trunc_part, t_frac_part);
+	
+	// asserts that the conversion to `int` will be exact
+	assert(t_trunc_part == static_cast<FloatNxN>((static_cast<int>(t_trunc_part))));
+
+	#if 0
 		// Original Code
 
 		// This constant appears to be very conservative
 		constexpr FloatBase dmax = static_cast<FloatBase>(1.0e+8);
 		FloatBase d1;
-		int i1, n1;
+		int i1, ic1, n1;
 
 		/**
 		 * @remarks Checks if `t` is too large for the algorithm
@@ -504,52 +505,63 @@ static inline FloatNxN libDQFUN_tgamma(
 		}
 	#endif
 
-	if (input_is_integer) {
-
-	// If t is a positive integer, then apply the usual factorial recursion.
-
-		call_dq_mdc(t2, d2, n2);
-		nt = call_dq_int_ldexp(d2, n2);
+	// Checks if `t` is an integer
+	if (t_trunc_part == t) {
+		if (islessequal_zero(t)) {
+			// `t` must be a positive integer
+			return std::numeric_limits<FloatNxN>::quiet_NaN();
+		}
+		// If t is a positive integer, then apply the usual factorial recursion.
 		
-		z = static_cast<FloatBase>(1.0);
+		const int nt = static_cast<int>(t_trunc_part);
 
+		z = static_cast<FloatBase>(1.0);
+		FloatBase term_iter = static_cast<FloatBase>(2.0);
 		for (int i = 2; i <= nt - 1; i++) {
-			z *= static_cast<FloatBase>(i);
+			z *= term_iter;
+			term_iter++;
 		}
 		return z;
 	}
 
-	// Find the integer and fractional parts of t.
-	// t3 = modf(t, t2)
-	call_dq_infr(t, t2, t3);
+	// // Checks if `t` is an integer multiple of 0.5
+	// const FloatNxN t_mul2 = mul_pwr2(t, static_cast<FloatBase>(2.0));
+	// const FloatNxN t_mul2_trunc_part = trunc(t_mul2);
+	// if (t_mul2_trunc_part == t_mul2) {
+	// 	FloatNxN double_fact_sum;
+	// 	int term_count = static_cast<int>(t_trunc_part) * 2 - 1;
+	// 	for (int i = 0; i < term_count; i++) {
+	// 		// Do this later
+	// 	}
+	// }
 
 	if (isgreater_zero(t)) {
 
 	// Apply the identity Gamma[t+1] = t * Gamma[t] to reduce the input argument
 	// to the unit interval.
-
-		call_dq_mdc(t2, d2, n2);
-		nt = call_dq_int_ldexp(d2, n2);
 		
-		taylor_sum = static_cast<FloatBase>(1.0);
-		tn = t3;
+		const int nt = static_cast<int>(t_trunc_part);
 
+		taylor_sum = static_cast<FloatBase>(1.0);
+		tn = t_frac_part;
+		
+		FloatBase term_iter = static_cast<FloatBase>(1.0);
 		for (int i = 1; i <= nt; i++) {
-			taylor_sum *= (t - static_cast<FloatBase>(i));
+			taylor_sum *= (t - term_iter);
+			term_iter++;
 		}
 	} else {
 
 	// Apply the gamma identity to reduce a negative argument to the unit interval.
 
-		call_dq_infr(static_cast<FloatBase>(1.0) - t, t3, t5);
-		call_dq_mdc(t3, d3, n3);
-		nt = call_dq_int_ldexp(d3, n3);
-
+		const int nt = static_cast<int>(static_cast<FloatBase>(1.0) - t_trunc_part);
 		taylor_sum = static_cast<FloatBase>(1.0);
-		tn = static_cast<FloatBase>(1.0) - t5;
+		tn = static_cast<FloatBase>(1.0) + t_frac_part;
 
+		FloatBase term_iter = static_cast<FloatBase>(0.0);
 		for (int i = 0; i <= nt - 1; i++) {
-			taylor_sum /= (t + static_cast<FloatBase>(i));
+			taylor_sum /= (t + term_iter);
+			term_iter++;
 		}
 	}
 
@@ -562,63 +574,63 @@ static inline FloatNxN libDQFUN_tgamma(
 		) * FloatBase_ln2) * static_cast<FloatBase>(0.25)
 	);
 	d2 = static_cast<FloatBase>(0.25) * (alpha * alpha);
-	t3 = recip(tn);
-	sum1 = t3;
 
-	//	 Evaluate the series with t.
+	/* Evaluate the series with +t */ {
+		int iter;
+		FloatBase term_iter = static_cast<FloatBase>(1.0);
+		FloatNxN term = recip(tn); 
+		sum_pos = term;
+		for (iter = 1; iter <= max_iter; iter++) {
+			term /= (tn + term_iter) * term_iter;
+			term *= d2;
+			sum_pos += term;
 
-	for (j = 1; j <= max_iter; j++) {
-		t5 = (tn + static_cast<FloatBase>(j)) * static_cast<FloatBase>(j);
-		t3 = (t3 / t5) * d2;
-		sum1 += t3;
-
-		tc1 = fabs(t3);
-		tc2 = fabs(target_epsilon * sum1);
-		call_dq_cpr(tc1, tc2, ic1);
-		if (ic1 <= 0) {
-			break;
+			if (fabs(term) <= fabs(mul_pwr2(target_epsilon, sum_pos))) {
+				break;
+			}
+			term_iter++;
+		}
+		if (iter > max_iter) {
+			// write (dq_ldb, 3) 1, max_iter
+			// 3 format ('*** DQGAMMAR: iteration limit exceeded',2i10);
+			// call_dq_abrt
+			printf("*** DQGAMMAR: +t iteration limit exceeded %d\n", max_iter);
+			return z;
 		}
 	}
-	if (j > max_iter) {
-		// write (dq_ldb, 3) 1, max_iter
-		// 3 format ('*** DQGAMMAR: iteration limit exceeded',2i10);
-		// call_dq_abrt
-		printf("*** DQGAMMAR: +t iteration limit exceeded %d\n", max_iter);
-		return z;
-	}
 
-	t3 = recip(-tn);
-	sum2 = t3;
+	/* Evaluate the series with +t */ {
 
-	// Evaluate the same series with -t.
+		int iter;
+		FloatBase term_iter = static_cast<FloatBase>(1.0);
+		FloatNxN term = recip(-tn); 
+		sum_neg = term;
 
-	for (j = 1; j <= max_iter; j++) {
-		t5 = (static_cast<FloatBase>(j) - tn) * static_cast<FloatBase>(j);
-		t6 = t3 / t5;
-		t3 = t6 * d2;
-		sum2 += t3;
+		for (iter = 1; iter <= max_iter; iter++) {
+			term /= (term_iter - tn) * term_iter;
+			term *= d2;
+			sum_neg += term;
 
-		tc1 = fabs(t3);
-		tc2 = fabs(target_epsilon * sum2);
-		call_dq_cpr(tc1, tc2, ic1);
-		if (ic1 <= 0) {
-			break;
+			if (fabs(term) <= fabs(mul_pwr2(target_epsilon, sum_neg))) {
+				break;
+			}
+			term_iter++;
+		}
+		if (iter > max_iter) {
+			// write (dq_ldb, 3) 2, max_iter
+			// call_dq_abrt
+			printf("*** DQGAMMAR: -t iteration limit exceeded %d\n", max_iter);
+			return z;
 		}
 	}
-	if (j > max_iter) {
-		// write (dq_ldb, 3) 2, max_iter
-		// call_dq_abrt
-		printf("*** DQGAMMAR: -t iteration limit exceeded %d\n", max_iter);
-		return z;
-	}
 
-	// Compute sqrt (pi * sum1 / (tn * sin (pi * tn) * sum2))
+	// Compute sqrt (pi * sum_pos / (tn * sin (pi * tn) * sum_neg))
 	// and (alpha/2)^tn terms. Also, multiply by the factor taylor_sum, from the
 	// If block above.
 
 	z = taylor_sum * (
 		sqrt(-(
-			(FloatNxN_pi * sum1) / (tn * (sin(FloatNxN_pi * tn) * sum2))
+			(FloatNxN_pi * sum_pos) / (tn * (sin(FloatNxN_pi * tn) * sum_neg))
 		)) * exp(tn * log(
 			static_cast<FloatNxN>(static_cast<FloatBase>(0.5) * alpha)
 		))
