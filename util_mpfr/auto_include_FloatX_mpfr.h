@@ -27,6 +27,9 @@
 #ifdef FLOAT64X4_DEF_H
 	#include "Float64x4/Float64x4_mpfr.h"
 #endif
+#ifdef FLOAT64X6_DEF_H
+	#include "Float64x6/Float64x6_mpfr.h"
+#endif
 #ifdef FLOAT80X2_DEF_H
 	#include "Float80x2/Float80x2_mpfr.h"
 #endif

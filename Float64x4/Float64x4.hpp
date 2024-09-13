@@ -985,6 +985,12 @@ Float64x4 LDF::bitwise_xor<Float64x4, fp64>
 // Float64x4 Constants
 //------------------------------------------------------------------------------
 
+namespace LDF {
+
+
+
+}
+
 /* C++20 <numbers> */
 
 	constexpr Float64x4 Float64x4_e          = {0x1.5bf0a8b145769p+1,+0x1.4d57ee2b1013ap-53,-0x1.618713a31d3e2p-109,+0x1.c5a6d2b53c26dp-163}; /**< ~2.718281828 */

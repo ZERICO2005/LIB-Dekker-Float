@@ -18,7 +18,7 @@
 #include "Float64x2_def.h"
 
 #include "../FloatNxN/FloatNxN_arithmetic.hpp"
-#include "../FloatNxN/FloatNxN_constants.hpp"
+#include "Float64x2_constants.hpp"
 
 #include <cstdint>
 #include <limits>

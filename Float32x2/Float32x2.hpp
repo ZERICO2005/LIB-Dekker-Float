@@ -19,7 +19,7 @@
 #include <limits>
 
 #include "../FloatNxN/FloatNxN_arithmetic.hpp"
-#include "../FloatNxN/FloatNxN_constants.hpp"
+#include "Float32x2_constants.hpp"
 
 typedef float fp32;
 typedef double fp64;

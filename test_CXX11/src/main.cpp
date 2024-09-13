@@ -55,6 +55,7 @@ inline int64_t getNanoTime(void) {
 #include "Float32x4/Float32x4.hpp"
 #include "Float64x4/Float64x4.h"
 #include "Float64x4/Float64x4.hpp"
+#include "Float64x6/Float64x6.hpp"
 
 // Deprecated since it runs slower than mpfr_t. It could be faster than the overhead from C++ wrappers for mpfr_t
 // #include "Float80x4/Float80x4.h"
@@ -143,7 +144,7 @@ void run_math_demo(unsigned int seed) {
 
 
 void run_generate_constants(void) {
-	generate_constants<Float64x4, fp64>("Float64x4");
+	generate_constants<Float64x6, fp64>("Float64x6");
 }
 
 #if 0

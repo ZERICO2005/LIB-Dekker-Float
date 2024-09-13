@@ -14,7 +14,7 @@
 #include <cmath>
 
 #include "../FloatNxN/FloatNxN_arithmetic.hpp"
-#include "../FloatNxN/FloatNxN_constants.hpp"
+#include "Float32x4_constants.hpp"
 
 /**
  * @note Float32x4 is currently unimplemented.
