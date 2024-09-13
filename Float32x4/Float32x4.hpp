@@ -21,6 +21,25 @@
  */
 
 //------------------------------------------------------------------------------
+// Float32x4 LDF Type Information
+//------------------------------------------------------------------------------
+
+#include "../LDF/LDF_type_info.hpp"
+namespace LDF {
+	template<> struct LDF_Type_Info<Float32x4> {
+		static constexpr int FloatBase_Count = 4;
+		static constexpr bool to_string_implemented = false;
+		static constexpr bool from_string_implemented = false;
+		static constexpr bool arithmetic_implemented = false;
+		static constexpr bool numeric_limits_implemented = false;
+		static constexpr bool bitwise_implemented = true;
+		static constexpr bool constants_implemented = true;
+		static constexpr bool basic_C99_math_implemented = false;
+		static constexpr bool accurate_C99_math_implemented = false;
+	};
+}
+
+//------------------------------------------------------------------------------
 // Float32x4 Compairison
 //------------------------------------------------------------------------------
 

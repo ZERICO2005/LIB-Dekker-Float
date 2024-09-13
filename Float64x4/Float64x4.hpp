@@ -27,7 +27,26 @@
 #include <cmath>
 
 #include "../FloatNxN/FloatNxN_arithmetic.hpp"
-#include "../FloatNxN/FloatNxN_constants.hpp"
+#include "Float64x4_constants.hpp"
+
+//------------------------------------------------------------------------------
+// Float64x4 LDF Type Information
+//------------------------------------------------------------------------------
+
+#include "../LDF/LDF_type_info.hpp"
+namespace LDF {
+	template<> struct LDF_Type_Info<Float64x4> {
+		static constexpr int FloatBase_Count = 4;
+		static constexpr bool to_string_implemented = true;
+		static constexpr bool from_string_implemented = true;
+		static constexpr bool arithmetic_implemented = true;
+		static constexpr bool numeric_limits_implemented = true;
+		static constexpr bool bitwise_implemented = true;
+		static constexpr bool constants_implemented = true;
+		static constexpr bool basic_C99_math_implemented = true;
+		static constexpr bool accurate_C99_math_implemented = false;
+	};
+}
 
 //------------------------------------------------------------------------------
 // Float64x4 String Operations

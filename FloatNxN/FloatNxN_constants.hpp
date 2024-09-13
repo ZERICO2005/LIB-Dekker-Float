@@ -6,8 +6,8 @@
 **	this project. If not, see https://opensource.org/license/MIT
 */
 
-#ifndef FLOATNXN_CONSTANTS_HPP
-#define FLOATNXN_CONSTANTS_HPP
+#ifndef LDF_CONSTANTS_HPP
+#define LDF_CONSTANTS_HPP
 
 /**
  * When generating constants for float, double, and long double:
@@ -26,7 +26,20 @@
  * - const_egamma, const_phi
  */
 
-/* LIB-Dekker-Float namespace */
+// namespace LDF {
+// 	template<typename T>
+// 	struct constants {
+// 		static constexpr T pi = static_cast<T>(0.0);
+// 		static constexpr T sqrt2 = static_cast<T>(0.0);
+// 	};
+
+// 	template<>
+// 	struct constants<double> {
+// 		static constexpr double pi = 3.14159265;
+// 		static constexpr double sqrt2 = 1.4142;
+// 	};
+// } /* LDF */
+
 namespace LDF {
 
 /* Multiples of pi*/
@@ -450,4 +463,4 @@ template<> inline constexpr float const_gauss         <float>() { return 8.34626
 
 } /* LDF */
 
-#endif /* FLOATNXN_CONSTANTS_HPP */
+#endif /* LDF_CONSTANTS_HPP */

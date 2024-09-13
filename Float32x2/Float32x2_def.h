@@ -13,7 +13,7 @@
  * @brief defines the Float32x2 struct
  */
 
-#include "Float32/Float32.h"
+#include "../Float32/Float32.h"
 
 typedef float fp32;
 

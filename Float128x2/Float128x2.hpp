@@ -13,6 +13,25 @@
 #include "../FloatNxN/FloatNxN_constants.hpp"
 
 //------------------------------------------------------------------------------
+// Float128x2 LDF Type Information
+//------------------------------------------------------------------------------
+
+#include "../LDF/LDF_type_info.hpp"
+namespace LDF {
+	template<> struct LDF_Type_Info<Float128x2> {
+		static constexpr int FloatBase_Count = 2;
+		static constexpr bool to_string_implemented = false;
+		static constexpr bool from_string_implemented = false;
+		static constexpr bool arithmetic_implemented = false;
+		static constexpr bool numeric_limits_implemented = false;
+		static constexpr bool bitwise_implemented = false;
+		static constexpr bool constants_implemented = true;
+		static constexpr bool basic_C99_math_implemented = false;
+		static constexpr bool accurate_C99_math_implemented = false;
+	};
+}
+
+//------------------------------------------------------------------------------
 // Float128x2 Constants
 //------------------------------------------------------------------------------
 

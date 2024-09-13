@@ -12,10 +12,10 @@
  * @brief defines the Float32x4 struct
  */
 
-#include "Float32/Float32.h"
-#include "Float64/Float64.h"
+#include "../Float32/Float32.h"
+#include "../Float64/Float64.h"
 
-#include "Float32x2/Float32x2_def.h"
+#include "../Float32x2/Float32x2_def.h"
 
 //------------------------------------------------------------------------------
 // Float32x4 struct

@@ -6,17 +6,11 @@
 **	this project. If not, see https://opensource.org/license/MIT
 */
 
-#ifndef FLOATNXN_ARITHMETIC_HPP
-#define FLOATNXN_ARITHMETIC_HPP
+#ifndef LDF_ARITHMETIC_HPP
+#define LDF_ARITHMETIC_HPP
 
 /* LIB-Dekker-Float namespace */
 namespace LDF {
-
-//------------------------------------------------------------------------------
-// Type Information
-//------------------------------------------------------------------------------
-
-
 
 //------------------------------------------------------------------------------
 // Basic Arithmetic
@@ -229,4 +223,4 @@ inline constexpr long double LDF::mul_pwr2<long double, long double, long double
 	return x * y;
 }
 
-#endif /* FLOATNXN_ARITHMETIC_HPP */
+#endif /* LDF_ARITHMETIC_HPP */

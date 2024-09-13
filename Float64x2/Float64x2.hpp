@@ -26,6 +26,25 @@
 #include <cfenv>
 
 //------------------------------------------------------------------------------
+// Float64x2 LDF Type Information
+//------------------------------------------------------------------------------
+
+#include "../LDF/LDF_type_info.hpp"
+namespace LDF {
+	template<> struct LDF_Type_Info<Float64x2> {
+		static constexpr int FloatBase_Count = 2;
+		static constexpr bool to_string_implemented = true;
+		static constexpr bool from_string_implemented = true;
+		static constexpr bool arithmetic_implemented = true;
+		static constexpr bool numeric_limits_implemented = true;
+		static constexpr bool bitwise_implemented = true;
+		static constexpr bool constants_implemented = true;
+		static constexpr bool basic_C99_math_implemented = true;
+		static constexpr bool accurate_C99_math_implemented = false; // erfc is very inaccurate when x > 0
+	};
+}
+
+//------------------------------------------------------------------------------
 // Float64x2 String Operations
 //------------------------------------------------------------------------------
 
