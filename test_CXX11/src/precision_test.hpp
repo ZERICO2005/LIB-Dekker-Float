@@ -30,11 +30,13 @@ long double calc_precision(fpX x, fpX& ground_truth, fpX& func_result) {
 	mpfr_set_type<fpX>(y0_mpfr.value, x, MPFR_RNDN);
 
 	{ // Calculate ground truth
-		int f;
-		mpfr_lgamma(y0_mpfr.value, &f, y0_mpfr.value, MPFR_RNDN);
+		FloatMPFR temp1 = (x / 127362142.023794 - 531276.324);
+		FloatMPFR temp2 = (x + 99862.312);
+		mpfr_fma(y0_mpfr.value, y0_mpfr.value, temp1.value, temp2.value, MPFR_RNDN);
 	}
 	{ // Calculate func result
-		y1 = lgamma(x);
+		// y1 = fma(x, (x / 127362142.023794 - 531276.324), (x + 99862.312));
+		y1 = (x * (x / 127362142.023794 - 531276.324)) + (x + 99862.312);
 	}
 
 	y0 = mpfr_get_type<fpX>(y0_mpfr.value, MPFR_RNDN);

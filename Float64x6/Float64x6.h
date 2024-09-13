@@ -16,7 +16,7 @@
 **	LIB-Dekker-Float/libQD/LBNL-BSD-License.txt
 */
 
-#if 0
+#if 1
 
 #ifndef FLOAT64X6_H
 #define FLOAT64X6_H
@@ -163,23 +163,17 @@ static inline Float64x6 Float64x6_set_dx6(const fp64 values[6]) {
 
 static inline Float64x6 Float64x6_set_u64(const uint64_t values[6]) {
 	Bitwise_Float64x6 ret;
-	ret.binary_part.val[0] = values[0];
-	ret.binary_part.val[1] = values[1];
-	ret.binary_part.val[2] = values[2];
-	ret.binary_part.val[3] = values[3];
-	ret.binary_part.val[4] = values[4];
-	ret.binary_part.val[5] = values[5];
+	for (int i = 0; i <= 5; i++) {
+		ret.binary_part.val[i] = values[i];
+	}
 	return ret.float_part;
 }
 
 static inline Float64x6 Float64x6_set_i64(const int64_t values[6]) {
 	Bitwise_Float64x6 ret;
-	ret.binary_part.val[0] = (uint64_t)values[0];
-	ret.binary_part.val[1] = (uint64_t)values[1];
-	ret.binary_part.val[2] = (uint64_t)values[2];
-	ret.binary_part.val[3] = (uint64_t)values[3];
-	ret.binary_part.val[4] = (uint64_t)values[4];
-	ret.binary_part.val[5] = (uint64_t)values[5];
+	for (int i = 0; i <= 5; i++) {
+		ret.binary_part.val[i] = (uint64_t)values[i];
+	}
 	return ret.float_part;
 }
 
@@ -352,187 +346,67 @@ static inline bool Float64x6_cmpge_zero(const Float64x6 x) {
 //------------------------------------------------------------------------------
 
 static inline bool Float64x6_cmpeq_dx6_d(const Float64x6 x, const fp64 y) {
-	return (
-		x.val[0] == y && x.val[1] == 0.0 &&
-		x.val[2] == 0.0 && x.val[3] == 0.0 &&
-		x.val[4] == 0.0 && x.val[5] == 0.0
-	);
+	return (x.val[0] == y && x.val[1] == 0.0);
 }
 
 static inline bool Float64x6_cmpneq_dx6_d(const Float64x6 x, const fp64 y) {
-	return (
-		x.val[0] != y || x.val[1] != 0.0 ||
-		x.val[2] != 0.0 || x.val[3] != 0.0 ||
-		x.val[4] != 0.0 || x.val[5] != 0.0
-	);
+	return (x.val[0] != y || x.val[1] != 0.0);
 }
 
 static inline bool Float64x6_cmpord_dx6_d(const Float64x6 x, const fp64 y) {
-	return (
-		!isunordered(x.val[0], y) && !isunordered(x.val[1], 0.0) &&
-		!isunordered(x.val[2], 0.0) && !isunordered(x.val[3], 0.0) &&
-		!isunordered(x.val[4], 0.0) && !isunordered(x.val[5], 0.0)
-	);
+	return (!isunordered(x.val[0], y) && !isunordered(x.val[1], 0.0));
 }
 
 static inline bool Float64x6_cmpunord_dx6_d(const Float64x6 x, const fp64 y) {
-	return (
-		isunordered(x.val[0], y) || isunordered(x.val[1], 0.0) ||
-		isunordered(x.val[2], 0.0) || isunordered(x.val[3], 0.0) ||
-		isunordered(x.val[4], 0.0) || isunordered(x.val[5], 0.0)
-	);
+	return (isunordered(x.val[0], y) || isunordered(x.val[1], 0.0));
 }
 
 static inline bool Float64x6_cmplt_dx6_d(const Float64x6 x, const fp64 y) {
-	return
-		(x.val[0] == y) ? (
-			(x.val[1] == 0.0) ? (
-				(x.val[2] == 0.0) ? (
-					(x.val[3] == 0.0) ? (
-						(x.val[4] == 0.0) ? (
-							x.val[5] < 0.0
-						) : (x.val[4] < 0.0)
-					) : (x.val[3] < 0.0)
-				) : (x.val[2] < 0.0)
-			) : (x.val[1] < 0.0)
-		) : (x.val[0] < y);
+	return (x.val[0] < y || (x.val[0] == y && x.val[1] < 0.0));
 }
 
 static inline bool Float64x6_cmple_dx6_d(const Float64x6 x, const fp64 y) {
-	return
-		(x.val[0] == y) ? (
-			(x.val[1] == 0.0) ? (
-				(x.val[2] == 0.0) ? (
-					(x.val[3] == 0.0) ? (
-						(x.val[4] == 0.0) ? (
-							x.val[5] <= 0.0
-						) : (x.val[4] < 0.0)
-					) : (x.val[3] < 0.0)
-				) : (x.val[2] < 0.0)
-			) : (x.val[1] < 0.0)
-		) : (x.val[0] < y);
+	return (x.val[0] < y || (x.val[0] == y && x.val[1] <= 0.0));
 }
 
 static inline bool Float64x6_cmpgt_dx6_d(const Float64x6 x, const fp64 y) {
-	return
-		(x.val[0] == y) ? (
-			(x.val[1] == 0.0) ? (
-				(x.val[2] == 0.0) ? (
-					(x.val[3] == 0.0) ? (
-						(x.val[4] == 0.0) ? (
-							x.val[5] > 0.0
-						) : (x.val[4] > 0.0)
-					) : (x.val[3] > 0.0)
-				) : (x.val[2] > 0.0)
-			) : (x.val[1] > 0.0)
-		) : (x.val[0] > y);
+	return (x.val[0] > y || (x.val[0] == y && x.val[1] > 0.0));
 }
 
 static inline bool Float64x6_cmpge_dx6_d(const Float64x6 x, const fp64 y) {
-	return
-		(x.val[0] == y) ? (
-			(x.val[1] == 0.0) ? (
-				(x.val[2] == 0.0) ? (
-					(x.val[3] == 0.0) ? (
-						(x.val[4] == 0.0) ? (
-							x.val[5] >= 0.0
-						) : (x.val[4] > 0.0)
-					) : (x.val[3] > 0.0)
-				) : (x.val[2] > 0.0)
-			) : (x.val[1] > 0.0)
-		) : (x.val[0] > y);
+	return (x.val[0] > y || (x.val[0] == y && x.val[1] >= 0.0));
 }
 
 static inline bool Float64x6_cmpeq_d_dx6(const fp64 x, const Float64x6 y) {
-	return (
-		x == y.val[0] && 0.0 == y.val[1] &&
-		0.0 == y.val[2] && 0.0 == y.val[3] &&
-		0.0 == y.val[4] && 0.0 == y.val[5]
-	);
+	return (x == y.val[0] && 0.0 == y.val[1]);
 }
 
 static inline bool Float64x6_cmpneq_d_dx6(const fp64 x, const Float64x6 y) {
-	return (
-		x != y.val[0] || 0.0 != y.val[1] ||
-		0.0 != y.val[2] || 0.0 != y.val[3] ||
-		0.0 != y.val[4] || 0.0 != y.val[5]
-	);
+	return (x != y.val[0] || 0.0 != y.val[1]);
 }
 
 static inline bool Float64x6_cmpord_d_dx6(const fp64 x, const Float64x6 y) {
-	return (
-		!isunordered(x, y.val[0]) && !isunordered(0.0, y.val[1]) &&
-		!isunordered(0.0, y.val[2]) && !isunordered(0.0, y.val[3]) &&
-		!isunordered(0.0, y.val[4]) && !isunordered(0.0, y.val[5])
-	);
+	return (!isunordered(x, y.val[0]) && !isunordered(0.0, y.val[1]));
 }
 
 static inline bool Float64x6_cmpunord_d_dx6(const fp64 x, const Float64x6 y) {
-	return (
-		isunordered(x, y.val[0]) || isunordered(0.0, y.val[1]) ||
-		isunordered(0.0, y.val[2]) || isunordered(0.0, y.val[3]) ||
-		isunordered(0.0, y.val[4]) || isunordered(0.0, y.val[5])
-	);
+	return (isunordered(x, y.val[0]) || isunordered(0.0, y.val[1]));
 }
 
 static inline bool Float64x6_cmplt_d_dx6(const fp64 x, const Float64x6 y) {
-	return
-		(x == y.val[0]) ? (
-			(0.0 == y.val[1]) ? (
-				(0.0 == y.val[2]) ? (
-					(0.0 == y.val[3]) ? (
-						(0.0 == y.val[4]) ? (
-							0.0 < y.val[5]
-						) : (0.0 < y.val[4])
-					) : (0.0 < y.val[3])
-				) : (0.0 < y.val[2])
-			) : (0.0 < y.val[1])
-		) : (x < y.val[0]);
+	return (x < y.val[0] || (x == y.val[0] && 0.0 < y.val[1]));
 }
 
 static inline bool Float64x6_cmple_d_dx6(const fp64 x, const Float64x6 y) {
-	return
-		(x == y.val[0]) ? (
-			(0.0 == y.val[1]) ? (
-				(0.0 == y.val[2]) ? (
-					(0.0 == y.val[3]) ? (
-						(0.0 == y.val[4]) ? (
-							0.0 <= y.val[5]
-						) : (0.0 < y.val[4])
-					) : (0.0 < y.val[3])
-				) : (0.0 < y.val[2])
-			) : (0.0 < y.val[1])
-		) : (x < y.val[0]);
+	return (x < y.val[0] || (x == y.val[0] && 0.0 <= y.val[1]));
 }
 
 static inline bool Float64x6_cmpgt_d_dx6(const fp64 x, const Float64x6 y) {
-	return
-		(x == y.val[0]) ? (
-			(0.0 == y.val[1]) ? (
-				(0.0 == y.val[2]) ? (
-					(0.0 == y.val[3]) ? (
-						(0.0 == y.val[4]) ? (
-							0.0 > y.val[5]
-						) : (0.0 > y.val[4])
-					) : (0.0 > y.val[3])
-				) : (0.0 > y.val[2])
-			) : (0.0 > y.val[1])
-		) : (x > y.val[0]);
+	return (x > y.val[0] || (x == y.val[0] && 0.0 > y.val[1]));
 }
 
 static inline bool Float64x6_cmpge_d_dx6(const fp64 x, const Float64x6 y) {
-	return
-		(x == y.val[0]) ? (
-			(0.0 == y.val[1]) ? (
-				(0.0 == y.val[2]) ? (
-					(0.0 == y.val[3]) ? (
-						(0.0 == y.val[4]) ? (
-							0.0 >= y.val[5]
-						) : (0.0 > y.val[4])
-					) : (0.0 > y.val[3])
-				) : (0.0 > y.val[2])
-			) : (0.0 > y.val[1])
-		) : (x > y.val[0]);
+	return (x > y.val[0] || (x == y.val[0] && 0.0 >= y.val[1]));
 }
 
 //------------------------------------------------------------------------------
@@ -664,8 +538,8 @@ static inline Float64x6 Float64x6_add_quick(const Float64x6 x, const Float64x6 y
 		data dependency ... unfortunately some compilers are
 		not very smart to do this automatically */
 	Float64x6 s;
+	
 	fp64 t0, t1, t2, t3, t4, t5;
-
 	fp64 v0, v1, v2, v3, v4, v5;
 	fp64 u0, u1, u2, u3, u4, u5;
 	fp64 w0, w1, w2, w3, w4, w5;
@@ -714,8 +588,10 @@ static inline Float64x6 Float64x6_add_quick(const Float64x6 x, const Float64x6 y
 
 	s.val[1] = Float64_two_sum(s.val[1], t0, &t0);
 	Float64x4_three_sum (&s.val[2], &t0, &t1);
-	Float64x4_three_sum2(&s.val[3], &t0, &t2);
-	t0 = t0 + t1 + t3;
+	Float64x4_three_sum (&s.val[3], &t0, &t2);
+	Float64x4_three_sum (&s.val[4], &t0, &t3);
+	Float64x4_three_sum2(&s.val[5], &t0,  t4);
+	t0 += t1 + t2 + t3 + t5;
 
 	/* renormalize */
 	Float64x6_renorm_err(&s, &t0);
@@ -723,11 +599,179 @@ static inline Float64x6 Float64x6_add_quick(const Float64x6 x, const Float64x6 y
 }
 
 static inline Float64x6 Float64x6_add(const Float64x6 x, const Float64x6 y) {
-	#ifdef FLOAT64X6_IEEE_MODE
-		return Float64x6_add_accurate(x, y);
-	#else
+	// #ifdef FLOAT64X6_IEEE_MODE
+	// 	return Float64x6_add_accurate(x, y);
+	// #else
 		return Float64x6_add_quick(x, y);
-	#endif
+	// #endif
+}
+
+/* Float64x6 + Float64x4 */
+
+/** @brief Orginally qd_real::sloppy_add */
+static inline Float64x6 Float64x6_add_quick_dx6_dx4(const Float64x6 x, const Float64x4 y) {
+	/*
+	fp64 s0, s1, s2, s3;
+	fp64 t0, t1, t2, t3;
+	
+	s0 = Float64_two_sum(x.val[0], y.val[0], t0);
+	s1 = Float64_two_sum(x.val[1], y.val[1], t1);
+	s2 = Float64_two_sum(x.val[2], y.val[2], t2);
+	s3 = Float64_two_sum(x.val[3], y.val[3], t3);
+
+	s1 = Float64_two_sum(s1, t0, t0);
+	Float64_three_sum(s2, t0, t1);
+	Float64_three_sum2(s3, t0, t2);
+	t0 = t0 + t1 + t3;
+
+	Float64_renorm(s0, s1, s2, s3, t0);
+	return qd_real(s0, s1, s2, s3, t0);
+	*/
+
+	/* Same as above, but addition re-organized to minimize
+		data dependency ... unfortunately some compilers are
+		not very smart to do this automatically */
+	Float64x6 s;
+	
+	fp64 t0, t1, t2, t3;
+	fp64 v0, v1, v2, v3;
+	fp64 u0, u1, u2, u3;
+	fp64 w0, w1, w2, w3;
+
+	s.val[0] = x.val[0] + y.val[0];
+	s.val[1] = x.val[1] + y.val[1];
+	s.val[2] = x.val[2] + y.val[2];
+	s.val[3] = x.val[3] + y.val[3];
+	s.val[4] = x.val[4];
+	s.val[5] = x.val[5];
+
+	v0 = s.val[0] - x.val[0];
+	v1 = s.val[1] - x.val[1];
+	v2 = s.val[2] - x.val[2];
+	v3 = s.val[3] - x.val[3];
+
+	u0 = s.val[0] - v0;
+	u1 = s.val[1] - v1;
+	u2 = s.val[2] - v2;
+	u3 = s.val[3] - v3;
+
+	w0 = x.val[0] - u0;
+	w1 = x.val[1] - u1;
+	w2 = x.val[2] - u2;
+	w3 = x.val[3] - u3;
+
+	u0 = y.val[0] - v0;
+	u1 = y.val[1] - v1;
+	u2 = y.val[2] - v2;
+	u3 = y.val[3] - v3;
+
+	t0 = w0 + u0;
+	t1 = w1 + u1;
+	t2 = w2 + u2;
+	t3 = w3 + u3;
+
+	s.val[1] = Float64_two_sum(s.val[1], t0, &t0);
+	Float64x4_three_sum(&s.val[2], &t0, &t1);
+	Float64x4_three_sum(&s.val[3], &t0, &t2);
+	Float64x4_three_sum(&s.val[4], &t0, &t3);
+	
+	// Float64x4_three_sum2(&s.val[5], &t0,  t4);
+		s.val[5] = Float64_two_sum(s.val[5], t0, &t0);
+	
+	t0 += t1 + t2 + t3;
+
+	/* renormalize */
+	Float64x6_renorm_err(&s, &t0);
+	return s;
+}
+
+static inline Float64x6 Float64x6_add_dx6_dx4(const Float64x6 x, const Float64x4 y) {
+	// #ifdef FLOAT64X6_IEEE_MODE
+	// 	return Float64x6_add_accurate_dx6_dx4(x, y);
+	// #else
+		return Float64x6_add_quick_dx6_dx4(x, y);
+	// #endif
+}
+
+/* Float64x4 + Float64x4 */
+
+/** @brief Orginally qd_real::sloppy_add */
+static inline Float64x6 Float64x6_add_quick_dx4_dx4(const Float64x4 x, const Float64x4 y) {
+	/*
+	fp64 s0, s1, s2, s3;
+	fp64 t0, t1, t2, t3;
+	
+	s0 = Float64_two_sum(x.val[0], y.val[0], t0);
+	s1 = Float64_two_sum(x.val[1], y.val[1], t1);
+	s2 = Float64_two_sum(x.val[2], y.val[2], t2);
+	s3 = Float64_two_sum(x.val[3], y.val[3], t3);
+
+	s1 = Float64_two_sum(s1, t0, t0);
+	Float64_three_sum(s2, t0, t1);
+	Float64_three_sum2(s3, t0, t2);
+	t0 = t0 + t1 + t3;
+
+	Float64_renorm(s0, s1, s2, s3, t0);
+	return qd_real(s0, s1, s2, s3, t0);
+	*/
+
+	/* Same as above, but addition re-organized to minimize
+		data dependency ... unfortunately some compilers are
+		not very smart to do this automatically */
+	Float64x6 s;
+	fp64 t0, t1, t2, t3;
+	fp64 v0, v1, v2, v3;
+	fp64 u0, u1, u2, u3;
+	fp64 w0, w1, w2, w3;
+
+	s.val[0] = x.val[0] + y.val[0];
+	s.val[1] = x.val[1] + y.val[1];
+	s.val[2] = x.val[2] + y.val[2];
+	s.val[3] = x.val[3] + y.val[3];
+
+	v0 = s.val[0] - x.val[0];
+	v1 = s.val[1] - x.val[1];
+	v2 = s.val[2] - x.val[2];
+	v3 = s.val[3] - x.val[3];
+
+	u0 = s.val[0] - v0;
+	u1 = s.val[1] - v1;
+	u2 = s.val[2] - v2;
+	u3 = s.val[3] - v3;
+
+	w0 = x.val[0] - u0;
+	w1 = x.val[1] - u1;
+	w2 = x.val[2] - u2;
+	w3 = x.val[3] - u3;
+
+	u0 = y.val[0] - v0;
+	u1 = y.val[1] - v1;
+	u2 = y.val[2] - v2;
+	u3 = y.val[3] - v3;
+
+	t0 = w0 + u0;
+	t1 = w1 + u1;
+	t2 = w2 + u2;
+	t3 = w3 + u3;
+
+	s.val[1] = Float64_two_sum(s.val[1], t0, &t0);
+	Float64x4_three_sum (&s.val[2], &t0, &t1);
+	Float64x4_three_sum2(&s.val[3], &t0,  t2);
+	// t0 += t1 + t3;
+		s.val[4] = t1;
+		s.val[5] = t3;
+
+	/* renormalize */
+	Float64x6_renorm_err(&s, &t0);
+	return s;
+}
+
+static inline Float64x6 Float64x6_add_dx4_dx4(const Float64x4 x, const Float64x4 y) {
+	// #ifdef FLOAT64X6_IEEE_MODE
+	// 	return Float64x6_add_accurate_dx4_dx4(x, y);
+	// #else
+		return Float64x6_add_quick_dx4_dx4(x, y);
+	// #endif
 }
 
 /* Float64x6 + fp64 */
@@ -872,6 +916,189 @@ static inline Float64x6 Float64x6_sub_quick(const Float64x6 x, const Float64x6 y
 		data dependency ... unfortunately some compilers are
 		not very smart to do this automatically */
 	Float64x6 s;
+	
+	fp64 t0, t1, t2, t3, t4, t5;
+	fp64 v0, v1, v2, v3, v4, v5;
+	fp64 u0, u1, u2, u3, u4, u5;
+	fp64 w0, w1, w2, w3, w4, w5;
+
+	s.val[0] = x.val[0] - y.val[0];
+	s.val[1] = x.val[1] - y.val[1];
+	s.val[2] = x.val[2] - y.val[2];
+	s.val[3] = x.val[3] - y.val[3];
+	s.val[4] = x.val[4] - y.val[4];
+	s.val[5] = x.val[5] - y.val[5];
+
+	v0 = s.val[0] - x.val[0];
+	v1 = s.val[1] - x.val[1];
+	v2 = s.val[2] - x.val[2];
+	v3 = s.val[3] - x.val[3];
+	v4 = s.val[4] - x.val[4];
+	v5 = s.val[5] - x.val[5];
+
+	u0 = s.val[0] - v0;
+	u1 = s.val[1] - v1;
+	u2 = s.val[2] - v2;
+	u3 = s.val[3] - v3;
+	u4 = s.val[4] - v4;
+	u5 = s.val[5] - v5;
+
+	w0 = x.val[0] - u0;
+	w1 = x.val[1] - u1;
+	w2 = x.val[2] - u2;
+	w3 = x.val[3] - u3;
+	w4 = x.val[4] - u4;
+	w5 = x.val[5] - u5;
+
+	// u is negative
+	u0 = y.val[0] + v0;
+	u1 = y.val[1] + v1;
+	u2 = y.val[2] + v2;
+	u3 = y.val[3] + v3;
+	u4 = y.val[4] + v4;
+	u5 = y.val[5] + v5;
+
+	t0 = w0 - u0;
+	t1 = w1 - u1;
+	t2 = w2 - u2;
+	t3 = w3 - u3;
+	t4 = w4 - u4;
+	t5 = w5 - u5;
+
+	s.val[1] = Float64_two_sum(s.val[1], t0, &t0);
+	Float64x4_three_sum (&s.val[2], &t0, &t1);
+	Float64x4_three_sum (&s.val[3], &t0, &t2);
+	Float64x4_three_sum (&s.val[4], &t0, &t3);
+	Float64x4_three_sum2(&s.val[5], &t0,  t4);
+	t0 += t1 + t2 + t3 + t5;
+
+	/* renormalize */
+	Float64x6_renorm_err(&s, &t0);
+	return s;
+}
+
+static inline Float64x6 Float64x6_sub(const Float64x6 x, const Float64x6 y) {
+	// #ifdef FLOAT64X6_IEEE_MODE
+	// 	return Float64x6_sub_accurate(x, y);
+	// #else
+		return Float64x6_sub_quick(x, y);
+	// #endif
+} 
+
+/* Float64x6 - Float64x4 */
+
+/** @brief Orginally qd_real::sloppy_add */
+static inline Float64x6 Float64x6_sub_quick_dx6_dx4(const Float64x6 x, const Float64x4 y) {
+	/*
+	fp64 s0, s1, s2, s3;
+	fp64 t0, t1, t2, t3;
+	
+	s0 = Float64_two_sum(x.val[0], y.val[0], t0);
+	s1 = Float64_two_sum(x.val[1], y.val[1], t1);
+	s2 = Float64_two_sum(x.val[2], y.val[2], t2);
+	s3 = Float64_two_sum(x.val[3], y.val[3], t3);
+
+	s1 = Float64_two_sum(s1, t0, t0);
+	Float64_three_sum(s2, t0, t1);
+	Float64_three_sum2(s3, t0, t2);
+	t0 = t0 + t1 + t3;
+
+	Float64_renorm(s0, s1, s2, s3, t0);
+	return qd_real(s0, s1, s2, s3, t0);
+	*/
+
+	/* Same as above, but addition re-organized to minimize
+		data dependency ... unfortunately some compilers are
+		not very smart to do this automatically */
+	Float64x6 s;
+	
+	fp64 t0, t1, t2, t3;
+	fp64 v0, v1, v2, v3;
+	fp64 u0, u1, u2, u3;
+	fp64 w0, w1, w2, w3;
+
+	s.val[0] = x.val[0] - y.val[0];
+	s.val[1] = x.val[1] - y.val[1];
+	s.val[2] = x.val[2] - y.val[2];
+	s.val[3] = x.val[3] - y.val[3];
+	s.val[4] = x.val[4];
+	s.val[5] = x.val[5];
+
+	v0 = s.val[0] - x.val[0];
+	v1 = s.val[1] - x.val[1];
+	v2 = s.val[2] - x.val[2];
+	v3 = s.val[3] - x.val[3];
+
+	u0 = s.val[0] - v0;
+	u1 = s.val[1] - v1;
+	u2 = s.val[2] - v2;
+	u3 = s.val[3] - v3;
+
+	w0 = x.val[0] - u0;
+	w1 = x.val[1] - u1;
+	w2 = x.val[2] - u2;
+	w3 = x.val[3] - u3;
+
+	// u is negative
+	u0 = y.val[0] + v0;
+	u1 = y.val[1] + v1;
+	u2 = y.val[2] + v2;
+	u3 = y.val[3] + v3;
+
+	t0 = w0 - u0;
+	t1 = w1 - u1;
+	t2 = w2 - u2;
+	t3 = w3 - u3;
+
+	s.val[1] = Float64_two_sum(s.val[1], t0, &t0);
+	Float64x4_three_sum(&s.val[2], &t0, &t1);
+	Float64x4_three_sum(&s.val[3], &t0, &t2);
+	Float64x4_three_sum(&s.val[4], &t0, &t3);
+	
+	// Float64x4_three_sum2(&s.val[5], &t0,  t4);
+	s.val[5] = Float64_two_sum(s.val[5], t0, &t0);
+	
+	t0 += t1 + t2 + t3;
+
+	/* renormalize */
+	Float64x6_renorm_err(&s, &t0);
+	return s;
+}
+
+static inline Float64x6 Float64x6_sub_dx6_dx4(const Float64x6 x, const Float64x4 y) {
+	// #ifdef FLOAT64X6_IEEE_MODE
+	// 	return Float64x6_sub_accurate_dx6_dx4(x, y);
+	// #else
+		return Float64x6_sub_quick_dx6_dx4(x, y);
+	// #endif
+}
+
+/* Float64x4 - Float64x4 */
+
+/** @brief Orginally qd_real::sloppy_add */
+static inline Float64x6 Float64x6_sub_quick_dx4_dx4(const Float64x4 x, const Float64x4 y) {
+	/*
+	fp64 s0, s1, s2, s3;
+	fp64 t0, t1, t2, t3;
+	
+	s0 = Float64_two_sum(x.val[0], y.val[0], t0);
+	s1 = Float64_two_sum(x.val[1], y.val[1], t1);
+	s2 = Float64_two_sum(x.val[2], y.val[2], t2);
+	s3 = Float64_two_sum(x.val[3], y.val[3], t3);
+
+	s1 = Float64_two_sum(s1, t0, t0);
+	Float64_three_sum(s2, t0, t1);
+	Float64_three_sum2(s3, t0, t2);
+	t0 = t0 + t1 + t3;
+
+	Float64_renorm(s0, s1, s2, s3, t0);
+	return qd_real(s0, s1, s2, s3, t0);
+	*/
+
+	/* Same as above, but addition re-organized to minimize
+		data dependency ... unfortunately some compilers are
+		not very smart to do this automatically */
+	Float64x6 s;
 	fp64 t0, t1, t2, t3;
 
 	fp64 v0, v1, v2, v3;
@@ -911,19 +1138,21 @@ static inline Float64x6 Float64x6_sub_quick(const Float64x6 x, const Float64x6 y
 
 	s.val[1] = Float64_two_sum(s.val[1], t0, &t0);
 	Float64x4_three_sum (&s.val[2], &t0, &t1);
-	Float64x4_three_sum2(&s.val[3], &t0, &t2);
-	t0 = t0 + t1 + t3;
+	Float64x4_three_sum2(&s.val[3], &t0,  t2);
+	// t0 += t1 + t3;
+		s.val[4] = t1;
+		s.val[5] = t3;
 
 	/* renormalize */
 	Float64x6_renorm_err(&s, &t0);
 	return s;
 }
 
-static inline Float64x6 Float64x6_sub(const Float64x6 x, const Float64x6 y) {
+static inline Float64x6 Float64x6_sub_dx4_dx4(const Float64x4 x, const Float64x4 y) {
 	// #ifdef FLOAT64X6_IEEE_MODE
-	// 	return Float64x6_sub_accurate(x, y);
+	// 	return Float64x6_sub_accurate_dx4_dx4(x, y);
 	// #else
-		return Float64x6_sub_quick(x, y);
+		return Float64x6_sub_quick_dx4_dx4(x, y);
 	// #endif
 }
 
@@ -1050,7 +1279,7 @@ static inline Float64x6 Float64x6_sub_d_d(const fp64 x, const fp64 y) {
 /* Float64x6 * Float64x6 */
 
 /** @brief Orginally qd_real::accurate_mul */
-static inline Float64x6 Float64x6_mul_accurate(const Float64x6 x, const Float64x6 y) {
+static inline Float64x6 Float64x6_mul_accurate_dx4_dx4(const Float64x4 x, const Float64x4 y) {
 	fp64 p0, p1, p2, p3, p4, p5;
 	fp64 q0, q1, q2, q3, q4, q5;
 	fp64 p6, p7, p8, p9;
@@ -1103,21 +1332,25 @@ static inline Float64x6 Float64x6_mul_accurate(const Float64x6 x, const Float64x
 	q4 += (t1 + r1);
 	/* Compute (t0, t1) = (q3, q4) + s1. */
 	t0 = Float64_two_sum(q3, s1, &t1);
-	t1 += q4;
+	// t1 += q4;
 
 	/* O(eps^4) terms -- Nine-One-Sum */
-	t1 += x.val[1] * y.val[3] + x.val[2] * y.val[2] + x.val[3] * y.val[1] + q6 + q7 + q8 + q9 + s2;
-	Float64x6 ret = {{p0, p1, s0, t0}};
-	Float64x6_renorm_err(&ret, &t1);
+	fp64 eps4_terms = x.val[1] * y.val[3] + x.val[2] * y.val[2] + x.val[3] * y.val[1] + q6 + q7 + q8 + q9 + s2;
+	// t1 += eps4_terms;
+	
+	Float64x6 ret = {{p0, p1, s0, t0, t1, q4}};
+	Float64x6_renorm_err(&ret, &eps4_terms);
 	return ret;
 }
 
 /** @brief Orginally qd_real::sloppy_mul */
-static inline Float64x6 Float64x6_mul_quick(const Float64x6 x, const Float64x6 y) {
+static inline Float64x6 Float64x6_mul_quick_dx4_dx4(const Float64x4 x, const Float64x4 y) {
 	fp64 p0, p1, p2, p3, p4, p5;
 	fp64 q0, q1, q2, q3, q4, q5;
 	fp64 t0, t1;
-	fp64 s0, s1, s2;
+	
+	fp64 s0, s1;
+	// fp64 s2;
 
 	p0 = Float64_two_prod(x.val[0], y.val[0], &q0);
 
@@ -1137,32 +1370,34 @@ static inline Float64x6 Float64x6_mul_quick(const Float64x6 x, const Float64x6 y
 	/* compute (s0, s1, s2) = (p2, q1, q2) + (p3, p4, p5). */
 	s0 = Float64_two_sum(p2, p3, &t0);
 	s1 = Float64_two_sum(q1, p4, &t1);
-	s2 = q2 + p5;
+	// s2 = q2 + p5;
 	s1 = Float64_two_sum(s1, t0, &t0);
-	s2 += (t0 + t1);
+	// s2 += (t0 + t1);
 
 	/* O(eps^3) order terms */
-	s1 += x.val[0]*y.val[3] + x.val[1]*y.val[2] + x.val[2]*y.val[1] + x.val[3]*y.val[0] + q0 + q3 + q4 + q5;
-	Float64x6 ret = {{p0, p1, s0, s1}};
-	Float64x6_renorm_err(&ret, &s2);
+	fp64 eps3_terms = x.val[0]*y.val[3] + x.val[1]*y.val[2] + x.val[2]*y.val[1] + x.val[3]*y.val[0] + q0 + q3 + q4 + q5;
+	// s1 += eps3_terms;
+	
+	Float64x6 ret = {{p0, p1, s0, s1, q2, p5}};
+	Float64x6_renorm_err(&ret, &eps3_terms);
 	return ret;
 }
 
-static inline Float64x6 Float64x6_mul(const Float64x6 x, const Float64x6 y) {
+static inline Float64x6 Float64x6_mul_dx4_dx4(const Float64x4 x, const Float64x4 y) {
 	#ifdef FLOAT64X6_IEEE_MODE
-		return Float64x6_mul_accurate(x, y);
+		return Float64x6_mul_accurate_dx4_dx4(x, y);
 	#else
-		return Float64x6_mul_quick(x, y);
+		return Float64x6_mul_quick_dx4_dx4(x, y);
 	#endif
 }
 
 /* Float64x6 * fp64 */
 
-static inline Float64x6 Float64x6_mul_dx6_d(const Float64x6 x, const fp64 y) {
+static inline Float64x6 Float64x6_mul_dx4_d(const Float64x4 x, const fp64 y) {
 	fp64 p0, p1, p2, p3;
 	fp64 q0, q1, q2;
 	Float64x6 s;
-	fp64 s_err;
+	// fp64 s_err;
 
 	p0 = Float64_two_prod(x.val[0], y, &q0);
 	p1 = Float64_two_prod(x.val[1], y, &q1);
@@ -1175,22 +1410,24 @@ static inline Float64x6 Float64x6_mul_dx6_d(const Float64x6 x, const fp64 y) {
 
 	Float64x4_three_sum(&s.val[2], &q1, &p2);
 
-	Float64x4_three_sum2(&q1, &q2, &p3);
+	Float64x4_three_sum2(&q1, &q2, p3);
 	s.val[3] = q1;
 
-	s_err = q2 + p2;
+	// s_err = q2 + p2;
+		s.val[4] = q2;
+		s.val[5] = p2;
 
-	Float64x6_renorm_err(&s, &s_err);
+	Float64x6_renorm(&s);
 	return s;
 }
 
-/* fp64 * Float64x6 */
+/* fp64 * Float64x4 */
 
-static inline Float64x6 Float64x6_mul_d_dx6(const fp64 x, const Float64x6 y) {
+static inline Float64x6 Float64x6_mul_d_dx4(const fp64 x, const Float64x4 y) {
 	fp64 p0, p1, p2, p3;
 	fp64 q0, q1, q2;
 	Float64x6 s;
-	fp64 s_err;
+	// fp64 s_err;
 
 	p0 = Float64_two_prod(x, y.val[0], &q0);
 	p1 = Float64_two_prod(x, y.val[1], &q1);
@@ -1203,12 +1440,14 @@ static inline Float64x6 Float64x6_mul_d_dx6(const fp64 x, const Float64x6 y) {
 
 	Float64x4_three_sum(&s.val[2], &q1, &p2);
 
-	Float64x4_three_sum2(&q1, &q2, &p3);
+	Float64x4_three_sum2(&q1, &q2, p3);
 	s.val[3] = q1;
 
-	s_err = q2 + p2;
+	// s_err = q2 + p2;
+		s.val[4] = q2;
+		s.val[5] = p2;
 
-	Float64x6_renorm_err(&s, &s_err);
+	Float64x6_renorm(&s);
 	return s;
 }
 
@@ -1219,6 +1458,42 @@ static inline Float64x6 Float64x6_mul_d_dx6(const fp64 x, const Float64x6 y) {
  * @author Modified from libQD which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
+
+/* Float64x2 * Float64x2 */
+
+static inline Float64x6 Float64x6_mul_dx2_dx2(const Float64x2 x, const Float64x2 y) {
+	Float64x6 p;
+	// fp64 p_err;
+	fp64 q0, q1, q2, q3;
+	fp64 s0, s1, s2;
+	fp64 t0, t1;
+
+	p.val[0] = Float64_two_prod(x.hi, y.hi, &q0);
+	p.val[1] = Float64_two_prod(x.lo, y.hi, &q1);
+	p.val[2] = Float64_two_prod(x.hi, y.lo, &q2);
+	p.val[3] = Float64_two_prod(x.lo, y.lo, &q3);
+	
+	Float64x4_three_sum(&p.val[1], &p.val[2], &q0);
+	
+	/* Five-Three-Sum */
+	p.val[2] = Float64_two_sum(p.val[2], p.val[3], &p.val[3]);
+	q1 = Float64_two_sum(q1      , q2, &q2);
+	s0 = Float64_two_sum(p.val[2], q1, &t0);
+	s1 = Float64_two_sum(p.val[3], q2, &t1);
+	s1 = Float64_two_sum(s1      , t0, &t0);
+	s2 = t0 + t1;
+	p.val[2] = s0;
+
+	p.val[3] = q3;
+	Float64x4_three_sum2(&p.val[3], &q0, s1);
+	
+	// p_err = q0 + s2;
+		p.val[4] = q0;
+		p.val[5] = s2;
+
+	Float64x6_renorm(&p);
+	return p;
+}
 
 /* Float64x2 * fp64 */
 
@@ -1296,7 +1571,7 @@ static inline Float64x6 Float64x6_mul_d_d(const fp64 x, const fp64 y) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 
-static inline Float64x6 Float64x6_square(const Float64x6 x) {
+static inline Float64x6 Float64x6_square_dx4(const Float64x4 x) {
 	Float64x6 p;
 	fp64 p_err_hi, p_err_lo;
 	fp64 q0, q1, q2, q3;
@@ -1330,12 +1605,49 @@ static inline Float64x6 Float64x6_square(const Float64x6 x) {
 	q2 = Float64_two_sum(q2, q3, &q3);
 
 	t0 = Float64_two_sum(p_err_hi, q2, &t1);
-	t1 = t1 + p_err_lo + q3;
+	t1 += p_err_lo + q3;
 
 	p.val[3] = Float64_two_sum(p.val[3], t0, &p_err_hi);
-	p_err_hi = p_err_hi + q0 + t1;
+	
+	// p_err_hi = p_err_hi + q0 + t1;
+		p.val[4] = q0;
+		p.val[5] = t1;
 
 	Float64x6_renorm_err(&p, &p_err_hi);
+	return p;
+}
+
+/**
+ * @brief Squares a Float64x2 value with the result stored as a Float64x6
+ */
+static inline Float64x6 Float64x6_square_dx2(const Float64x2 x) {
+	Float64x6 p;
+	fp64 p_err;
+	fp64 q0, q1, q2;
+	fp64 s0, s1;
+	fp64 t0, t1;
+	
+	p.val[0] = Float64_two_sqr(x.hi, &q0);
+	p.val[1] = Float64_two_prod(2.0 * x.hi, x.lo, &q1);
+	p.val[2] = Float64_two_sqr(x.lo, &q2);
+
+	p.val[1] = Float64_two_sum(q0, p.val[1], &q0);
+
+	q0 = Float64_two_sum(q0, q1, &q1);
+	s0 = Float64_two_sum(q0, p.val[2], &t0);
+
+	s1 = Float64_two_sum(q1, t0, &t0);
+	s1 = Float64_quick_two_sum(s1, t0, &t0);
+	p.val[2] = Float64_quick_two_sum(s0, s1, &t1);
+	p.val[3] = Float64_quick_two_sum(t1, t0, &q0);
+
+	p.val[3] = Float64_two_sum(p.val[3], q2, &p_err);
+	
+	// p_err += q0;
+		p.val[4] = q0;
+		p.val[5] = p_err;
+
+	Float64x6_renorm(&p);
 	return p;
 }
 
@@ -1363,6 +1675,7 @@ static inline Float64x6 Float64x6_square_d(const fp64 x) {
 
 /* Float64x6 / Float64x6 */
 
+#if 0
 /** @brief Orginally qd_real::accurate_div */
 static inline Float64x6 Float64x6_div_accurate(const Float64x6 x, const Float64x6 y) {
 	Float64x6 q, r;
@@ -1370,20 +1683,10 @@ static inline Float64x6 Float64x6_div_accurate(const Float64x6 x, const Float64x
 	q.val[0] = x.val[0] / y.val[0];
 	r = Float64x6_sub(x, Float64x6_mul_dx6_d(y, q.val[0]));
 
-	q.val[1] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[1]));
-
-	q.val[2] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[2]));
-
-	q.val[3] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[3]));
-
-	q.val[4] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[4]));
-
-	q.val[5] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[5]));
+	for (int i = 1; i <= 5; i++) {
+		q.val[i] = r.val[0] / y.val[0];
+		r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[i]));
+	}
 
 	fp64 err = r.val[0] / y.val[0];
 	Float64x6_renorm_err(&q, &err);
@@ -1397,17 +1700,10 @@ static inline Float64x6 Float64x6_div_quick(const Float64x6 x, const Float64x6 y
 	q.val[0] = x.val[0] / y.val[0];
 	r = Float64x6_sub(x, Float64x6_mul_dx6_d(y, q.val[0]));
 
-	q.val[1] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[1]));
-
-	q.val[2] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[2]));
-
-	q.val[3] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[3]));
-
-	q.val[4] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[4]));
+	for (int i = 1; i <= 4; i++) {
+		q.val[i] = r.val[0] / y.val[0];
+		r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[i]));
+	}
 
 	q.val[5] = r.val[0] / y.val[0];
 	Float64x6_renorm(&q);
@@ -1421,6 +1717,7 @@ static inline Float64x6 Float64x6_div(const Float64x6 x, const Float64x6 y) {
 		return Float64x6_div_quick(x, y);
 	#endif
 }
+#endif
 
 /* Float64x6 / Float64x2 */
 
@@ -1430,20 +1727,10 @@ static inline Float64x6 Float64x6_div_accurate_dx6_dx2(const Float64x6 x, const 
 	q.val[0] = x.val[0] / y.hi;
 	r = Float64x6_sub(x, Float64x6_mul_dx2_d(y, q.val[0]));
 
-	q.val[1] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[1]));
-
-	q.val[2] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[2]));
-
-	q.val[3] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[3]));
-
-	q.val[4] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[4]));
-
-	q.val[5] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[5]));
+	for (int i = 1; i <= 5; i++) {
+		q.val[i] = r.val[0] / y.hi;
+		r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[i]));
+	}
 
 	fp64 err = r.val[0] / y.hi;
 	Float64x6_renorm_err(&q, &err);
@@ -1456,17 +1743,10 @@ static inline Float64x6 Float64x6_div_quick_dx6_dx2(const Float64x6 x, const Flo
 	q.val[0] = x.val[0] / y.hi;
 	r = Float64x6_sub(x, Float64x6_mul_dx2_d(y, q.val[0]));
 
-	q.val[1] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[1]));
-
-	q.val[2] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[2]));
-
-	q.val[3] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[3]));
-
-	q.val[4] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[4]));
+	for (int i = 1; i <= 4; i++) {
+		q.val[i] = r.val[0] / y.hi;
+		r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[i]));
+	}
 
 	q.val[5] = r.val[0] / y.hi;
 	Float64x6_renorm(&q);
@@ -1487,22 +1767,12 @@ static inline Float64x6 Float64x6_div_accurate_dx6_d(const Float64x6 x, const fp
 	Float64x6 q, r;
 
 	q.val[0] = x.val[0] / y;
-	r = Float64x6_sub_dx6_dx2(x, Float64x2_mul_d_d(y, q.val[0]));
+	r = Float64x6_sub(x, Float64x6_mul_d_d(y, q.val[0]));
 
-	q.val[1] = r.val[0] / y;
-	r = Float64x6_sub_dx6_dx2(r, Float64x2_mul_d_d(y, q.val[1]));
-
-	q.val[2] = r.val[0] / y;
-	r = Float64x6_sub_dx6_dx2(r, Float64x2_mul_d_d(y, q.val[2]));
-
-	q.val[3] = r.val[0] / y;
-	r = Float64x6_sub_dx6_dx2(r, Float64x2_mul_d_d(y, q.val[3]));
-
-	q.val[4] = r.val[0] / y;
-	r = Float64x6_sub_dx6_dx2(r, Float64x2_mul_d_d(y, q.val[4]));
-
-	q.val[5] = r.val[0] / y;
-	r = Float64x6_sub_dx6_dx2(r, Float64x2_mul_d_d(y, q.val[5]));
+	for (int i = 1; i <= 5; i++) {
+		q.val[i] = r.val[0] / y;
+		r = Float64x6_sub(r, Float64x6_mul_d_d(y, q.val[i]));
+	}
 	
 	fp64 err = r.val[0] / y;
 	Float64x6_renorm_err(&q, &err);
@@ -1513,19 +1783,12 @@ static inline Float64x6 Float64x6_div_quick_dx6_d(const Float64x6 x, const fp64 
 	Float64x6 q, r;
 
 	q.val[0] = x.val[0] / y;
-	r = Float64x6_sub_dx6_dx2(x, Float64x2_mul_d_d(y, q.val[0]));
+	r = Float64x6_sub(x, Float64x6_mul_d_d(y, q.val[0]));
 
-	q.val[1] = r.val[0] / y;
-	r = Float64x6_sub_dx6_dx2(r, Float64x2_mul_d_d(y, q.val[1]));
-
-	q.val[2] = r.val[0] / y;
-	r = Float64x6_sub_dx6_dx2(r, Float64x2_mul_d_d(y, q.val[2]));
-
-	q.val[3] = r.val[0] / y;
-	r = Float64x6_sub_dx6_dx2(r, Float64x2_mul_d_d(y, q.val[3]));
-
-	q.val[4] = r.val[0] / y;
-	r = Float64x6_sub_dx6_dx2(r, Float64x2_mul_d_d(y, q.val[4]));
+	for (int i = 1; i <= 4; i++) {
+		q.val[i] = r.val[0] / y;
+		r = Float64x6_sub(r, Float64x6_mul_d_d(y, q.val[i]));
+	}
 
 	q.val[5] = r.val[0] / y;
 	Float64x6_renorm(&q);
@@ -1541,27 +1804,17 @@ static inline Float64x6 Float64x6_div_dx6_d(const Float64x6 x, const fp64 y) {
 }
 
 /* fp64 / Float64x6 */
-
+#if 0
 static inline Float64x6 Float64x6_div_accurate_d_dx6(const fp64 x, const Float64x6 y) {
 	Float64x6 q, r;
 
 	q.val[0] = x / y.val[0];
 	r = Float64x6_sub_d_dx6(x, Float64x6_mul_dx6_d(y, q.val[0]));
 
-	q.val[1] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[1]));
-
-	q.val[2] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[2]));
-
-	q.val[3] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[3]));
-
-	q.val[4] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[4]));
-
-	q.val[5] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[5]));
+	for (int i = 1; i <= 5; i++) {
+		q.val[i] = r.val[0] / y.val[0];
+		r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[i]));
+	}
 
 	fp64 err = r.val[0] / y.val[0];
 	Float64x6_renorm_err(&q, &err);
@@ -1574,17 +1827,10 @@ static inline Float64x6 Float64x6_div_quick_d_dx6(const fp64 x, const Float64x6 
 	q.val[0] = x / y.val[0];
 	r = Float64x6_sub_d_dx6(x, Float64x6_mul_dx6_d(y, q.val[0]));
 
-	q.val[1] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[1]));
-
-	q.val[2] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[2]));
-
-	q.val[3] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[3]));
-
-	q.val[4] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[4]));
+	for (int i = 1; i <= 4; i++) {
+		q.val[i] = r.val[0] / y.val[0];
+		r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[i]));
+	}
 
 	q.val[5] = r.val[0] / y.val[0];
 	Float64x6_renorm(&q);
@@ -1598,6 +1844,7 @@ static inline Float64x6 Float64x6_div_d_dx6(const fp64 x, const Float64x6 y) {
 		return Float64x6_div_quick_d_dx6(x, y);
 	#endif
 }
+#endif
 
 //------------------------------------------------------------------------------
 // Float64x6 Optimized Division
@@ -1615,20 +1862,10 @@ static inline Float64x6 Float64x6_div_accurate_d_dx2(const fp64 x, const Float64
 	q.val[0] = x / y.hi;
 	r = Float64x6_sub_d_dx6(x, Float64x6_mul_dx2_d(y, q.val[0]));
 
-	q.val[1] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[1]));
-
-	q.val[2] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[2]));
-
-	q.val[3] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[3]));
-
-	q.val[4] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[4]));
-
-	q.val[5] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[5]));
+	for (int i = 1; i <= 5; i++) {
+		q.val[i] = r.val[0] / y.hi;
+		r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[i]));
+	}
 
 	fp64 err = r.val[0] / y.hi;
 	Float64x6_renorm_err(&q, &err);
@@ -1641,17 +1878,10 @@ static inline Float64x6 Float64x6_div_quick_d_dx2(const fp64 x, const Float64x2 
 	q.val[0] = x / y.hi;
 	r = Float64x6_sub_d_dx6(x, Float64x6_mul_dx2_d(y, q.val[0]));
 
-	q.val[1] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[1]));
-
-	q.val[2] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[2]));
-
-	q.val[3] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[3]));
-
-	q.val[4] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[4]));
+	for (int i = 1; i <= 4; i++) {
+		q.val[i] = r.val[0] / y.hi;
+		r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[i]));
+	}
 
 	q.val[5] = r.val[0] / y.hi;
 	Float64x6_renorm(&q);
@@ -1674,20 +1904,10 @@ static inline Float64x6 Float64x6_div_accurate_d_d(const fp64 x, const fp64 y) {
 	q.val[0] = x / y;
 	r = Float64x6_sub_d_dx2(x, Float64x2_mul_d_d(y, q.val[0]));
 
-	q.val[1] = r.val[0] / y;
-	r = Float64x6_sub(r, Float64x6_mul_d_d(y, q.val[1]));
-
-	q.val[2] = r.val[0] / y;
-	r = Float64x6_sub(r, Float64x6_mul_d_d(y, q.val[2]));
-
-	q.val[3] = r.val[0] / y;
-	r = Float64x6_sub_(r, Float64x6_mul_d_d(y, q.val[3]));
-
-	q.val[4] = r.val[0] / y;
-	r = Float64x6_sub_(r, Float64x6_mul_d_d(y, q.val[4]));
-
-	q.val[5] = r.val[0] / y;
-	r = Float64x6_sub_(r, Float64x6_mul_d_d(y, q.val[5]));
+	for (int i = 1; i <= 5; i++) {
+		q.val[i] = r.val[0] / y;
+		r = Float64x6_sub(r, Float64x6_mul_d_d(y, q.val[i]));
+	}
 
 	fp64 err = r.val[0] / y;
 	Float64x6_renorm_err(&q, &err);
@@ -1698,19 +1918,12 @@ static inline Float64x6 Float64x6_div_quick_d_d(const fp64 x, const fp64 y) {
 	Float64x6 q, r;
 
 	q.val[0] = x / y;
-	r = Float64x6_sub_d_dx2(x, Float64x6_mul_d_d(y, q.val[0]));
+	r = Float64x6_sub_d_dx2(x, Float64x2_mul_d_d(y, q.val[0]));
 
-	q.val[1] = r.val[0] / y;
-	r = Float64x6_sub(r, Float64x6_mul_d_d(y, q.val[1]));
-
-	q.val[2] = r.val[0] / y;
-	r = Float64x6_sub(r, Float64x6_mul_d_d(y, q.val[2]));
-
-	q.val[3] = r.val[0] / y;
-	r = Float64x6_sub(r, Float64x6_mul_d_d(y, q.val[3]));
-
-	q.val[4] = r.val[0] / y;
-	r = Float64x6_sub(r, Float64x6_mul_d_d(y, q.val[4]));
+	for (int i = 1; i <= 4; i++) {
+		q.val[i] = r.val[0] / y;
+		r = Float64x6_sub(r, Float64x6_mul_d_d(y, q.val[i]));
+	}
 
 	q.val[5] = r.val[0] / y;
 	Float64x6_renorm(&q);
@@ -1735,26 +1948,17 @@ static inline Float64x6 Float64x6_div_d_d(const fp64 x, const fp64 y) {
 
 /* 1.0 / Float64x6 */
 
+#if 0
 static inline Float64x6 Float64x6_recip_accurate(const Float64x6 y) {
 	Float64x6 q, r;
 
 	q.val[0] = 1.0 / y.val[0];
 	r = Float64x6_sub_d_dx6(1.0, Float64x6_mul_dx6_d(y, q.val[0]));
 
-	q.val[1] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[1]));
-
-	q.val[2] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[2]));
-
-	q.val[3] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[3]));
-
-	q.val[4] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[4]));
-
-	q.val[5] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[5]));
+	for (int i = 1; i <= 5; i++) {
+		q.val[i] = r.val[0] / y.val[0];
+		r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[i]));
+	}
 
 	fp64 err = r.val[0] / y.val[0];
 	Float64x6_renorm_err(&q, &err);
@@ -1767,17 +1971,10 @@ static inline Float64x6 Float64x6_recip_quick(const Float64x6 y) {
 	q.val[0] = 1.0 / y.val[0];
 	r = Float64x6_sub_d_dx6(1.0, Float64x6_mul_dx6_d(y, q.val[0]));
 
-	q.val[1] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[1]));
-
-	q.val[2] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[2]));
-
-	q.val[3] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[3]));
-
-	q.val[4] = r.val[0] / y.val[0];
-	r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[4]));
+	for (int i = 1; i <= 4; i++) {
+		q.val[i] = r.val[0] / y.val[0];
+		r = Float64x6_sub(r, Float64x6_mul_dx6_d(y, q.val[i]));
+	}
 
 	q.val[5] = r.val[0] / y.val[0];
 	Float64x6_renorm(&q);
@@ -1791,6 +1988,7 @@ static inline Float64x6 Float64x6_recip(const Float64x6 y) {
 		return Float64x6_recip_quick(y);
 	#endif
 }
+#endif
 
 /* 1.0 / Float64x2 */
 
@@ -1799,21 +1997,11 @@ static inline Float64x6 Float64x6_recip_accurate_dx2(const Float64x2 y) {
 
 	q.val[0] = 1.0 / y.hi;
 	r = Float64x6_sub_d_dx6(1.0, Float64x6_mul_dx2_d(y, q.val[0]));
-
-	q.val[1] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[1]));
-
-	q.val[2] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[2]));
-
-	q.val[3] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[3]));
-
-	q.val[4] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[4]));
-
-	q.val[5] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[5]));
+	
+	for (int i = 1; i <= 5; i++) {
+		q.val[i] = r.val[0] / y.hi;
+		r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[i]));
+	}
 
 	fp64 err = r.val[0] / y.hi;
 	Float64x6_renorm_err(&q, &err);
@@ -1826,17 +2014,10 @@ static inline Float64x6 Float64x6_recip_quick_dx2(const Float64x2 y) {
 	q.val[0] = 1.0 / y.hi;
 	r = Float64x6_sub_d_dx6(1.0, Float64x6_mul_dx2_d(y, q.val[0]));
 
-	q.val[1] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[1]));
-
-	q.val[2] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[2]));
-
-	q.val[3] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[3]));
-
-	q.val[4] = r.val[0] / y.hi;
-	r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[4]));
+	for (int i = 1; i <= 4; i++) {
+		q.val[i] = r.val[0] / y.hi;
+		r = Float64x6_sub(r, Float64x6_mul_dx2_d(y, q.val[i]));
+	}
 
 	q.val[5] = r.val[0] / y.hi;
 	Float64x6_renorm(&q);
@@ -1859,20 +2040,10 @@ static inline Float64x6 Float64x6_recip_accurate_d(const fp64 y) {
 	q.val[0] = 1.0 / y;
 	r = Float64x6_sub_d_dx2(1.0, Float64x2_mul_d_d(y, q.val[0]));
 
-	q.val[1] = r.val[0] / y;
-	r = Float64x6_sub(r, Float64x6_mul_d_d(y, q.val[1]));
-
-	q.val[2] = r.val[0] / y;
-	r = Float64x6_sub(r, Float64x6_mul_d_d(y, q.val[2]));
-
-	q.val[3] = r.val[0] / y;
-	r = Float64x6_sub(r, Float64x6_mul_d_d(y, q.val[3]));
-
-	q.val[4] = r.val[0] / y;
-	r = Float64x6_sub(r, Float64x6_mul_d_d(y, q.val[4]));
-
-	q.val[5] = r.val[0] / y;
-	r = Float64x6_sub(r, Float64x6_mul_d_d(y, q.val[5]));
+	for (int i = 1; i <= 5; i++) {
+		q.val[i] = r.val[0] / y;
+		r = Float64x6_sub(r, Float64x6_mul_d_d(y, q.val[i]));
+	}
 
 	fp64 err = r.val[0] / y;
 	Float64x6_renorm_err(&q, &err);
@@ -1885,17 +2056,10 @@ static inline Float64x6 Float64x6_recip_quick_d(const fp64 y) {
 	q.val[0] = 1.0 / y;
 	r = Float64x6_sub_d_dx2(1.0, Float64x2_mul_d_d(y, q.val[0]));
 
-	q.val[1] = r.val[0] / y;
-	r = Float64x6_sub(r, Float64x6_mul_d_d(y, q.val[1]));
-
-	q.val[2] = r.val[0] / y;
-	r = Float64x6_sub(r, Float64x6_mul_d_d(y, q.val[2]));
-
-	q.val[3] = r.val[0] / y;
-	r = Float64x6_sub(r, Float64x6_mul_d_d(y, q.val[3]));
-
-	q.val[4] = r.val[0] / y;
-	r = Float64x6_sub(r, Float64x6_mul_d_d(y, q.val[4]));
+	for (int i = 1; i <= 4; i++) {
+		q.val[i] = r.val[0] / y;
+		r = Float64x6_sub(r, Float64x6_mul_d_d(y, q.val[i]));
+	}
 
 	q.val[5] = r.val[0] / y;
 	Float64x6_renorm(&q);
@@ -1918,12 +2082,9 @@ static inline Float64x6 Float64x6_recip_d(const fp64 y) {
  * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero
  */
 static inline Float64x6 Float64x6_mul_power2_dx6_d(Float64x6 x, const fp64 y) {
-	x.val[0] *= y;
-	x.val[1] *= y;
-	x.val[2] *= y;
-	x.val[3] *= y;
-	x.val[4] *= y;
-	x.val[5] *= y;
+	for (int i = 0; i <= 5; i++) {
+		x.val[i] *= y;
+	}
 	return x;
 }
 
@@ -1931,12 +2092,9 @@ static inline Float64x6 Float64x6_mul_power2_dx6_d(Float64x6 x, const fp64 y) {
  * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero
  */
 static inline Float64x6 Float64x6_mul_power2_d_dx6(const fp64 x, Float64x6 y) {
-	y.val[0] *= x;
-	y.val[1] *= x;
-	y.val[2] *= x;
-	y.val[3] *= x;
-	y.val[4] *= x;
-	y.val[5] *= x;
+	for (int i = 0; i <= 5; i++) {
+		y.val[i] *= x;
+	}
 	return y;
 }
 
@@ -1945,13 +2103,7 @@ static inline Float64x6 Float64x6_mul_power2_d_dx6(const fp64 x, Float64x6 y) {
  * The result is stored as a Float64x6
  */
 static inline Float64x6 Float64x6_mul_power2_d_d(const fp64 x, const fp64 y) {
-	Float64x6 ret;
-	ret.val[0] = x * y;
-	ret.val[1] = 0.0;
-	ret.val[2] = 0.0;
-	ret.val[3] = 0.0;
-	ret.val[4] = 0.0;
-	ret.val[5] = 0.0;
+	Float64x6 ret = {{x * y, 0.0, 0.0, 0.0, 0.0, 0.0}};
 	return ret;
 }
 
@@ -1962,12 +2114,9 @@ static inline Float64x6 Float64x6_mul_power2_d_d(const fp64 x, const fp64 y) {
 static inline Float64x6 Float64x6_bitwise_not(const Float64x6 x) {
 	Bitwise_Float64x6 x0;
 	x0.float_part = x;
-	x0.binary_part.val[0] = ~x0.binary_part.val[0];
-	x0.binary_part.val[1] = ~x0.binary_part.val[1];
-	x0.binary_part.val[2] = ~x0.binary_part.val[2];
-	x0.binary_part.val[3] = ~x0.binary_part.val[3];
-	x0.binary_part.val[4] = ~x0.binary_part.val[4];
-	x0.binary_part.val[5] = ~x0.binary_part.val[5];
+	for (int i = 0; i <= 5; i++) {
+		x0.binary_part.val[i] = ~x0.binary_part.val[i];
+	}
 	return x0.float_part;
 }
 
@@ -1975,12 +2124,9 @@ static inline Float64x6 Float64x6_bitwise_and(const Float64x6 x, const Float64x6
 	Bitwise_Float64x6 x0, y0;
 	x0.float_part = x;
 	y0.float_part = y;
-	x0.binary_part.val[0] &= y0.binary_part.val[0];
-	x0.binary_part.val[1] &= y0.binary_part.val[1];
-	x0.binary_part.val[2] &= y0.binary_part.val[2];
-	x0.binary_part.val[3] &= y0.binary_part.val[3];
-	x0.binary_part.val[4] &= y0.binary_part.val[4];
-	x0.binary_part.val[5] &= y0.binary_part.val[5];
+	for (int i = 0; i <= 5; i++) {
+		x0.binary_part.val[i] &= y0.binary_part.val[i];
+	}
 	return x0.float_part;
 }
 
@@ -1988,12 +2134,9 @@ static inline Float64x6 Float64x6_bitwise_andnot(const Float64x6 x, const Float6
 	Bitwise_Float64x6 x0, y0;
 	x0.float_part = x;
 	y0.float_part = y;
-	x0.binary_part.val[0] &= ~y0.binary_part.val[0];
-	x0.binary_part.val[1] &= ~y0.binary_part.val[1];
-	x0.binary_part.val[2] &= ~y0.binary_part.val[2];
-	x0.binary_part.val[3] &= ~y0.binary_part.val[3];
-	x0.binary_part.val[4] &= ~y0.binary_part.val[4];
-	x0.binary_part.val[5] &= ~y0.binary_part.val[5];
+	for (int i = 0; i <= 5; i++) {
+		x0.binary_part.val[i] &= ~y0.binary_part.val[i];
+	}
 	return x0.float_part;
 }
 
@@ -2001,12 +2144,9 @@ static inline Float64x6 Float64x6_bitwise_or(const Float64x6 x, const Float64x6 
 	Bitwise_Float64x6 x0, y0;
 	x0.float_part = x;
 	y0.float_part = y;
-	x0.binary_part.val[0] |= y0.binary_part.val[0];
-	x0.binary_part.val[1] |= y0.binary_part.val[1];
-	x0.binary_part.val[2] |= y0.binary_part.val[2];
-	x0.binary_part.val[3] |= y0.binary_part.val[3];
-	x0.binary_part.val[4] |= y0.binary_part.val[4];
-	x0.binary_part.val[5] |= y0.binary_part.val[5];
+	for (int i = 0; i <= 5; i++) {
+		x0.binary_part.val[i] |= y0.binary_part.val[i];
+	}
 	return x0.float_part;
 }
 
@@ -2014,12 +2154,9 @@ static inline Float64x6 Float64x6_bitwise_xor(const Float64x6 x, const Float64x6
 	Bitwise_Float64x6 x0, y0;
 	x0.float_part = x;
 	y0.float_part = y;
-	x0.binary_part.val[0] ^= y0.binary_part.val[0];
-	x0.binary_part.val[1] ^= y0.binary_part.val[1];
-	x0.binary_part.val[2] ^= y0.binary_part.val[2];
-	x0.binary_part.val[3] ^= y0.binary_part.val[3];
-	x0.binary_part.val[4] ^= y0.binary_part.val[4];
-	x0.binary_part.val[5] ^= y0.binary_part.val[5];
+	for (int i = 0; i <= 5; i++) {
+		x0.binary_part.val[i] ^= y0.binary_part.val[i];
+	}
 	return x0.float_part;
 }
 
@@ -2099,32 +2236,22 @@ static inline bool Float64x6_islessgreater(const Float64x6 x, const Float64x6 y)
 //------------------------------------------------------------------------------
 // Float64x6 rounding functions
 //------------------------------------------------------------------------------
-	
 /** 
  * @author Taken from libQD which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
+
 static inline Float64x6 Float64x6_trunc(const Float64x6 x) {
-	Float64x6 ret = {{trunc(x.val[0]), 0.0, 0.0, 0.0}};
-	if (ret.val[0] == x.val[0]) {
-		ret.val[1] = trunc(x.val[1]);
-		if (ret.val[1] == x.val[1]) {
-			ret.val[2] = trunc(x.val[2]);
-
-			if (ret.val[2] == x.val[2]) {
-				ret.val[3] = trunc(x.val[3]);
-
-				if (ret.val[3] == x.val[3]) {
-					ret.val[4] = trunc(x.val[4]);
-
-					if (ret.val[4] == x.val[4]) {
-						ret.val[5] = trunc(x.val[5]);
-					}
-				}
-			}
+	Float64x6 ret = {{trunc(x.val[0]), 0.0, 0.0, 0.0, 0.0, 0.0}};
+	int i;
+	for (i = 0; i <= 4; i++) {
+		if (ret.val[i] != x.val[i]) {
+			break;
 		}
+		ret.val[i + 1] = trunc(x.val[i + 1]);
+	}
+	if (i != 0) {
 		Float64x6_renorm(&ret);
-		return ret;
 	}
 	return ret;
 }
@@ -2136,112 +2263,47 @@ static inline Float64x6 Float64x6_aint(const Float64x6 x) {
 	return Float64x6_trunc(x);
 }
 
-/** 
- * @author Taken from libQD which can be found under a
- * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
- */
 static inline Float64x6 Float64x6_floor(const Float64x6 x) {
-	Float64x6 ret = {{floor(x.val[0]), 0.0, 0.0, 0.0}};
-	if (ret.val[0] == x.val[0]) {
-		ret.val[1] = floor(x.val[1]);
-		
-		if (ret.val[1] == x.val[1]) {
-			ret.val[2] = floor(x.val[2]);
-
-			if (ret.val[2] == x.val[2]) {
-				ret.val[3] = floor(x.val[3]);
-
-				if (ret.val[3] == x.val[3]) {
-					ret.val[4] = floor(x.val[4]);
-
-					if (ret.val[4] == x.val[4]) {
-						ret.val[5] = floor(x.val[5]);
-					}
-				}
-			}
+	Float64x6 ret = {{floor(x.val[0]), 0.0, 0.0, 0.0, 0.0, 0.0}};
+	int i;
+	for (i = 0; i <= 4; i++) {
+		if (ret.val[i] != x.val[i]) {
+			break;
 		}
+		ret.val[i + 1] = floor(x.val[i + 1]);
+	}
+	if (i != 0) {
 		Float64x6_renorm(&ret);
-		return ret;
 	}
 	return ret;
 }
+
 static inline Float64x6 Float64x6_ceil(const Float64x6 x) {
-	Float64x6 ret = {{ceil(x.val[0]), 0.0, 0.0, 0.0}};
-	if (ret.val[0] == x.val[0]) {
-		ret.val[1] = ceil(x.val[1]);
-		
-		if (ret.val[1] == x.val[1]) {
-			ret.val[2] = ceil(x.val[2]);
-
-			if (ret.val[2] == x.val[2]) {
-				ret.val[3] = ceil(x.val[3]);
-
-				if (ret.val[3] == x.val[3]) {
-					ret.val[4] = ceil(x.val[4]);
-
-					if (ret.val[4] == x.val[4]) {
-						ret.val[5] = ceil(x.val[5]);
-					}
-				}
-			}
+	Float64x6 ret = {{ceil(x.val[0]), 0.0, 0.0, 0.0, 0.0, 0.0}};
+	int i;
+	for (i = 0; i <= 4; i++) {
+		if (ret.val[i] != x.val[i]) {
+			break;
 		}
+		ret.val[i + 1] = ceil(x.val[i + 1]);
+	}
+	if (i != 0) {
 		Float64x6_renorm(&ret);
-		return ret;
 	}
 	return ret;
 }
 
-/** 
- * @author Taken from libQD which can be found under a
- * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
- */
 static inline Float64x6 Float64x6_round(const Float64x6 x) {
-	Float64x6 ret = {{round(x.val[0]), 0.0, 0.0, 0.0}};
-	if (ret.val[0] == x.val[0]) {
-		/* First double is already an integer. */
-		ret.val[1] = round(x.val[1]);
-
-		if (ret.val[1] == x.val[1]) {
-			/* Second double is already an integer. */
-			ret.val[2] = round(x.val[2]);
-			
-			if (ret.val[2] == x.val[2]) {
-				/* Third double is already an integer. */
-				ret.val[3] = round(x.val[3]);
-				
-				if (ret.val[3] == x.val[3]) {
-					/* Fourth double is already an integer. */
-					ret.val[4] = round(x.val[4]);
-
-					if (ret.val[4] == x.val[4]) {
-						/* Fifth double is already an integer. */
-						ret.val[5] = round(x.val[5]);
-					} else {
-						if (fabs(ret.val[4] - x.val[4]) == 0.5 && x.val[5] < 0.0) {
-							ret.val[4] -= 1.0;
-						}
-					}
-
-				} else {
-					if (fabs(ret.val[3] - x.val[3]) == 0.5 && x.val[4] < 0.0) {
-						ret.val[3] -= 1.0;
-					}
-				}
-			} else {
-				if (fabs(ret.val[2] - x.val[2]) == 0.5 && x.val[3] < 0.0) {
-					ret.val[2] -= 1.0;
-				}
-			}
+	Float64x6 ret = {{round(x.val[0]), 0.0, 0.0, 0.0, 0.0, 0.0}};
+	for (int i = 0; i <= 4; i++) {
+		// Checks if x.val[i] is already an integer
+		if (ret.val[i] == x.val[i]) {
+			ret.val[i + 1] = round(x.val[i + 1]);
 		} else {
-			if (fabs(ret.val[1] - x.val[1]) == 0.5 && x.val[2] < 0.0) {
-				ret.val[1] -= 1.0;
+			if (fabs(ret.val[i] - x.val[i]) == 0.5 && x.val[i + 1] < 0.0) {
+				ret.val[i] -= 1.0;
 			}
-		}
-
-	} else {
-		/* First double is not an integer. */
-		if (fabs(ret.val[0] - x.val[0]) == 0.5 && x.val[1] < 0.0) {
-			ret.val[0] -= 1.0;
+			break;
 		}
 	}
 	Float64x6_renorm(&ret);
@@ -2295,11 +2357,11 @@ static inline Float64x6 Float64x6_fabs(const Float64x6 x) {
 	) ? Float64x6_negate(x) : x;
 }
 
-static inline Float64x6 Float64x6_fdim(const Float64x6 x, const Float64x6 y) {
-	return (
-		Float64x6_cmple(x, y)
-	) ? Float64x6_sub(x, y) : Float64x6_set_zero();
-}
+// static inline Float64x6 Float64x6_fdim(const Float64x6 x, const Float64x6 y) {
+// 	return (
+// 		Float64x6_cmple(x, y)
+// 	) ? Float64x6_sub(x, y) : Float64x6_set_zero();
+// }
 
 static inline Float64x6 Float64x6_copysign(const Float64x6 x, const Float64x6 y) {
 	return (
@@ -2307,69 +2369,70 @@ static inline Float64x6 Float64x6_copysign(const Float64x6 x, const Float64x6 y)
 	) ? Float64x6_negate(x) : x;
 }
 
-static inline Float64x6 Float64x6_sqrt(const Float64x6 x) {
-	if (Float64x6_cmpeq_zero(x)) {
-		return x;
-	}
-	Float64x4 x_temp = {x.val[0], x.val[1], x.val[2], x.val[3]};
-	Float64x4 guess_temp = Float64x4_sqrt(x_temp);
-	Float64x6 guess = {
-		guess_temp.val[0], guess_temp.val[1],
-		guess_temp.val[2], guess_temp.val[3],
-		0.0, 0.0
-	};
-	return Float64x6_mul_power2_dx6_d(Float64x6_add(
-		guess, Float64x6_div(x, guess)
-	), 0.5);
-}
+// static inline Float64x6 Float64x6_sqrt(const Float64x6 x) {
+// 	if (Float64x6_cmpeq_zero(x)) {
+// 		return x;
+// 	}
+// 	Float64x4 x_temp = {x.val[0], x.val[1], x.val[2], x.val[3]};
+// 	Float64x4 guess_temp = Float64x4_sqrt(x_temp);
+// 	Float64x6 guess = {
+// 		guess_temp.val[0], guess_temp.val[1],
+// 		guess_temp.val[2], guess_temp.val[3],
+// 		0.0, 0.0
+// 	};
+// 	return Float64x6_mul_power2_dx6_d(Float64x6_add(
+// 		guess, Float64x6_div(x, guess)
+// 	), 0.5);
+// }
 
-static inline Float64x6 Float64x6_cbrt(const Float64x6 x) {
-	if (Float64x6_cmpeq_zero(x)) {
-		return x;
-	}
-	Float64x4 x_temp = {x.val[0], x.val[1], x.val[2], x.val[3]};
-	Float64x4 guess_temp = Float64x4_cbrt(x_temp);
-	Float64x6 guess = {
-		guess_temp.val[0], guess_temp.val[1],
-		guess_temp.val[2], guess_temp.val[3],
-		0.0, 0.0
-	};
-	return Float64x6_div_dx6_d(Float64x6_add(
-			Float64x6_mul_power2_d_dx6(2.0, guess),
-			Float64x6_div(x, Float64x6_square(guess))
-	), 3.0);
-}
+// static inline Float64x6 Float64x6_cbrt(const Float64x6 x) {
+// 	if (Float64x6_cmpeq_zero(x)) {
+// 		return x;
+// 	}
+// 	Float64x4 x_temp = {x.val[0], x.val[1], x.val[2], x.val[3]};
+// 	Float64x4 guess_temp = Float64x4_cbrt(x_temp);
+// 	Float64x6 guess = {
+// 		guess_temp.val[0], guess_temp.val[1],
+// 		guess_temp.val[2], guess_temp.val[3],
+// 		0.0, 0.0
+// 	};
+// 	return Float64x6_div_dx6_d(Float64x6_add(
+// 			Float64x6_mul_power2_d_dx6(2.0, guess),
+// 			Float64x6_div(x, Float64x6_square(guess))
+// 	), 3.0);
+// }
 
 //------------------------------------------------------------------------------
 // Float64x6 Integer and Remainder
 //------------------------------------------------------------------------------
 
-/**
-* @brief returns the fraction part of a Float64x6 value. int_part may be NULL
-*/
-static inline Float64x6 Float64x6_modf(const Float64x6 x, Float64x6* const int_part) {
-	Float64x6 trunc_part = Float64x6_trunc(x);
-	if (int_part != NULL) {
-		*int_part = trunc_part;
-	}
-	return Float64x6_sub(x, trunc_part);
-}
+// /**
+// * @brief returns the fraction part of a Float64x6 value. int_part may be NULL
+// */
+// static inline Float64x6 Float64x6_modf(const Float64x6 x, Float64x6* const int_part) {
+// 	Float64x6 trunc_part = Float64x6_trunc(x);
+// 	if (int_part != NULL) {
+// 		*int_part = trunc_part;
+// 	}
+// 	return Float64x6_sub(x, trunc_part);
+// }
 
-static inline Float64x6 Float64x6_fmod(const Float64x6 x, const Float64x6 y) {
-	Float64x6 trunc_part = Float64x6_trunc(Float64x6_div(x, y));
-	return Float64x6_sub(x, Float64x6_mul(y, trunc_part));
-}
+// static inline Float64x6 Float64x6_fmod(const Float64x6 x, const Float64x6 y) {
+// 	Float64x6 trunc_part = Float64x6_trunc(Float64x6_div(x, y));
+// 	return Float64x6_sub(x, Float64x6_mul(y, trunc_part));
+// }
 
-static inline Float64x6 Float64x6_remainder(const Float64x6 x, const Float64x6 y) {
-	Float64x6 round_part = Float64x6_round(Float64x6_div(x, y));
-	return Float64x6_sub(x, Float64x6_mul(y, round_part));
-}
-static inline Float64x6 Float64x6_remquo(const Float64x6 x, const Float64x6 y, int* const quo) {
-	Float64x6 q = Float64x6_round(Float64x6_div(x, y));
-	Float64x6 r = Float64x6_sub(x, Float64x6_mul(y, q));
-	*quo = (int)(q.val[0] + q.val[1]);
-	return r;
-}
+// static inline Float64x6 Float64x6_remainder(const Float64x6 x, const Float64x6 y) {
+// 	Float64x6 round_part = Float64x6_round(Float64x6_div(x, y));
+// 	return Float64x6_sub(x, Float64x6_mul(y, round_part));
+// }
+
+// static inline Float64x6 Float64x6_remquo(const Float64x6 x, const Float64x6 y, int* const quo) {
+// 	Float64x6 q = Float64x6_round(Float64x6_div(x, y));
+// 	Float64x6 r = Float64x6_sub(x, Float64x6_mul(y, q));
+// 	*quo = (int)(q.val[0] + q.val[1]);
+// 	return r;
+// }
 
 //------------------------------------------------------------------------------
 // Float64x2 Float Exponents
@@ -2388,13 +2451,10 @@ static inline int Float64x6_ilogb(const Float64x6 x) {
  */
 static inline Float64x6 Float64x6_frexp(const Float64x6 x, int* const expon) {
 	Float64x6 ret;
-	*expon = ilogb(x.val[0]) + 1;
-	ret.val[0] = ldexp(x.val[0], -(*expon));
-	ret.val[1] = ldexp(x.val[1], -(*expon));
-	ret.val[2] = ldexp(x.val[2], -(*expon));
-	ret.val[3] = ldexp(x.val[3], -(*expon));
-	ret.val[4] = ldexp(x.val[4], -(*expon));
-	ret.val[5] = ldexp(x.val[5], -(*expon));
+	*expon = Float64x6_ilogb(x) + 1;
+	for (int i = 0; i <= 5; i++) {
+		ret.val[5] = ldexp(x.val[5], -(*expon));
+	}
 	return ret;
 }
 /**
@@ -2403,11 +2463,10 @@ static inline Float64x6 Float64x6_frexp(const Float64x6 x, int* const expon) {
 static inline Float64x6 Float64x6_ldexp(const Float64x6 x, const int expon) {
 	Float64x6 ret;
 	ret.val[0] = ldexp(x.val[0], expon);
-	ret.val[1] = Float64_isfinite(x.val[0]) ? ldexp(x.val[1], expon) : x.val[0];
-	ret.val[2] = Float64_isfinite(x.val[0]) ? ldexp(x.val[2], expon) : x.val[0];
-	ret.val[3] = Float64_isfinite(x.val[0]) ? ldexp(x.val[3], expon) : x.val[0];
-	ret.val[4] = Float64_isfinite(x.val[0]) ? ldexp(x.val[4], expon) : x.val[0];
-	ret.val[5] = Float64_isfinite(x.val[0]) ? ldexp(x.val[5], expon) : x.val[0];
+	const bool x_isfinite = Float64_isfinite(x.val[0]);
+	for (int i = 1; i <= 5; i++) {
+		ret.val[i] = x_isfinite ? ldexp(x.val[i], expon) : x.val[0];
+	}
 	return ret;
 }
 /**
@@ -2416,11 +2475,10 @@ static inline Float64x6 Float64x6_ldexp(const Float64x6 x, const int expon) {
 static inline Float64x6 Float64x6_scalbn(const Float64x6 x, const int expon) {
 	Float64x6 ret;
 	ret.val[0] = scalbn(x.val[0], expon);
-	ret.val[1] = Float64_isfinite(x.val[0]) ? scalbn(x.val[1], expon) : x.val[0];
-	ret.val[2] = Float64_isfinite(x.val[0]) ? scalbn(x.val[2], expon) : x.val[0];
-	ret.val[3] = Float64_isfinite(x.val[0]) ? scalbn(x.val[3], expon) : x.val[0];
-	ret.val[4] = Float64_isfinite(x.val[0]) ? scalbn(x.val[4], expon) : x.val[0];
-	ret.val[5] = Float64_isfinite(x.val[0]) ? scalbn(x.val[5], expon) : x.val[0];
+	const bool x_isfinite = Float64_isfinite(x.val[0]);
+	for (int i = 1; i <= 5; i++) {
+		ret.val[i] = x_isfinite ? scalbn(x.val[i], expon) : x.val[0];
+	}
 	return ret;
 }
 /**
@@ -2429,11 +2487,10 @@ static inline Float64x6 Float64x6_scalbn(const Float64x6 x, const int expon) {
 static inline Float64x6 Float64x6_scalbln(const Float64x6 x, const long expon) {
 	Float64x6 ret;
 	ret.val[0] = scalbln(x.val[0], expon);
-	ret.val[1] = Float64_isfinite(x.val[0]) ? scalbln(x.val[1], expon) : x.val[0];
-	ret.val[2] = Float64_isfinite(x.val[0]) ? scalbln(x.val[2], expon) : x.val[0];
-	ret.val[3] = Float64_isfinite(x.val[0]) ? scalbln(x.val[3], expon) : x.val[0];
-	ret.val[4] = Float64_isfinite(x.val[0]) ? scalbln(x.val[4], expon) : x.val[0];
-	ret.val[5] = Float64_isfinite(x.val[0]) ? scalbln(x.val[5], expon) : x.val[0];
+	const bool x_isfinite = Float64_isfinite(x.val[0]);
+	for (int i = 1; i <= 5; i++) {
+		ret.val[i] = x_isfinite ? scalbln(x.val[i], expon) : x.val[0];
+	}
 	return ret;
 }
 

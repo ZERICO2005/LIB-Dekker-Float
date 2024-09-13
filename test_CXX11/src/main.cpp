@@ -140,11 +140,13 @@ void run_math_demo(unsigned int seed) {
 
 #endif
 
-#if 0
+
 
 void run_generate_constants(void) {
-	generate_constants<Float64x4>("Float64x4");
+	generate_constants<Float64x4>("double");
 }
+
+#if 0
 
 void get_fact(void) {
 	#if 0
@@ -242,6 +244,8 @@ void aaa(void) {
 }
 #endif
 
+#include "../../Float64x6/Float64x6.hpp"
+
 int main(void) {
 	printf("\n");
 	// aaa();
@@ -249,9 +253,9 @@ int main(void) {
 	// run_math_demo(123456);
 	
 	// test_function();
-	precision_test<Float80x2>();
+	// precision_test<Float64x4>();
 
-	// run_generate_constants();
+	run_generate_constants();
 	
 	// __attribute__((unused)) char buf[999];
 	// Float32x2 x = {FLT_MAX, FLT_MIN};

@@ -339,7 +339,8 @@ Float64x2 log(const Float64x2& x) {
 
 /**
  * @remarks using similar methods to log(x). Haven't figured out how to
- * properly implement log1p without resorting to Float64x4
+ * properly implement log1p without resorting to Float64x4.
+ * Wikipedia suggests this identity `log(1 + x) = 2 arctanh(x / (2 + x))`
  */
 Float64x2 log1p(const Float64x2& x) {
 	if (isequal_zero(x)) {
@@ -1057,7 +1058,7 @@ Float64x2 atanh(const Float64x2& x) {
 
 Float64x2 fma(const Float64x2& x, const Float64x2& y, const Float64x2& z) {
 	Float64x4 ret = LDF::mul<Float64x4>(x, y);
-	ret = LDF::add<Float64x4>(ret, z);
+	ret += z;
 	return static_cast<Float64x2>(ret);
 }
 

@@ -23,6 +23,7 @@
 #include "Float64x4_LUT.hpp"
 #include "Float64x4_def.h"
 #include "Float64x4_string.h"
+#include "../Float64x6/Float64x6.hpp"
 
 #include <cmath>
 #include <limits>
@@ -805,6 +806,16 @@ Float64x4 atanh(const Float64x4& a) {
 	}
 
 	return mul_pwr2(log((1.0 + a) / (1.0 - a)), 0.5);
+}
+
+//------------------------------------------------------------------------------
+// Float64x4 fma
+//------------------------------------------------------------------------------
+
+Float64x4 fma(const Float64x4& x, const Float64x4& y, const Float64x4& z) {
+	Float64x6 ret = LDF::mul<Float64x6>(x, y);
+	ret += z;
+	return static_cast<Float64x4>(ret);
 }
 
 //------------------------------------------------------------------------------

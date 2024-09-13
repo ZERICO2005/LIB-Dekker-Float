@@ -39,7 +39,7 @@
 //------------------------------------------------------------------------------
 
 #include "Float64x4_def.h"
-#include "Float64x2/Float64x2.h"
+#include "../Float64x2/Float64x2.h"
 
 /**
  * @brief Allows for type punning
@@ -316,148 +316,68 @@ static inline bool Float64x4_cmpge_zero(const Float64x4 x) {
 // Float64x4 optimized comparison functions
 //------------------------------------------------------------------------------
 
-static inline bool Float64x4_cmpeq_dx4_d(const Float64x4 x, const fp64 y) {
-	return (
-		x.val[0] == y && x.val[1] == 0.0 &&
-		x.val[2] == 0.0 && x.val[3] == 0.0
-	);
+static inline bool Float64x4_cmpeq_dx6_d(const Float64x4 x, const fp64 y) {
+	return (x.val[0] == y && x.val[1] == 0.0);
 }
 
-static inline bool Float64x4_cmpneq_dx4_d(const Float64x4 x, const fp64 y) {
-	return (
-		x.val[0] != y || x.val[1] != 0.0 ||
-		x.val[2] != 0.0 || x.val[3] != 0.0
-	);
+static inline bool Float64x4_cmpneq_dx6_d(const Float64x4 x, const fp64 y) {
+	return (x.val[0] != y || x.val[1] != 0.0);
 }
 
-static inline bool Float64x4_cmpord_dx4_d(const Float64x4 x, const fp64 y) {
-	return (
-		!isunordered(x.val[0], y) && !isunordered(x.val[1], 0.0) &&
-		!isunordered(x.val[2], 0.0) && !isunordered(x.val[3], 0.0)
-	);
+static inline bool Float64x4_cmpord_dx6_d(const Float64x4 x, const fp64 y) {
+	return (!isunordered(x.val[0], y) && !isunordered(x.val[1], 0.0));
 }
 
-static inline bool Float64x4_cmpunord_dx4_d(const Float64x4 x, const fp64 y) {
-	return (
-		isunordered(x.val[0], y) || isunordered(x.val[1], 0.0) ||
-		isunordered(x.val[2], 0.0) || isunordered(x.val[3], 0.0)
-	);
+static inline bool Float64x4_cmpunord_dx6_d(const Float64x4 x, const fp64 y) {
+	return (isunordered(x.val[0], y) || isunordered(x.val[1], 0.0));
 }
 
-static inline bool Float64x4_cmplt_dx4_d(const Float64x4 x, const fp64 y) {
-	return
-		(x.val[0] == y) ? (
-			(x.val[1] == 0.0) ? (
-				(x.val[2] == 0.0) ? (
-					x.val[3] < 0.0
-				) : (x.val[2] < 0.0)
-			) : (x.val[1] < 0.0)
-		) : (x.val[0] < y);
+static inline bool Float64x4_cmplt_dx6_d(const Float64x4 x, const fp64 y) {
+	return (x.val[0] < y || (x.val[0] == y && x.val[1] < 0.0));
 }
 
-static inline bool Float64x4_cmple_dx4_d(const Float64x4 x, const fp64 y) {
-	return
-		(x.val[0] == y) ? (
-			(x.val[1] == 0.0) ? (
-				(x.val[2] == 0.0) ? (
-					x.val[3] <= 0.0
-				) : (x.val[2] < 0.0)
-			) : (x.val[1] < 0.0)
-		) : (x.val[0] < y);
+static inline bool Float64x4_cmple_dx6_d(const Float64x4 x, const fp64 y) {
+	return (x.val[0] < y || (x.val[0] == y && x.val[1] <= 0.0));
 }
 
-static inline bool Float64x4_cmpgt_dx4_d(const Float64x4 x, const fp64 y) {
-	return
-		(x.val[0] == y) ? (
-			(x.val[1] == 0.0) ? (
-				(x.val[2] == 0.0) ? (
-					x.val[3] > 0.0
-				) : (x.val[2] > 0.0)
-			) : (x.val[1] > 0.0)
-		) : (x.val[0] > y);
+static inline bool Float64x4_cmpgt_dx6_d(const Float64x4 x, const fp64 y) {
+	return (x.val[0] > y || (x.val[0] == y && x.val[1] > 0.0));
 }
 
-static inline bool Float64x4_cmpge_dx4_d(const Float64x4 x, const fp64 y) {
-	return
-		(x.val[0] == y) ? (
-			(x.val[1] == 0.0) ? (
-				(x.val[2] == 0.0) ? (
-					x.val[3] >= 0.0
-				) : (x.val[2] > 0.0)
-			) : (x.val[1] > 0.0)
-		) : (x.val[0] > y);
+static inline bool Float64x4_cmpge_dx6_d(const Float64x4 x, const fp64 y) {
+	return (x.val[0] > y || (x.val[0] == y && x.val[1] >= 0.0));
 }
 
-static inline bool Float64x4_cmpeq_d_dx4(const fp64 x, const Float64x4 y) {
-	return (
-		x == y.val[0] && 0.0 == y.val[1] &&
-		0.0 == y.val[2] && 0.0 == y.val[3]
-	);
+static inline bool Float64x4_cmpeq_d_dx6(const fp64 x, const Float64x4 y) {
+	return (x == y.val[0] && 0.0 == y.val[1]);
 }
 
-static inline bool Float64x4_cmpneq_d_dx4(const fp64 x, const Float64x4 y) {
-	return (
-		x != y.val[0] || 0.0 != y.val[1] ||
-		0.0 != y.val[2] || 0.0 != y.val[3]
-	);
+static inline bool Float64x4_cmpneq_d_dx6(const fp64 x, const Float64x4 y) {
+	return (x != y.val[0] || 0.0 != y.val[1]);
 }
 
-static inline bool Float64x4_cmpord_d_dx4(const fp64 x, const Float64x4 y) {
-	return (
-		!isunordered(x, y.val[0]) && !isunordered(0.0, y.val[1]) &&
-		!isunordered(0.0, y.val[2]) && !isunordered(0.0, y.val[3])
-	);
+static inline bool Float64x4_cmpord_d_dx6(const fp64 x, const Float64x4 y) {
+	return (!isunordered(x, y.val[0]) && !isunordered(0.0, y.val[1]));
 }
 
-static inline bool Float64x4_cmpunord_d_dx4(const fp64 x, const Float64x4 y) {
-	return (
-		isunordered(x, y.val[0]) || isunordered(0.0, y.val[1]) ||
-		isunordered(0.0, y.val[2]) || isunordered(0.0, y.val[3])
-	);
+static inline bool Float64x4_cmpunord_d_dx6(const fp64 x, const Float64x4 y) {
+	return (isunordered(x, y.val[0]) || isunordered(0.0, y.val[1]));
 }
 
-static inline bool Float64x4_cmplt_d_dx4(const fp64 x, const Float64x4 y) {
-	return
-		(x == y.val[0]) ? (
-			(0.0 == y.val[1]) ? (
-				(0.0 == y.val[2]) ? (
-					0.0 < y.val[3]
-				) : (0.0 < y.val[2])
-			) : (0.0 < y.val[1])
-		) : (x < y.val[0]);
+static inline bool Float64x4_cmplt_d_dx6(const fp64 x, const Float64x4 y) {
+	return (x < y.val[0] || (x == y.val[0] && 0.0 < y.val[1]));
 }
 
-static inline bool Float64x4_cmple_d_dx4(const fp64 x, const Float64x4 y) {
-	return
-		(x == y.val[0]) ? (
-			(0.0 == y.val[1]) ? (
-				(0.0 == y.val[2]) ? (
-					0.0 <= y.val[3]
-				) : (0.0 < y.val[2])
-			) : (0.0 < y.val[1])
-		) : (x < y.val[0]);
+static inline bool Float64x4_cmple_d_dx6(const fp64 x, const Float64x4 y) {
+	return (x < y.val[0] || (x == y.val[0] && 0.0 <= y.val[1]));
 }
 
-static inline bool Float64x4_cmpgt_d_dx4(const fp64 x, const Float64x4 y) {
-	return
-		(x == y.val[0]) ? (
-			(0.0 == y.val[1]) ? (
-				(0.0 == y.val[2]) ? (
-					0.0 > y.val[3]
-				) : (0.0 > y.val[2])
-			) : (0.0 > y.val[1])
-		) : (x > y.val[0]);
+static inline bool Float64x4_cmpgt_d_dx6(const fp64 x, const Float64x4 y) {
+	return (x > y.val[0] || (x == y.val[0] && 0.0 > y.val[1]));
 }
 
-static inline bool Float64x4_cmpge_d_dx4(const fp64 x, const Float64x4 y) {
-	return
-		(x == y.val[0]) ? (
-			(0.0 == y.val[1]) ? (
-				(0.0 == y.val[2]) ? (
-					0.0 >= y.val[3]
-				) : (0.0 > y.val[2])
-			) : (0.0 > y.val[1])
-		) : (x > y.val[0]);
+static inline bool Float64x4_cmpge_d_dx6(const fp64 x, const Float64x4 y) {
+	return (x > y.val[0] || (x == y.val[0] && 0.0 >= y.val[1]));
 }
 
 //------------------------------------------------------------------------------
@@ -586,11 +506,11 @@ static inline void Float64x4_three_sum(
 static inline void Float64x4_three_sum2(
 	fp64* FLOAT64X4_RESTRICT const a,
 	fp64* FLOAT64X4_RESTRICT const b,
-	fp64* FLOAT64X4_RESTRICT const c
+	const fp64 c
 ) {
 	fp64 t1, t2, t3;
 	t1 = Float64_two_sum(*a, *b, &t2);
-	*a = Float64_two_sum(*c, t1, &t3);
+	*a = Float64_two_sum(c, t1, &t3);
 	*b = t2 + t3;
 }
 
@@ -887,7 +807,7 @@ static inline Float64x4 Float64x4_add_quick(const Float64x4 x, const Float64x4 y
 
 	s.val[1] = Float64_two_sum(s.val[1], t0, &t0);
 	Float64x4_three_sum (&s.val[2], &t0, &t1);
-	Float64x4_three_sum2(&s.val[3], &t0, &t2);
+	Float64x4_three_sum2(&s.val[3], &t0,  t2);
 	t0 = t0 + t1 + t3;
 
 	/* renormalize */
@@ -1171,7 +1091,7 @@ static inline Float64x4 Float64x4_sub_quick(const Float64x4 x, const Float64x4 y
 
 	s.val[1] = Float64_two_sum(s.val[1], t0, &t0);
 	Float64x4_three_sum (&s.val[2], &t0, &t1);
-	Float64x4_three_sum2(&s.val[3], &t0, &t2);
+	Float64x4_three_sum2(&s.val[3], &t0,  t2);
 	t0 = t0 + t1 + t3;
 
 	/* renormalize */
@@ -1471,7 +1391,7 @@ static inline Float64x4 Float64x4_mul_dx4_dx2(const Float64x4 x, const Float64x2
 	p.val[2] = s0;
 
 	p.val[3] = x.val[2] * y.hi + x.val[3] * y.lo + q3 + q4;
-	Float64x4_three_sum2(&p.val[3], &q0, &s1);
+	Float64x4_three_sum2(&p.val[3], &q0, s1);
 	p_err = q0 + s2;
 
 	Float64x4_renorm_err(&p, &p_err);
@@ -1505,7 +1425,7 @@ static inline Float64x4 Float64x4_mul_dx2_dx4(const Float64x2 x, const Float64x4
 	p.val[2] = s0;
 
 	p.val[3] = y.val[2] * x.hi + y.val[3] * x.lo + q3 + q4;
-	Float64x4_three_sum2(&p.val[3], &q0, &s1);
+	Float64x4_three_sum2(&p.val[3], &q0, s1);
 	p_err = q0 + s2;
 
 	Float64x4_renorm_err(&p, &p_err);
@@ -1531,7 +1451,7 @@ static inline Float64x4 Float64x4_mul_dx4_d(const Float64x4 x, const fp64 y) {
 
 	Float64x4_three_sum(&s.val[2], &q1, &p2);
 
-	Float64x4_three_sum2(&q1, &q2, &p3);
+	Float64x4_three_sum2(&q1, &q2, p3);
 	s.val[3] = q1;
 
 	s_err = q2 + p2;
@@ -1559,7 +1479,7 @@ static inline Float64x4 Float64x4_mul_d_dx4(const fp64 x, const Float64x4 y) {
 
 	Float64x4_three_sum(&s.val[2], &q1, &p2);
 
-	Float64x4_three_sum2(&q1, &q2, &p3);
+	Float64x4_three_sum2(&q1, &q2, p3);
 	s.val[3] = q1;
 
 	s_err = q2 + p2;
@@ -1602,7 +1522,7 @@ static inline Float64x4 Float64x4_mul_dx2_dx2(const Float64x2 x, const Float64x2
 	p.val[2] = s0;
 
 	p.val[3] = q3;
-	Float64x4_three_sum2(&p.val[3], &q0, &s1);
+	Float64x4_three_sum2(&p.val[3], &q0, s1);
 	p_err = q0 + s2;
 
 	Float64x4_renorm_err(&p, &p_err);

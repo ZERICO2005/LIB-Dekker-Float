@@ -1119,10 +1119,15 @@ constexpr Float64x4 Float64x4_tau    = Float64x4_2pi; /**< ~6.283185307 */
 	inline constexpr Float64x4 fdim(const Float64x4& x, const Float64x4& y) {
 		return (x > y) ? (x - y) : static_cast<Float64x4>(0.0);
 	}
-	/** @note Naive implementation of fma (Fused multiply add). May lose precision */
-	inline Float64x4 fma(const Float64x4& x, const Float64x4& y, const Float64x4& z) {
-		return (x * y) + z;
-	}
+
+	/**
+	 * @brief `(x * y) + z` Performs a Fused-Multiply-Add operation, avoiding
+	 * rounding errors.
+	 * @note Uses Float64x6 for calculations, which may cause this function to
+	 * run slowly.
+	 */
+	Float64x4 fma(const Float64x4& x, const Float64x4& y, const Float64x4& z);
+
 	inline constexpr Float64x4 copysign(const Float64x4& x, const Float64x4& y) {
 		return (isless_zero(x)) != (isless_zero(y)) ? -x : x;
 	}
