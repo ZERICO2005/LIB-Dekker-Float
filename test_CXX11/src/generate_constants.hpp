@@ -22,6 +22,7 @@
 
 #include <cstdint>
 #include <cinttypes>
+#include <limits>
 #include <stdio.h>
 #include <cstdio>
 
@@ -302,11 +303,11 @@ void generate_constants(const char* name) {
 
 #else
 
-template<typename FloatX>
+template<typename FloatX, typename FloatBase>
 void output_constant(const char* label, __attribute__((unused)) const char* name, FloatMPFR src) {
-#if 1
-	const int label_width = 11;
-	#if 1
+	const int label_width = 14;
+#if 0
+	#if 0
 		mpfr_printf(
 			"template<typename T> inline constexpr T const_%-*s; /**< ~%.9Rf */\n",
 			label_width, label, src.value
@@ -314,26 +315,24 @@ void output_constant(const char* label, __attribute__((unused)) const char* name
 	#else
 		#if 1
 		mpfr_printf(
-			"template<> inline constexpr long double LDF::const_%-*s <long double> = %.40RfL;\n",
+			"template<> inline constexpr long double LDF::const_%-*s<long double> = %.40RfL;\n",
 			label_width, label, src.value
 		);
-		#elif 1
+		#elif 0
 		mpfr_printf(
-			"template<> inline constexpr double LDF::const_%-*s <double> = %.21Rf;\n",
+			"template<> inline constexpr double LDF::const_%-*s<double> = %.21Rf;\n",
 			label_width, label, src.value
 		);
 		#else
 		mpfr_printf(
-			"template<> inline constexpr float LDF::const_%-*s <float> = %.11Rff;\n",
+			"template<> inline constexpr float LDF::const_%-*s<float> = %.11Rff;\n",
 			label_width, label, src.value
 		);
 		#endif
 	#endif
 #else
 	FloatX dst = mpfr_get_type<FloatX>(src.value, MPFR_RNDN);
-	#if 0
-	output_constant_SIMD(label, dst);
-	#elif 1
+	#if 1
 		#if 0
 		printf(
 			"template<> inline constexpr %s %-12s <%s> = "\
@@ -341,10 +340,16 @@ void output_constant(const char* label, __attribute__((unused)) const char* name
 			name, label, name, dst.val[0], dst.val[1], dst.val[2], dst.val[3]
 		);
 		#elif 1
+		const int precision = std::numeric_limits<FloatBase>::max_digits10 + 1;
+		const int width = 7 + precision;
 		printf(
-			"template<> inline constexpr %s %-12s <%s> = "\
-			"{%-22.13a, %+-23.13a, %+-23.13a, %+-23.13a};\n",
-			name, label, name, dst.val[0], dst.val[1], dst.val[2], dst.val[3]
+			"template<> inline constexpr %s LDF::const_%-*s<%s> = "\
+			"{%-*.*e,%+-*.*e,%+-*.*e,%+-*.*e};\n",
+			name, label_width, label, name,
+			width - 1, precision, dst.val[0],
+			width - 0, precision, dst.val[1],
+			width - 0, precision, dst.val[2],
+			width - 0, precision, dst.val[3]
 		);
 		#endif
 	#elif 0
@@ -366,7 +371,7 @@ static const char lemniscate_const_text[] =
 "41425023029553296142909344613575267178321805560895690139393569470111943477523"\
 "58404226414971649069519368999799321460723831213908102062218974296008565545398";
 
-template<typename FloatX>
+template<typename FloatX, typename FloatBase>
 void generate_constants(const char* name) {
 	FloatMPFR num;
 	FloatMPFR temp;
@@ -374,188 +379,188 @@ void generate_constants(const char* name) {
 /* pi constants */
 
 	mpfr_const_pi(num.value, MPFR_RNDN);
-	output_constant<FloatX>("pi", name, num);
+	output_constant<FloatX, FloatBase>("pi", name, num);
 
 	mpfr_mul_d(num.value, num.value, 2.0, MPFR_RNDN);
-	output_constant<FloatX>("2pi", name, num);
+	output_constant<FloatX, FloatBase>("2pi", name, num);
 
 	mpfr_div_d(num.value, num.value, 4.0, MPFR_RNDN);
-	output_constant<FloatX>("pi2", name, num);
+	output_constant<FloatX, FloatBase>("pi2", name, num);
 
 	mpfr_div_d(num.value, num.value, 2.0, MPFR_RNDN);
-	output_constant<FloatX>("pi4", name, num);
+	output_constant<FloatX, FloatBase>("pi4", name, num);
 
 	mpfr_mul_d(num.value, num.value, 3.0, MPFR_RNDN);
-	output_constant<FloatX>("3pi4", name, num);
+	output_constant<FloatX, FloatBase>("3pi4", name, num);
 
 	mpfr_const_pi(num.value, MPFR_RNDN);
 	mpfr_div_d(num.value, num.value, 3.0, MPFR_RNDN);
-	output_constant<FloatX>("pi3", name, num);
+	output_constant<FloatX, FloatBase>("pi3", name, num);
 
 /* inv_pi constants */ printf("\n");
 
 	mpfr_const_pi(num.value, MPFR_RNDN);
 	mpfr_d_div(num.value, 1.0, num.value, MPFR_RNDN);
-	output_constant<FloatX>("inv_pi", name, num);
+	output_constant<FloatX, FloatBase>("inv_pi", name, num);
 
 	mpfr_div_d(num.value, num.value, 2.0, MPFR_RNDN);
-	output_constant<FloatX>("inv_2pi", name, num);
+	output_constant<FloatX, FloatBase>("inv_2pi", name, num);
 
 /* sqrtpi constants */
 
 	mpfr_const_pi(num.value, MPFR_RNDN);
 	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("sqrtpi", name, num);
+	output_constant<FloatX, FloatBase>("sqrtpi", name, num);
 
 	mpfr_const_pi(num.value, MPFR_RNDN);
 	mpfr_mul_d(num.value, num.value, 2.0, MPFR_RNDN);
 	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("sqrt2pi", name, num);
+	output_constant<FloatX, FloatBase>("sqrt2pi", name, num);
 
 /* inv_sqrtpi constants */
 
 	mpfr_const_pi(num.value, MPFR_RNDN);
 	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
 	mpfr_d_div(num.value, 1.0, num.value, MPFR_RNDN);
-	output_constant<FloatX>("inv_sqrtpi", name, num);
+	output_constant<FloatX, FloatBase>("inv_sqrtpi", name, num);
 
 	mpfr_const_pi(num.value, MPFR_RNDN);
 	mpfr_mul_d(num.value, num.value, 2.0, MPFR_RNDN);
 	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
 	mpfr_d_div(num.value, 1.0, num.value, MPFR_RNDN);
-	output_constant<FloatX>("inv_sqrt2pi", name, num);
+	output_constant<FloatX, FloatBase>("inv_sqrt2pi", name, num);
 
 /* log and exp constants */ printf("\n");
 
 	num = 1.0;
 	mpfr_exp(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("e", name, num);
+	output_constant<FloatX, FloatBase>("e", name, num);
 	mpfr_d_div(num.value, 1.0, num.value, MPFR_RNDN);
-	output_constant<FloatX>("inv_e", name, num);
+	output_constant<FloatX, FloatBase>("inv_e", name, num);
 
 	mpfr_const_log2(num.value, MPFR_RNDN);
-	output_constant<FloatX>("ln2", name, num);
+	output_constant<FloatX, FloatBase>("ln2", name, num);
 
 	num = 3.0;
 	mpfr_log(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("ln3", name, num);
+	output_constant<FloatX, FloatBase>("ln3", name, num);
 
 	num = 10.0;
 	mpfr_log(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("ln10", name, num);
+	output_constant<FloatX, FloatBase>("ln10", name, num);
 
 	mpfr_const_log2(num.value, MPFR_RNDN);
 	mpfr_d_div(num.value, 1.0, num.value, MPFR_RNDN);
-	output_constant<FloatX>("log2e", name, num);
+	output_constant<FloatX, FloatBase>("log2e", name, num);
 
 	num = 3.0;
 	mpfr_log(num.value, num.value, MPFR_RNDN);
 	mpfr_d_div(num.value, 1.0, num.value, MPFR_RNDN);
-	output_constant<FloatX>("log3e", name, num);
+	output_constant<FloatX, FloatBase>("log3e", name, num);
 
 	num = 10.0;
 	mpfr_log(num.value, num.value, MPFR_RNDN);
 	mpfr_d_div(num.value, 1.0, num.value, MPFR_RNDN);
-	output_constant<FloatX>("log10e", name, num);
+	output_constant<FloatX, FloatBase>("log10e", name, num);
 
 	// num = 10.0;
 	// mpfr_log2(num.value, num.value, MPFR_RNDN);
-	// output_constant<FloatX>("log2_10", name, num);
+	// output_constant<FloatX, FloatBase>("log2_10", name, num);
 
 	// num = 2.0;
 	// mpfr_log10(num.value, num.value, MPFR_RNDN);
-	// output_constant<FloatX>("log10_2", name, num);
+	// output_constant<FloatX, FloatBase>("log10_2", name, num);
 
 /* Square Roots */ printf("\n");
 
 	num = 2.0;
 	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("sqrt2", name, num);
+	output_constant<FloatX, FloatBase>("sqrt2", name, num);
 
 	num = 3.0;
 	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("sqrt3", name, num);
+	output_constant<FloatX, FloatBase>("sqrt3", name, num);
 
 	num = 5.0;
 	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("sqrt5", name, num);
+	output_constant<FloatX, FloatBase>("sqrt5", name, num);
 
 	num = 6.0;
 	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("sqrt6", name, num);
+	output_constant<FloatX, FloatBase>("sqrt6", name, num);
 
 /* Inverse Square Roots */
 
 	num = 2.0;
 	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
 	mpfr_d_div(num.value, 1.0, num.value, MPFR_RNDN);
-	output_constant<FloatX>("inv_sqrt2", name, num);
+	output_constant<FloatX, FloatBase>("inv_sqrt2", name, num);
 
 	num = 3.0;
 	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
 	mpfr_d_div(num.value, 1.0, num.value, MPFR_RNDN);
-	output_constant<FloatX>("inv_sqrt3", name, num);
+	output_constant<FloatX, FloatBase>("inv_sqrt3", name, num);
 
 	num = 5.0;
 	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
 	mpfr_d_div(num.value, 1.0, num.value, MPFR_RNDN);
-	output_constant<FloatX>("inv_sqrt5", name, num);
+	output_constant<FloatX, FloatBase>("inv_sqrt5", name, num);
 
 	num = 6.0;
 	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
 	mpfr_d_div(num.value, 1.0, num.value, MPFR_RNDN);
-	output_constant<FloatX>("inv_sqrt6", name, num);
+	output_constant<FloatX, FloatBase>("inv_sqrt6", name, num);
 
 /* Cube Roots */ printf("\n");
 
 	num = 2.0;
-	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("cbrt2", name, num);
+	mpfr_cbrt(num.value, num.value, MPFR_RNDN);
+	output_constant<FloatX, FloatBase>("cbrt2", name, num);
 
 	num = 3.0;
-	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("cbrt3", name, num);
+	mpfr_cbrt(num.value, num.value, MPFR_RNDN);
+	output_constant<FloatX, FloatBase>("cbrt3", name, num);
 
 	num = 5.0;
-	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("cbrt5", name, num);
+	mpfr_cbrt(num.value, num.value, MPFR_RNDN);
+	output_constant<FloatX, FloatBase>("cbrt5", name, num);
 
 	num = 6.0;
-	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("cbrt6", name, num);
+	mpfr_cbrt(num.value, num.value, MPFR_RNDN);
+	output_constant<FloatX, FloatBase>("cbrt6", name, num);
 
 /* Inverse Cube Roots */
 
 	num = 2.0;
 	mpfr_cbrt(num.value, num.value, MPFR_RNDN);
 	mpfr_d_div(num.value, 1.0, num.value, MPFR_RNDN);
-	output_constant<FloatX>("inv_cbrt2", name, num);
+	output_constant<FloatX, FloatBase>("inv_cbrt2", name, num);
 
 	num = 3.0;
 	mpfr_cbrt(num.value, num.value, MPFR_RNDN);
 	mpfr_d_div(num.value, 1.0, num.value, MPFR_RNDN);
-	output_constant<FloatX>("inv_cbrt3", name, num);
+	output_constant<FloatX, FloatBase>("inv_cbrt3", name, num);
 
 	num = 5.0;
 	mpfr_cbrt(num.value, num.value, MPFR_RNDN);
 	mpfr_d_div(num.value, 1.0, num.value, MPFR_RNDN);
-	output_constant<FloatX>("inv_cbrt5", name, num);
+	output_constant<FloatX, FloatBase>("inv_cbrt5", name, num);
 
 	num = 6.0;
 	mpfr_cbrt(num.value, num.value, MPFR_RNDN);
 	mpfr_d_div(num.value, 1.0, num.value, MPFR_RNDN);
-	output_constant<FloatX>("inv_cbrt6", name, num);
+	output_constant<FloatX, FloatBase>("inv_cbrt6", name, num);
 
 /* Other Constants */ printf("\n");
 
 	mpfr_const_euler(num.value, MPFR_RNDN);
-	output_constant<FloatX>("egamma", name, num);
+	output_constant<FloatX, FloatBase>("egamma", name, num);
 
 	num = 5.0;
 	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
 	mpfr_add_d(num.value, num.value, 1.0, MPFR_RNDN);
 	mpfr_div_d(num.value, num.value, 2.0, MPFR_RNDN);
-	output_constant<FloatX>("phi", name, num);
+	output_constant<FloatX, FloatBase>("phi", name, num);
 
 	num = 33.0;
 	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
@@ -567,33 +572,36 @@ void generate_constants(const char* name) {
 	mpfr_add(num.value, num.value, temp.value, MPFR_RNDN);
 	mpfr_add_d(num.value, num.value, 1.0, MPFR_RNDN);
 	mpfr_div_d(num.value, num.value, 3.0, MPFR_RNDN);
-	output_constant<FloatX>("tribonacci", name, num);
+	output_constant<FloatX, FloatBase>("tribonacci", name, num);
+
+	mpfr_d_div(num.value, 1.0, num.value, MPFR_RNDN);
+	output_constant<FloatX, FloatBase>("inv_tribonacci", name, num);
 
 	mpfr_const_catalan(num.value, MPFR_RNDN);
-	output_constant<FloatX>("catalan", name, num);
+	output_constant<FloatX, FloatBase>("catalan", name, num);
 
 	mpfr_zeta_ui(num.value, 3.0, MPFR_RNDN);
-	output_constant<FloatX>("apery", name, num);
+	output_constant<FloatX, FloatBase>("apery", name, num);
 
-	num = 1.0;
+	num = -1.0;
 	mpfr_eint(num.value, num.value, MPFR_RNDN);
 	temp = 1.0;
 	mpfr_exp(temp.value, temp.value, MPFR_RNDN);
+	mpfr_mul_d(temp.value, temp.value, -1.0, MPFR_RNDN);
 	mpfr_mul(num.value, num.value, temp.value, MPFR_RNDN);
-	output_constant<FloatX>("gompertz", name, num);
+	output_constant<FloatX, FloatBase>("gompertz", name, num);
+
+	mpfr_set_str(num.value, lemniscate_const_text, 10, MPFR_RNDN);
+	output_constant<FloatX, FloatBase>("lemniscate", name, num);
+	mpfr_mul_d(num.value, num.value, 2.0, MPFR_RNDN);
+	output_constant<FloatX, FloatBase>("2lemniscate", name, num);
+	mpfr_div_d(num.value, num.value, 4.0, MPFR_RNDN);
+	output_constant<FloatX, FloatBase>("lemniscate2", name, num);
 
 	mpfr_const_pi(temp.value, MPFR_RNDN);
 	mpfr_set_str(num.value, lemniscate_const_text, 10, MPFR_RNDN);
 	mpfr_div(num.value, num.value, temp.value, MPFR_RNDN);
-	output_constant<FloatX>("gauss", name, num);
-
-	mpfr_set_str(num.value, lemniscate_const_text, 10, MPFR_RNDN);
-	output_constant<FloatX>("lemniscate", name, num);
-	mpfr_mul_d(num.value, num.value, 2.0, MPFR_RNDN);
-	output_constant<FloatX>("2lemniscate", name, num);
-	mpfr_div_d(num.value, num.value, 4.0, MPFR_RNDN);
-	output_constant<FloatX>("lemniscate2", name, num);
-
+	output_constant<FloatX, FloatBase>("gauss", name, num);
 
 }
 

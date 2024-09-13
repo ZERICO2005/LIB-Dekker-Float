@@ -10,6 +10,7 @@
 
 #include "Float128.hpp"
 #include "Float128x2_def.h"
+#include "../FloatNxN/FloatNxN_constants.hpp"
 
 //------------------------------------------------------------------------------
 // Float128x2 Constants
@@ -51,5 +52,14 @@ namespace std {
 	}
 }
 #endif
+
+//------------------------------------------------------------------------------
+// Float128x2 Arithmetic Operator Overloads
+//------------------------------------------------------------------------------
+
+inline constexpr Float128x2 operator-(const Float128x2& x) {
+	return {-x.hi, -x.lo};
+}
+
 
 #endif /* FLOAT128X2_HPP */

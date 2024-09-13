@@ -143,7 +143,7 @@ void run_math_demo(unsigned int seed) {
 
 
 void run_generate_constants(void) {
-	generate_constants<Float64x4>("double");
+	generate_constants<Float64x4, fp64>("Float64x4");
 }
 
 #if 0

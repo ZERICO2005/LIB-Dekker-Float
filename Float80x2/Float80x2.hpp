@@ -18,6 +18,7 @@
 #include "Float80x2_def.h"
 
 #include "../FloatNxN/FloatNxN_arithmetic.hpp"
+#include "../FloatNxN/FloatNxN_constants.hpp"
 
 // Can be changed to other types for better accuracy
 typedef long double Float80x2_Math;
