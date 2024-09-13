@@ -1051,22 +1051,61 @@ namespace std {
 		);
 	}
 
+
+	/**
+	 * @brief Returns the next representable value after `x` in the direction
+	 * of `y`. If `x == y`, `x` is returned.
+	 */
+	inline Float64x2 nextafter(const Float64x2& x, const Float64x2& y) {
+		if (x == y) {
+			return x;
+		}
+		Float64x2 ret = x;
+		if (x < y) {
+			ret.lo = nextafter(x.lo, std::numeric_limits<fp64>::infinity());
+		} else {
+			ret.lo = nextafter(x.lo, -std::numeric_limits<fp64>::infinity());
+		}
+		ret += static_cast<fp64>(0.0); // renormilize
+		return ret;
+	}
+
+	/**
+	 * @brief Returns the next representable value after `x` in the direction
+	 * of `y`. If `x == y`, `x` is returned.
+	 * @note `long double` may or may not have greater precision than Float64x2
+	 * depending on the platform, this may lead to unexpected results. Prefer
+	 * using nextafter instead.
+	 */
+	inline Float64x2 nexttoward(const Float64x2& x, const long double y) {
+		if (x == static_cast<Float64x2>(y) && static_cast<long double>(x) == y) {
+			return x;
+		}
+		Float64x2 ret = x;
+		if (x <= static_cast<Float64x2>(y)) {
+			ret.lo = nextafter(x.lo, std::numeric_limits<fp64>::infinity());
+		} else {
+			ret.lo = nextafter(x.lo, -std::numeric_limits<fp64>::infinity());
+		}
+		ret += static_cast<fp64>(0.0); // renormilize
+		return ret;
+	}
+
 /* Trigonometry */
 
 	Float64x2  sin (const Float64x2& x);
 	Float64x2  cos (const Float64x2& x);
+
+	/**
+	 * @brief Simultaneously calculates `sin(x)` and `cos(x)`. Faster than
+	 * calculating `sin(x)` and `cos(x)` individually.
+	 */
 	void sincos(const Float64x2& x, Float64x2& p_sin , Float64x2& p_cos );
-	
 
-	// Float64x2 tan(const Float64x2& x);
-	
-	// #include "../Float64x4/Float64x4_def.h"
-	
-	// template<>
-	// Float64x4 LDF::div<Float64x4, Float64x2, Float64x2>(const Float64x2& x, const Float64x2& y);
-	
-	// Float64x4 tan(const Float64x4& x);
-
+	/**
+	 * @brief Calculates `tan(x)` to Float64x2 precision.
+	 * @remarks Calls `sincos` and does `sin / cos` to calculate `tan(x)`
+	 */
 	inline Float64x2 tan(const Float64x2& x) {
 		Float64x2 sin_val, cos_val;
 		sincos(x, sin_val, cos_val);
@@ -1080,30 +1119,68 @@ namespace std {
 	Float64x2 atan (const Float64x2& x);
 	Float64x2  sinh(const Float64x2& x);
 	Float64x2  cosh(const Float64x2& x);
+
+	/**
+	 * @brief Simultaneously calculates `sinh(x)` and `cosh(x)`. Faster than
+	 * calculating `sinh(x)` and `cosh(x)` individually.
+	 */
 	void sinhcosh(const Float64x2& x, Float64x2& p_sinh, Float64x2& p_cosh);
 	Float64x2  tanh(const Float64x2& x);
 	Float64x2 asinh(const Float64x2& x);
 	Float64x2 acosh(const Float64x2& x);
 	Float64x2 atanh(const Float64x2& x);
+
+	/**
+	 * @brief Calculates double-argument `arctan`
+	 * @note atan2(y, 1.0) == atan(y)
+	 */
 	Float64x2 atan2(const Float64x2& y, const Float64x2& x);
 
 /* Logarithms and Exponents */
 
 	Float64x2 log(const Float64x2& x);
+	
+	/**
+	 * @brief Calculates `log(x + 1.0)` without losing precision when x is
+	 * close to zero.
+	 * @note Uses Float64x4 for calculations, which may cause this function to
+	 * run slowly.
+	 */
 	Float64x2 log1p(const Float64x2& x);
+
+	/** @note Naive implementation of log2(x) */
 	inline Float64x2 log2(const Float64x2 x) {
 		return log(x) * Float64x2_log2e;
 	}
+
+	/** @note Naive implementation of log10(x) */
 	inline Float64x2 log10(const Float64x2 x) {
 		return log(x) * Float64x2_log10e;
 	}
-	inline Float64x2 logb(const Float64x2 x) { return logb(x.hi + x.lo); }
+
+	/**
+	 * @brief Calculates log(|x|) in base FLT_RADIX
+	 * @note Naive implementation of logb(x)
+	 */
+	inline Float64x2 logb(const Float64x2 x) {
+		return log(fabs(x)) / log(static_cast<Float64x2>(std::numeric_limits<fp64>::radix));
+	}
 
 	Float64x2 exp(const Float64x2& x);
+
+	/**
+	 * @brief Calculates `exp(x) - 1.0` without losing precision when x is
+	 * close to zero.
+	 * @note Uses a naive implementation of `expm1(x)` when `|x| > 0.5 * ln(2)`
+	 */
 	Float64x2 expm1(const Float64x2& x);
+
+	/** @note Naive implementation of exp2(x). Calls `exp(x * ln(2))` */
 	inline Float64x2 exp2(const Float64x2 x) {
 		return exp(x * Float64x2_ln2);
 	}
+
+	/** @note Naive implementation of exp10(x). Calls `exp(x * ln(10))` */
 	inline Float64x2 exp10(const Float64x2 x) {
 		return exp(x * Float64x2_ln10);
 	}
@@ -1188,10 +1265,19 @@ namespace std {
 
 /* Integer and Remainder */
 
+	/**
+	 * @brief Returns the remainder of x / y (rounded towards zero)
+	 * @note Naive implementation of fmod
+	 */
 	inline Float64x2 fmod(const Float64x2& x, const Float64x2& y) {
 		Float64x2 trunc_part = trunc(x / y);
 		return x - y * trunc_part;
 	}
+
+	/**
+	 * @brief Extracts the fractional and integer part of a Float64x2 value.
+	 * @note Naive implementation of modf
+	 */
 	inline Float64x2 modf(const Float64x2& x, Float64x2& int_part) {
 		Float64x2 trunc_part = trunc(x);
 		int_part = trunc_part;
@@ -1200,10 +1286,19 @@ namespace std {
 	inline Float64x2 nearbyint(const Float64x2& x) {
 		return rint(x);
 	}
+
+	/**
+	 * @brief Returns the remainder of x / y (rounded to nearest)
+	 */
 	inline Float64x2 remainder(const Float64x2& x, const Float64x2& y) {
 		Float64x2 round_part = round(x / y);
 		return x - y * round_part;
 	}
+
+	/**
+	 * @brief Returns the remainder of x / y (rounded to nearest) in addition
+	 * to returning the quotient value used.
+	 */
 	inline Float64x2 remquo(const Float64x2& x, const Float64x2& y, int& quo) {
 		Float64x2 q = round(x / y);
 		Float64x2 r = x - y * q;
@@ -1218,19 +1313,21 @@ namespace std {
 	 * binary logarithm.
 	 */
 	inline int ilogb(const Float64x2& x) {
-		return ilogb(x.hi + x.lo);
+		return ilogb(x.hi);
 	}
+
 	/**
 	 * @brief Returns a normalized Float64x2 value and the exponent in
 	 * the form [0.0, 1.0) * 2^expon
 	 */
 	inline Float64x2 frexp(const Float64x2& x, int& expon) {
 		Float64x2 ret;
-		expon = ilogb(x.hi + x.lo) + 1;
+		expon = ilogb(x) + 1;
 		ret.hi = ldexp(x.hi, -(expon));
 		ret.lo = ldexp(x.lo, -(expon));
 		return ret;
 	}
+
 	/**
 	 * @brief Multiplies a Float64x2 value by 2^expon
 	 */
@@ -1240,6 +1337,7 @@ namespace std {
 		ret.lo = isfinite(x.hi) ? ldexp(x.lo, expon) : x.hi;
 		return ret;
 	}
+
 	/**
 	 * @brief Multiplies a Float64x2 value by FLT_RADIX^expon
 	 */
@@ -1249,6 +1347,7 @@ namespace std {
 		ret.lo = isfinite(x.hi) ? scalbn(x.lo, expon) : x.hi;
 		return ret;
 	}
+
 	/**
 	 * @brief Multiplies a Float64x2 value by FLT_RADIX^expon
 	 */
