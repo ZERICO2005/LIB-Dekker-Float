@@ -868,6 +868,9 @@ Float64x2 atan2(const Float64x2& y, const Float64x2& x) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 Float64x2 asin(const Float64x2& x) {
+	if (isequal_zero(x)) {
+		return static_cast<fp64>(0.0);
+	}
 	const Float64x2 abs_x = fabs(x);
 
 	if (abs_x > static_cast<fp64>(1.0)) {
@@ -887,6 +890,9 @@ Float64x2 asin(const Float64x2& x) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 Float64x2 acos(const Float64x2& x) {
+	if (isequal_zero(x)) {
+		return Float64x2_pi2;
+	}
 	const Float64x2 abs_x = fabs(x);
 
 	if (abs_x > static_cast<fp64>(1.0)) {
@@ -996,6 +1002,9 @@ void sinhcosh(const Float64x2& x, Float64x2& p_sinh, Float64x2& p_cosh) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 Float64x2 asinh(const Float64x2& x) {
+	if (isequal_zero(x)) {
+		return static_cast<fp64>(0.0);
+	}
 	return log(x + sqrt(square(x) + static_cast<fp64>(1.0)));
 }
 
@@ -1004,7 +1013,10 @@ Float64x2 asinh(const Float64x2& x) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 Float64x2 acosh(const Float64x2& x) {
-	if (x < static_cast<fp64>(1.0)) {
+	if (x <= static_cast<fp64>(1.0)) {
+		if (x == static_cast<fp64>(1.0)) {
+			return static_cast<fp64>(0.0);
+		}
 		// Float64x2::error("(Float64x2::acosh): Argument out of domain.");
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
@@ -1018,17 +1030,27 @@ Float64x2 acosh(const Float64x2& x) {
  */
 Float64x2 atanh(const Float64x2& x) {
 	if (fabs(x) >= static_cast<fp64>(1.0)) {
+		if (x == static_cast<fp64>(1.0)) {
+			return std::numeric_limits<Float64x2>::infinity();
+		}
+		if (x == static_cast<fp64>(-1.0)) {
+			return -std::numeric_limits<Float64x2>::infinity();
+		}
 		// Float64x2::error("(Float64x2::atanh): Argument out of domain.");
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
 	#if 1
-		// Value of ~0.472 found experimentally, but set to 0.48 just to be safe
-		if (fabs(x) >= static_cast<fp64>(0.48)) {
-			// Accurate for larger numbers
+		/**
+		 * @brief Value of ~0.472 yeilds the most precision. However, it should
+		 * thoeritically be 0.5, where log and log1p would yeild equal
+		 * precision for this function.
+		 */
+		if (fabs(x) >= static_cast<fp64>(0.5)) {
+			// Accurate for larger numbers |x| >= 0.5
 			return mul_pwr2(log((static_cast<fp64>(1.0) + x) / (static_cast<fp64>(1.0) - x)), 0.5);
 
 		}
-		// Accurate for smaller numbers
+		// Accurate for smaller numbers |x| < 0.5
 		return mul_pwr2(log1p(x) - log1p(-x), 0.5);
 	#else
 		#if 1
