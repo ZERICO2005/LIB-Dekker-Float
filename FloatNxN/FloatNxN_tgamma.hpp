@@ -19,6 +19,9 @@
 #ifndef FLOATNXN_TGAMMA_HPP
 #define FLOATNXN_TGAMMA_HPP
 
+#include "../LDF/LDF_type_info.hpp"
+#include "../LDF/LDF_constants.hpp"
+
 #include <cmath>
 #include <limits>
 #include <cassert>
@@ -435,14 +438,10 @@ void T_call_dd_nint(const FloatNxN& a, FloatNxN& b) {
  * @brief Computes the Gamma function, or (t - 1)!
  */
 template <
-	typename FloatNxN, typename FloatBase, int FloatBase_Count,
+	typename FloatNxN, typename FloatBase,
 	int max_iter
 >
-static inline FloatNxN libDQFUN_tgamma(
-	const FloatNxN& t,
-	const FloatNxN FloatNxN_pi, const FloatNxN FloatNxN_sqrtpi,
-	const FloatBase FloatBase_ln2
-) {
+static inline FloatNxN libDQFUN_tgamma(const FloatNxN& t) {
 	// This evaluates the gamma function, using an algorithm of R. W. Potter.
 	// The argument t must not exceed 10^8 in size (this limit is set below),
 	// must not be zero, and if negative must not be integer.
@@ -462,7 +461,7 @@ static inline FloatNxN libDQFUN_tgamma(
 
 	target_epsilon = ldexp(
 		static_cast<FloatBase>(1.0),
-		-FloatBase_Count * std::numeric_limits<FloatBase>::digits
+		-LDF::LDF_Type_Info<FloatNxN>::FloatBase_Count * std::numeric_limits<FloatBase>::digits
 	);
 
 	// const FloatNxN t_trunc_part = trunc(t);
@@ -548,8 +547,9 @@ static inline FloatNxN libDQFUN_tgamma(
 				z = -z;
 			}
 		}
+		
 		// (n + 0.5)! will be a multiple of sqrt(pi)
-		return z * FloatNxN_sqrtpi;
+		return z * LDF::const_sqrtpi<FloatNxN>();
 	}
 
 	if (isgreater_zero(t)) {
@@ -587,8 +587,8 @@ static inline FloatNxN libDQFUN_tgamma(
 
 	FloatBase alpha = static_cast<FloatBase>(2.0) * trunc(
 		static_cast<FloatBase>(1.0) + (static_cast<FloatBase>(
-				(FloatBase_Count + 1) * std::numeric_limits<FloatBase>::digits
-		) * FloatBase_ln2) * static_cast<FloatBase>(0.25)
+				(LDF::LDF_Type_Info<FloatNxN>::FloatBase_Count + 1) * std::numeric_limits<FloatBase>::digits
+		) * LDF::const_ln2<FloatBase>()) * static_cast<FloatBase>(0.25)
 	);
 	d2 = static_cast<FloatBase>(0.25) * (alpha * alpha);
 
@@ -651,7 +651,7 @@ static inline FloatNxN libDQFUN_tgamma(
 
 	z = taylor_sum * (
 		sqrt(-(
-			(FloatNxN_pi * sum_t_pos) / (tn * (sin(FloatNxN_pi * tn) * sum_t_neg))
+			(LDF::const_pi<FloatNxN>() * sum_t_pos) / (tn * (sin(LDF::const_pi<FloatNxN>() * tn) * sum_t_neg))
 		)) * exp(tn * log(
 			static_cast<FloatNxN>(static_cast<FloatBase>(0.5) * alpha)
 		))

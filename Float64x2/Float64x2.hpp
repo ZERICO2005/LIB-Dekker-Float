@@ -519,38 +519,29 @@ Float64x2 LDF::recip<Float64x2, fp64>
 /**
  * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero
  */
-template <> inline
+template <> inline constexpr
 Float64x2 LDF::mul_pwr2<Float64x2, Float64x2, fp64>
 (const Float64x2& x, const fp64& y) {
-	Float64x2 ret;
-	ret.hi = x.hi * y;
-	ret.lo = x.lo * y;
-	return ret;
+	return {x.hi * y, x.lo * y};
 }
 
 /**
  * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero
  */
-template <> inline
+template <> inline constexpr
 Float64x2 LDF::mul_pwr2<Float64x2, fp64, Float64x2>
 (const fp64& x, const Float64x2& y) {
-	Float64x2 ret;
-	ret.hi = x * y.hi;
-	ret.lo = x * y.lo;
-	return ret;
+	return {x * y.hi, x * y.hi};
 }
 
 /**
  * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero.
  * The result is stored as a Float64x2
  */
-template <> inline
+template <> inline constexpr
 Float64x2 LDF::mul_pwr2<Float64x2, fp64, fp64>
 (const fp64& x, const fp64& y) {
-	Float64x2 ret;
-	ret.hi = x * y;
-	ret.lo = static_cast<fp64>(0.0);
-	return ret;
+	return {x * y, static_cast<fp64>(0.0)};
 }
 
 //------------------------------------------------------------------------------
@@ -709,10 +700,10 @@ inline Float64x2 recip(const Float64x2& x) {
 	return LDF::recip<Float64x2, Float64x2>(x);
 }
 
-inline Float64x2 mul_pwr2(const Float64x2& x, const fp64 y) {
+inline constexpr Float64x2 mul_pwr2(const Float64x2& x, const fp64 y) {
 	return LDF::mul_pwr2<Float64x2, Float64x2, fp64>(x, y);
 }
-inline Float64x2 mul_pwr2(const fp64 x, const Float64x2& y) {
+inline constexpr Float64x2 mul_pwr2(const fp64 x, const Float64x2& y) {
 	return LDF::mul_pwr2<Float64x2, fp64, Float64x2>(x, y);
 }
 
@@ -799,7 +790,9 @@ namespace std {
 		static constexpr std::float_denorm_style has_denorm = std::numeric_limits<fp64>::has_denorm;
 		static constexpr bool is_bounded = true;
 		static constexpr int digits = 106; // 2 * (52 mantissa bits + 1 implicit bit)
+		#if __cplusplus >= 201103L
 		static constexpr int digits10 = 31; // floor(mantissa bits * log10(2))
+		#endif
 		/**
 		 * @brief Dekker floats can represent FLT_MAX + FLT_MIN exactly, which
 		 * is why an absurd amount of digits may be required.
@@ -828,7 +821,9 @@ namespace std {
 				std::numeric_limits<fp64>::max() * static_cast<fp64>(0x1.0p-54)
 			};
 		}
+		#if __cplusplus >= 201103L
 		inline static constexpr Float64x2 lowest() { return -max(); }
+		#endif
 		inline static constexpr Float64x2 epsilon() { return {static_cast<fp64>(0x1.0p-104), static_cast<fp64>(0.0)}; } // DBL_EPSILON seems to be 0x1.0p-52
 		inline static constexpr Float64x2 round_error() { return {static_cast<fp64>(0.5), static_cast<fp64>(0.0)}; }
 		inline static constexpr Float64x2 infinity() {
@@ -861,66 +856,26 @@ namespace std {
 
 #include "Float64x2_constants.hpp"
 
-/* C++20 <numbers> */
-
-	constexpr Float64x2 Float64x2_e          = {0x1.5bf0a8b145769p+1,+0x1.4d57ee2b1013ap-53}; /**< ~2.718281828 */
-	constexpr Float64x2 Float64x2_log2e      = {0x1.71547652b82fep+0,+0x1.777d0ffda0d24p-56}; /**< ~1.442695041 */
-	constexpr Float64x2 Float64x2_log10e     = {0x1.bcb7b1526e50ep-2,+0x1.95355baaafad3p-57}; /**< ~0.434294482 */
-	constexpr Float64x2 Float64x2_pi         = {0x1.921fb54442d18p+1,+0x1.1a62633145c07p-53}; /**< ~3.141592654 */
-	constexpr Float64x2 Float64x2_inv_pi     = {0x1.45f306dc9c883p-2,-0x1.6b01ec5417056p-56}; /**< ~0.318309886 */
-	constexpr Float64x2 Float64x2_inv_sqrtpi = {0x1.20dd750429b6dp-1,+0x1.1ae3a914fed80p-57}; /**< ~0.564189584 */
-	constexpr Float64x2 Float64x2_ln2        = {0x1.62e42fefa39efp-1,+0x1.abc9e3b39803fp-56}; /**< ~0.693147181 */
-	constexpr Float64x2 Float64x2_ln10       = {0x1.26bb1bbb55516p+1,-0x1.f48ad494ea3e9p-53}; /**< ~2.302585093 */
-	constexpr Float64x2 Float64x2_sqrt2      = {0x1.6a09e667f3bcdp+0,-0x1.bdd3413b26456p-54}; /**< ~1.414213562 */
-	constexpr Float64x2 Float64x2_sqrt3      = {0x1.bb67ae8584caap+0,+0x1.cec95d0b5c1e3p-54}; /**< ~1.732050808 */
-	constexpr Float64x2 Float64x2_inv_sqrt3  = {0x1.279a74590331cp-1,+0x1.34863e0792bedp-55}; /**< ~0.577350269 */
-	constexpr Float64x2 Float64x2_egamma     = {0x1.2788cfc6fb619p-1,-0x1.6cb90701fbfabp-58}; /**< ~0.577215665 */
-	constexpr Float64x2 Float64x2_phi        = {0x1.9e3779b97f4a8p+0,-0x1.f506319fcfd19p-55}; /**< ~1.618033989 */
-
 #if __cplusplus >= 201907L
 #include <numbers>
 namespace std {
 	namespace numbers {
-		template<> inline constexpr Float64x2 e_v          <Float64x2> = Float64x2_e         ; /**< ~2.718281828 */
-		template<> inline constexpr Float64x2 log2e_v      <Float64x2> = Float64x2_log2e     ; /**< ~1.442695041 */
-		template<> inline constexpr Float64x2 log10e_v     <Float64x2> = Float64x2_log10e    ; /**< ~0.434294482 */
-		template<> inline constexpr Float64x2 pi_v         <Float64x2> = Float64x2_pi        ; /**< ~3.141592654 */
-		template<> inline constexpr Float64x2 inv_pi_v     <Float64x2> = Float64x2_inv_pi    ; /**< ~0.318309886 */
-		template<> inline constexpr Float64x2 inv_sqrtpi_v <Float64x2> = Float64x2_inv_sqrtpi; /**< ~0.564189584 */
-		template<> inline constexpr Float64x2 ln2_v        <Float64x2> = Float64x2_ln2       ; /**< ~0.693147181 */
-		template<> inline constexpr Float64x2 ln10_v       <Float64x2> = Float64x2_ln10      ; /**< ~2.302585093 */
-		template<> inline constexpr Float64x2 sqrt2_v      <Float64x2> = Float64x2_sqrt2     ; /**< ~1.414213562 */
-		template<> inline constexpr Float64x2 sqrt3_v      <Float64x2> = Float64x2_sqrt3     ; /**< ~1.732050808 */
-		template<> inline constexpr Float64x2 inv_sqrt3_v  <Float64x2> = Float64x2_inv_sqrt3 ; /**< ~0.577350269 */
-		template<> inline constexpr Float64x2 egamma_v     <Float64x2> = Float64x2_egamma    ; /**< ~0.577215665 */
-		template<> inline constexpr Float64x2 phi_v        <Float64x2> = Float64x2_phi       ; /**< ~1.618033989 */
+		template<> inline constexpr Float64x2 e_v          <Float64x2> = LDF::const_e         <Float64x2>(); /**< ~2.718281828 */
+		template<> inline constexpr Float64x2 log2e_v      <Float64x2> = LDF::const_log2e     <Float64x2>(); /**< ~1.442695041 */
+		template<> inline constexpr Float64x2 log10e_v     <Float64x2> = LDF::const_log10e    <Float64x2>(); /**< ~0.434294482 */
+		template<> inline constexpr Float64x2 pi_v         <Float64x2> = LDF::const_pi        <Float64x2>(); /**< ~3.141592654 */
+		template<> inline constexpr Float64x2 inv_pi_v     <Float64x2> = LDF::const_inv_pi    <Float64x2>(); /**< ~0.318309886 */
+		template<> inline constexpr Float64x2 inv_sqrtpi_v <Float64x2> = LDF::const_inv_sqrtpi<Float64x2>(); /**< ~0.564189584 */
+		template<> inline constexpr Float64x2 ln2_v        <Float64x2> = LDF::const_ln2       <Float64x2>(); /**< ~0.693147181 */
+		template<> inline constexpr Float64x2 ln10_v       <Float64x2> = LDF::const_ln10      <Float64x2>(); /**< ~2.302585093 */
+		template<> inline constexpr Float64x2 sqrt2_v      <Float64x2> = LDF::const_sqrt2     <Float64x2>(); /**< ~1.414213562 */
+		template<> inline constexpr Float64x2 sqrt3_v      <Float64x2> = LDF::const_sqrt3     <Float64x2>(); /**< ~1.732050808 */
+		template<> inline constexpr Float64x2 inv_sqrt3_v  <Float64x2> = LDF::const_inv_sqrt3 <Float64x2>(); /**< ~0.577350269 */
+		template<> inline constexpr Float64x2 egamma_v     <Float64x2> = LDF::const_egamma    <Float64x2>(); /**< ~0.577215665 */
+		template<> inline constexpr Float64x2 phi_v        <Float64x2> = LDF::const_phi       <Float64x2>(); /**< ~1.618033989 */
 	}
 }
 #endif
-
-/* Other constants */
-
-	constexpr Float64x2 Float64x2_sqrtpi = {0x1.c5bf891b4ef6bp+0,-0x1.618f13eb7ca89p-54}; /**< ~1.772453851 */
-	constexpr Float64x2 Float64x2_inv_e  = {0x1.78b56362cef37p-2,+0x1.8d5d6f63c1482p-55}; /**< ~0.367879441 */
-
-	constexpr Float64x2 Float64x2_2pi  = {0x1.921fb54442d18p+2,+0x1.1a62633145c06p-52}; /**< ~6.283185 */
-	constexpr Float64x2 Float64x2_pi2  = {0x1.921fb54442d18p+0,+0x1.1a62633145c06p-54}; /**< ~1.570796 */
-	constexpr Float64x2 Float64x2_pi4  = {0x1.921fb54442d18p-1,+0x1.1a62633145c06p-55}; /**< ~0.785398 */
-	constexpr Float64x2 Float64x2_pi8  = {0x1.921fb54442d18p-2,+0x1.1a62633145c06p-56}; /**< ~0.392699 */
-	constexpr Float64x2 Float64x2_pi16 = {0x1.921fb54442d18p-3,+0x1.1a62633145c06p-57}; /**< ~0.196350 */
-	constexpr Float64x2 Float64x2_3pi4 = {0x1.2d97c7f3321d2p+0,+0x1.a79394c9e8a0ap-55}; /**< ~2.356194 */
-
-/* Constant Aliases */
-
-	constexpr Float64x2 Float64x2_euler = Float64x2_e   ; /**< ~2.718281828 */
-
-	constexpr Float64x2 Float64x2_tau   = Float64x2_2pi ; /**< ~6.283185 */
-	constexpr Float64x2 Float64x2_tau2  = Float64x2_pi  ; /**< ~3.141593 */
-	constexpr Float64x2 Float64x2_tau4  = Float64x2_pi2 ; /**< ~1.570796 */
-	constexpr Float64x2 Float64x2_tau8  = Float64x2_pi4 ; /**< ~0.785398 */
-	constexpr Float64x2 Float64x2_tau16 = Float64x2_pi8 ; /**< ~0.392699 */
-	constexpr Float64x2 Float64x2_tau32 = Float64x2_pi16; /**< ~0.196350 */
-	constexpr Float64x2 Float64x2_3tau8 = Float64x2_3pi4; /**< ~2.356194 */
 
 //------------------------------------------------------------------------------
 // Float64x2 Math Functions
@@ -1169,12 +1124,12 @@ namespace std {
 
 	/** @note Naive implementation of log2(x) */
 	inline Float64x2 log2(const Float64x2 x) {
-		return log(x) * Float64x2_log2e;
+		return log(x) * LDF::const_log2e<Float64x2>();
 	}
 
 	/** @note Naive implementation of log10(x) */
 	inline Float64x2 log10(const Float64x2 x) {
-		return log(x) * Float64x2_log10e;
+		return log(x) * LDF::const_log10e<Float64x2>();
 	}
 
 	/**
@@ -1196,12 +1151,12 @@ namespace std {
 
 	/** @note Naive implementation of exp2(x). Calls `exp(x * ln(2))` */
 	inline Float64x2 exp2(const Float64x2 x) {
-		return exp(x * Float64x2_ln2);
+		return exp(x * LDF::const_ln2<Float64x2>());
 	}
 
 	/** @note Naive implementation of exp10(x). Calls `exp(x * ln(10))` */
 	inline Float64x2 exp10(const Float64x2 x) {
-		return exp(x * Float64x2_ln10);
+		return exp(x * LDF::const_ln10<Float64x2>());
 	}
 
 	inline Float64x2 pow(const Float64x2& x, const Float64x2& y) {

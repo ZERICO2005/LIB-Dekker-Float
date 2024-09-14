@@ -36,6 +36,8 @@
 #include <math.h>
 #include <fenv.h>
 
+#include "../LDF/LDF_restrict.h"
+
 //------------------------------------------------------------------------------
 // Float64x6 struct
 //------------------------------------------------------------------------------
@@ -111,29 +113,6 @@ typedef union Bitwise_Float64x6 {
 #endif
 #ifdef DBL_HAS_SUBNORM
 	#define FLOAT64X6_HAS_SUBNORM DBL_HAS_SUBNORM
-#endif
-
-//------------------------------------------------------------------------------
-// Float64x6 restrict
-//------------------------------------------------------------------------------
-
-/**
- * @brief FLOAT64X6_RESTRICT defines the restrict keyword for C++ compilers.
- * You may define it before including this header to use your compilers version
- * of C++ restrict, or to disable C++ restrict for this header entirely.
- */
-#ifndef FLOAT64X6_RESTRICT
-	#ifndef __cplusplus
-		#define FLOAT64X6_RESTRICT restrict
-	#elif defined(__GNUC__)
-		#define FLOAT64X6_RESTRICT __restrict
-	#elif defined(_MSC_VER)
-		#define FLOAT64X6_RESTRICT __restrict
-	#elif defined(__INTEL_COMPILER)
-		#define FLOAT64X6_RESTRICT __restrict
-	#else 
-		#define FLOAT64X6_RESTRICT
-	#endif
 #endif
 
 #ifdef __cplusplus
@@ -413,7 +392,7 @@ static inline bool Float64x6_cmpge_d_dx6(const fp64 x, const Float64x6 y) {
 // qd_real.cpp functions
 //------------------------------------------------------------------------------
 
-static inline void Float64x6_quick_renorm(Float64x6* FLOAT64X6_RESTRICT const x) {
+static inline void Float64x6_quick_renorm(Float64x6* LDF_restrict const x) {
 	fp64 t0, t1, t2, t3, t4;
 	fp64 s;
 	s         = x->val[5];
@@ -439,7 +418,7 @@ static inline void Float64x6_quick_renorm(Float64x6* FLOAT64X6_RESTRICT const x)
 }
 
 static inline void Float64x6_renorm(
-	Float64x6* FLOAT64X6_RESTRICT const x
+	Float64x6* LDF_restrict const x
 ) {
 	// #ifdef FLOAT64X6_IEEE_MODE
 	// 	Float64x6_accurate_renorm(x);
@@ -449,7 +428,7 @@ static inline void Float64x6_renorm(
 }
 
 static inline void Float64x6_quick_renorm_err(
-	Float64x6* FLOAT64X6_RESTRICT const x, fp64* FLOAT64X6_RESTRICT const err
+	Float64x6* LDF_restrict const x, fp64* LDF_restrict const err
 ) {
 	fp64 t0, t1, t2, t3, t4, t5;
 	fp64 s;
@@ -481,7 +460,7 @@ static inline void Float64x6_quick_renorm_err(
 }
 
 static inline void Float64x6_renorm_err(
-	Float64x6* FLOAT64X6_RESTRICT const x, fp64* FLOAT64X6_RESTRICT const err
+	Float64x6* LDF_restrict const x, fp64* LDF_restrict const err
 ) {
 	// #ifdef FLOAT64X6_IEEE_MODE
 	// 	Float64x6_accurate_renorm_err(x, err);

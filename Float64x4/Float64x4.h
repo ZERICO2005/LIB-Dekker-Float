@@ -34,6 +34,8 @@
 #include <math.h>
 #include <fenv.h>
 
+#include "../LDF/LDF_restrict.h"
+
 //------------------------------------------------------------------------------
 // Float64x4 struct
 //------------------------------------------------------------------------------
@@ -108,29 +110,6 @@ typedef union Bitwise_Float64x4 {
 #endif
 #ifdef DBL_HAS_SUBNORM
 	#define FLOAT64X4_HAS_SUBNORM DBL_HAS_SUBNORM
-#endif
-
-//------------------------------------------------------------------------------
-// Float64x4 restrict
-//------------------------------------------------------------------------------
-
-/**
- * @brief FLOAT64X4_RESTRICT defines the restrict keyword for C++ compilers.
- * You may define it before including this header to use your compilers version
- * of C++ restrict, or to disable C++ restrict for this header entirely.
- */
-#ifndef FLOAT64X4_RESTRICT
-	#ifndef __cplusplus
-		#define FLOAT64X4_RESTRICT restrict
-	#elif defined(__GNUC__)
-		#define FLOAT64X4_RESTRICT __restrict
-	#elif defined(_MSC_VER)
-		#define FLOAT64X4_RESTRICT __restrict
-	#elif defined(__INTEL_COMPILER)
-		#define FLOAT64X4_RESTRICT __restrict
-	#else 
-		#define FLOAT64X4_RESTRICT
-	#endif
 #endif
 
 #ifdef __cplusplus
@@ -388,22 +367,22 @@ static inline bool Float64x4_cmpge_d_dx6(const fp64 x, const Float64x4 y) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 
-/** @brief Computes fl(x + y) and err(x + y).  Assumes |x| >= |y|. */
-static inline fp64 Float64_quick_two_sum(const fp64 x, const fp64 y, fp64* FLOAT64X4_RESTRICT const err) {
+/** @brief Computes fl(x + y) and err(x + y). Assumes |x| >= |y|. */
+static inline fp64 Float64_quick_two_sum(const fp64 x, const fp64 y, fp64* LDF_restrict const err) {
 	fp64 s = x + y;
 	*err = y - (s - x);
 	return s;
 }
 
-/** @brief Computes fl(x - y) and err(x - y).  Assumes |x| >= |y|. */
-static inline fp64 Float64_quick_two_diff(const fp64 x, const fp64 y, fp64* FLOAT64X4_RESTRICT const err) {
+/** @brief Computes fl(x - y) and err(x - y). Assumes |x| >= |y|. */
+static inline fp64 Float64_quick_two_diff(const fp64 x, const fp64 y, fp64* LDF_restrict const err) {
 	fp64 s = x - y;
 	*err = (x - s) - y;
 	return s;
 }
 
 /** @brief Computes fl(x + y) and err(x + y). */
-static inline fp64 Float64_two_sum(const fp64 x, const fp64 y, fp64* FLOAT64X4_RESTRICT const err) {
+static inline fp64 Float64_two_sum(const fp64 x, const fp64 y, fp64* LDF_restrict const err) {
 	fp64 s = x + y;
 	fp64 bb = s - x;
 	*err = (x - (s - bb)) + (y - bb);
@@ -411,7 +390,7 @@ static inline fp64 Float64_two_sum(const fp64 x, const fp64 y, fp64* FLOAT64X4_R
 }
 
 /** @brief Computes fl(x - y) and err(x - y). */
-static inline fp64 Float64_two_diff(const fp64 x, const fp64 y, fp64* FLOAT64X4_RESTRICT const err) {
+static inline fp64 Float64_two_diff(const fp64 x, const fp64 y, fp64* LDF_restrict const err) {
 	fp64 s = x - y;
 	fp64 bb = s - x;
 	*err = (x - (s - bb)) - (y + bb);
@@ -420,8 +399,8 @@ static inline fp64 Float64_two_diff(const fp64 x, const fp64 y, fp64* FLOAT64X4_
 
 static inline void Float64_split(
 	fp64 a,
-	fp64* FLOAT64X4_RESTRICT const hi,
-	fp64* FLOAT64X4_RESTRICT const lo
+	fp64* LDF_restrict const hi,
+	fp64* LDF_restrict const lo
 ) {
 	const fp64 FLOAT64_SPLITTER = 134217729.0; // = 2^27 + 1
 	const fp64 FLOAT64_SPLIT_THRESH = 0x1.0p+996; // = 2^996
@@ -441,7 +420,7 @@ static inline void Float64_split(
 }
 
 /** @brief Computes fl(x * y) and err(x * y). */
-static inline fp64 Float64_two_prod(const fp64 a, const fp64 b, fp64* FLOAT64X4_RESTRICT const err) {
+static inline fp64 Float64_two_prod(const fp64 a, const fp64 b, fp64* LDF_restrict const err) {
 	fp64 a_hi, a_lo, b_hi, b_lo;
 	fp64 p = a * b;
 	Float64_split(a, &a_hi, &a_lo);
@@ -451,7 +430,7 @@ static inline fp64 Float64_two_prod(const fp64 a, const fp64 b, fp64* FLOAT64X4_
 }
 
 /** @brief Computes fl(x * x) and err(x * x). Faster than Float64_two_prod(x, x, err) */
-static inline fp64 Float64_two_sqr(const fp64 a, fp64* FLOAT64X4_RESTRICT const err) {
+static inline fp64 Float64_two_sqr(const fp64 a, fp64* LDF_restrict const err) {
 	fp64 hi, lo;
 	fp64 q = a * a;
 	Float64_split(a, &hi, &lo);
@@ -465,8 +444,8 @@ static inline fp64 Float64_two_sqr(const fp64 a, fp64* FLOAT64X4_RESTRICT const 
  * remainder. Otherwise `s` is zero and `(a, b)` contains the sum.
  */
 static inline fp64 Float64x4_quick_three_accum(
-	fp64* FLOAT64X4_RESTRICT const a,
-	fp64* FLOAT64X4_RESTRICT const b,
+	fp64* LDF_restrict const a,
+	fp64* LDF_restrict const b,
 	const fp64 c
 ) {
 	fp64 s;
@@ -493,9 +472,9 @@ static inline fp64 Float64x4_quick_three_accum(
 }
 
 static inline void Float64x4_three_sum(
-	fp64* FLOAT64X4_RESTRICT const a,
-	fp64* FLOAT64X4_RESTRICT const b,
-	fp64* FLOAT64X4_RESTRICT const c
+	fp64* LDF_restrict const a,
+	fp64* LDF_restrict const b,
+	fp64* LDF_restrict const c
 ) {
 	fp64 t1, t2, t3;
 	t1 = Float64_two_sum(*a, *b, &t2);
@@ -504,8 +483,8 @@ static inline void Float64x4_three_sum(
 }
 
 static inline void Float64x4_three_sum2(
-	fp64* FLOAT64X4_RESTRICT const a,
-	fp64* FLOAT64X4_RESTRICT const b,
+	fp64* LDF_restrict const a,
+	fp64* LDF_restrict const b,
 	const fp64 c
 ) {
 	fp64 t1, t2, t3;
@@ -514,7 +493,7 @@ static inline void Float64x4_three_sum2(
 	*b = t2 + t3;
 }
 
-static inline void Float64x4_accurate_renorm(Float64x4* FLOAT64X4_RESTRICT const x) {
+static inline void Float64x4_accurate_renorm(Float64x4* LDF_restrict const x) {
 	fp64 s0, s1, s2 = 0.0, s3 = 0.0;
 
 	// if (isinf(x->val[0])) {
@@ -549,7 +528,7 @@ static inline void Float64x4_accurate_renorm(Float64x4* FLOAT64X4_RESTRICT const
 	x->val[3] = s3;
 }
 
-static inline void Float64x4_quick_renorm(Float64x4* FLOAT64X4_RESTRICT const x) {
+static inline void Float64x4_quick_renorm(Float64x4* LDF_restrict const x) {
 	fp64 t0, t1, t2;
 	fp64 s;
 	s         = x->val[3];
@@ -564,7 +543,7 @@ static inline void Float64x4_quick_renorm(Float64x4* FLOAT64X4_RESTRICT const x)
 }
 
 static inline void Float64x4_renorm(
-	Float64x4* FLOAT64X4_RESTRICT const x
+	Float64x4* LDF_restrict const x
 ) {
 	#ifdef FLOAT64X4_IEEE_MODE
 		Float64x4_accurate_renorm(x);
@@ -574,7 +553,7 @@ static inline void Float64x4_renorm(
 }
 
 static inline void Float64x4_accurate_renorm_err(
-	Float64x4* FLOAT64X4_RESTRICT const x, fp64* FLOAT64X4_RESTRICT const err
+	Float64x4* LDF_restrict const x, fp64* LDF_restrict const err
 ) {
 	fp64 s0, s1, s2 = 0.0, s3 = 0.0;
 
@@ -633,7 +612,7 @@ static inline void Float64x4_accurate_renorm_err(
 }
 
 static inline void Float64x4_quick_renorm_err(
-	Float64x4* FLOAT64X4_RESTRICT const x, fp64* FLOAT64X4_RESTRICT const err
+	Float64x4* LDF_restrict const x, fp64* LDF_restrict const err
 ) {
 	fp64 t0, t1, t2, t3;
 	fp64 s;
@@ -653,7 +632,7 @@ static inline void Float64x4_quick_renorm_err(
 }
 
 static inline void Float64x4_renorm_err(
-	Float64x4* FLOAT64X4_RESTRICT const x, fp64* FLOAT64X4_RESTRICT const err
+	Float64x4* LDF_restrict const x, fp64* LDF_restrict const err
 ) {
 	#ifdef FLOAT64X4_IEEE_MODE
 		Float64x4_accurate_renorm_err(x, err);
@@ -2772,49 +2751,21 @@ static inline Float64x4 Float64x4_pow_dx4_d(const Float64x4 x, const fp64 y) {
 
 Float64x4 Float64x4_sin(Float64x4 x);
 Float64x4 Float64x4_cos(Float64x4 x);
-void Float64x4_sincos(Float64x4 x, Float64x4* p_sin, Float64x4* p_cos);
-static inline Float64x4 Float64x4_tan(const Float64x4 x) {
-	Float64x4 t_sin, t_cos;
-	Float64x4_sincos(x, &t_sin, &t_cos);
-	return Float64x4_div(t_sin, t_cos);
-}
-
+void Float64x4_sincos(Float64x4 x, Float64x4* LDF_restrict p_sin, Float64x4* LDF_restrict p_cos);
+Float64x4 Float64x4_tan(Float64x4 x);
 Float64x4 Float64x4_asin(Float64x4 x);
 Float64x4 Float64x4_acos(Float64x4 x);
 Float64x4 Float64x4_atan(Float64x4 x);
 Float64x4 Float64x4_atan2(Float64x4 y, Float64x4 x);
 
-/** @note sinh is inaccurate when x is close to 0, which is why it isn't inlined */
 Float64x4 Float64x4_sinh(Float64x4 x);
-static inline Float64x4 Float64x4_cosh(const Float64x4 x) {
-	Float64x4 exp_x = Float64x4_exp(x);
-	return Float64x4_mul_power2_dx4_d(Float64x4_add(
-		exp_x, Float64x4_recip(exp_x)
-	), 0.5);
-}
+Float64x4 Float64x4_cosh(Float64x4 x);
 Float64x4 Float64x4_tanh(Float64x4 x);
-void Float64x4_sinhcosh(Float64x4 x, Float64x4* p_sinh, Float64x4* p_cosh);
+void Float64x4_sinhcosh(Float64x4 x, Float64x4* LDF_restrict p_sinh, Float64x4* LDF_restrict p_cosh);
 
-static inline Float64x4 Float64x4_asinh(const Float64x4 x) {
-	return Float64x4_log(Float64x4_add(x,
-		Float64x4_sqrt(
-			Float64x4_sub_dx4_d(Float64x4_square(x), 1.0)
-		)
-	));
-}
-static inline Float64x4 Float64x4_acosh(const Float64x4 x) {
-	return Float64x4_log(Float64x4_add(x,
-		Float64x4_sqrt(
-			Float64x4_add_dx4_d(Float64x4_square(x), 1.0)
-		)
-	));
-}
-static inline Float64x4 Float64x4_atanh(const Float64x4 x) {
-	return Float64x4_mul_power2_dx4_d(Float64x4_log(Float64x4_div(
-			Float64x4_add_d_dx4(1.0, x),
-			Float64x4_sub_d_dx4(1.0, x)
-	)), 0.5);
-}
+Float64x4 Float64x4_asinh(Float64x4 x);
+Float64x4 Float64x4_acosh(Float64x4 x);
+Float64x4 Float64x4_atanh(Float64x4 x);
 
 #ifdef __cplusplus
 	}

@@ -51,7 +51,7 @@ Ret_Type recip(const Input_Type& x);
  * Optimized routine for multiplying a Dekker-Float by a known power of two.
  */
 template <typename Ret_Type, typename OP1_Type, typename OP2_Type>
-Ret_Type mul_pwr2(const OP1_Type& x, const OP2_Type& y);
+constexpr Ret_Type mul_pwr2(const OP1_Type& x, const OP2_Type& y);
 
 //------------------------------------------------------------------------------
 // Bitwise Operations

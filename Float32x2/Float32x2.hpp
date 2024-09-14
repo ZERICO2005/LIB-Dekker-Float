@@ -519,38 +519,29 @@ Float32x2 LDF::recip<Float32x2, fp32>
 /**
  * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero
  */
-template <> inline
+template <> inline constexpr
 Float32x2 LDF::mul_pwr2<Float32x2, Float32x2, fp32>
 (const Float32x2& x, const fp32& y) {
-	Float32x2 ret;
-	ret.hi = x.hi * y;
-	ret.lo = x.lo * y;
-	return ret;
+	return {x.hi * y, x.lo * y};
 }
 
 /**
  * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero
  */
-template <> inline
+template <> inline constexpr
 Float32x2 LDF::mul_pwr2<Float32x2, fp32, Float32x2>
 (const fp32& x, const Float32x2& y) {
-	Float32x2 ret;
-	ret.hi = x * y.hi;
-	ret.lo = x * y.lo;
-	return ret;
+	return {x * y.hi, x * y.hi};
 }
 
 /**
  * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero.
  * The result is stored as a Float32x2
  */
-template <> inline
+template <> inline constexpr
 Float32x2 LDF::mul_pwr2<Float32x2, fp32, fp32>
 (const fp32& x, const fp32& y) {
-	Float32x2 ret;
-	ret.hi = x * y;
-	ret.lo = static_cast<fp32>(0.0);
-	return ret;
+	return {x * y, static_cast<fp32>(0.0)};
 }
 
 //------------------------------------------------------------------------------
@@ -709,10 +700,10 @@ inline Float32x2 recip(const Float32x2& x) {
 	return LDF::recip<Float32x2, Float32x2>(x);
 }
 
-inline Float32x2 mul_pwr2(const Float32x2& x, const fp32 y) {
+inline constexpr Float32x2 mul_pwr2(const Float32x2& x, const fp32 y) {
 	return LDF::mul_pwr2<Float32x2, Float32x2, fp32>(x, y);
 }
-inline Float32x2 mul_pwr2(const fp32 x, const Float32x2& y) {
+inline constexpr Float32x2 mul_pwr2(const fp32 x, const Float32x2& y) {
 	return LDF::mul_pwr2<Float32x2, fp32, Float32x2>(x, y);
 }
 
@@ -788,39 +779,23 @@ inline Float32x2 operator--(Float32x2& x, int) {
 
 #include "Float32x2_constants.hpp"
 
-/* C++20 <numbers> */
-
-	constexpr Float32x2 Float32x2_e          = {0x1.5bf0a8p+1f,+0x1.628aeep-24f}; /**< ~2.718281828 */
-	constexpr Float32x2 Float32x2_log2e      = {0x1.715476p+0f,+0x1.4ae0c0p-26f}; /**< ~1.442695041 */
-	constexpr Float32x2 Float32x2_log10e     = {0x1.bcb7b2p-2f,-0x1.5b235ep-27f}; /**< ~0.434294482 */
-	constexpr Float32x2 Float32x2_pi         = {0x1.921fb6p+1f,-0x1.777a5cp-24f}; /**< ~3.141592654 */
-	constexpr Float32x2 Float32x2_inv_pi     = {0x1.45f306p-2f,+0x1.b93910p-27f}; /**< ~0.318309886 */
-	constexpr Float32x2 Float32x2_inv_sqrtpi = {0x1.20dd76p-1f,-0x1.f7ac92p-26f}; /**< ~0.564189584 */
-	constexpr Float32x2 Float32x2_ln2        = {0x1.62e430p-1f,-0x1.05c610p-29f}; /**< ~0.693147181 */
-	constexpr Float32x2 Float32x2_ln10       = {0x1.26bb1cp+1f,-0x1.12aabap-25f}; /**< ~2.302585093 */
-	constexpr Float32x2 Float32x2_sqrt2      = {0x1.6a09e6p+0f,+0x1.9fcef4p-26f}; /**< ~1.414213562 */
-	constexpr Float32x2 Float32x2_sqrt3      = {0x1.bb67aep+0f,+0x1.0b0996p-25f}; /**< ~1.732050808 */
-	constexpr Float32x2 Float32x2_inv_sqrt3  = {0x1.279a74p-1f,+0x1.640cc8p-27f}; /**< ~0.577350269 */
-	constexpr Float32x2 Float32x2_egamma     = {0x1.2788d0p-1f,-0x1.c824f4p-28f}; /**< ~0.577215665 */
-	constexpr Float32x2 Float32x2_phi        = {0x1.9e377ap+0f,-0x1.1a02d6p-26f}; /**< ~1.618033989 */
-
 #if __cplusplus >= 201907L
 #include <numbers>
 namespace std {
 	namespace numbers {
-		template<> inline constexpr Float32x2 e_v          <Float32x2> = Float32x2_e         ; /**< ~2.718281828 */
-		template<> inline constexpr Float32x2 log2e_v      <Float32x2> = Float32x2_log2e     ; /**< ~1.442695041 */
-		template<> inline constexpr Float32x2 log10e_v     <Float32x2> = Float32x2_log10e    ; /**< ~0.434294482 */
-		template<> inline constexpr Float32x2 pi_v         <Float32x2> = Float32x2_pi        ; /**< ~3.141592654 */
-		template<> inline constexpr Float32x2 inv_pi_v     <Float32x2> = Float32x2_inv_pi    ; /**< ~0.318309886 */
-		template<> inline constexpr Float32x2 inv_sqrtpi_v <Float32x2> = Float32x2_inv_sqrtpi; /**< ~0.564189584 */
-		template<> inline constexpr Float32x2 ln2_v        <Float32x2> = Float32x2_ln2       ; /**< ~0.693147181 */
-		template<> inline constexpr Float32x2 ln10_v       <Float32x2> = Float32x2_ln10      ; /**< ~2.302585093 */
-		template<> inline constexpr Float32x2 sqrt2_v      <Float32x2> = Float32x2_sqrt2     ; /**< ~1.414213562 */
-		template<> inline constexpr Float32x2 sqrt3_v      <Float32x2> = Float32x2_sqrt3     ; /**< ~1.732050808 */
-		template<> inline constexpr Float32x2 inv_sqrt3_v  <Float32x2> = Float32x2_inv_sqrt3 ; /**< ~0.577350269 */
-		template<> inline constexpr Float32x2 egamma_v     <Float32x2> = Float32x2_egamma    ; /**< ~0.577215665 */
-		template<> inline constexpr Float32x2 phi_v        <Float32x2> = Float32x2_phi       ; /**< ~1.618033989 */
+		template<> inline constexpr Float32x2 e_v          <Float32x2> = LDF::const_e         <Float32x2>(); /**< ~2.718281828 */
+		template<> inline constexpr Float32x2 log2e_v      <Float32x2> = LDF::const_log2e     <Float32x2>(); /**< ~1.442695041 */
+		template<> inline constexpr Float32x2 log10e_v     <Float32x2> = LDF::const_log10e    <Float32x2>(); /**< ~0.434294482 */
+		template<> inline constexpr Float32x2 pi_v         <Float32x2> = LDF::const_pi        <Float32x2>(); /**< ~3.141592654 */
+		template<> inline constexpr Float32x2 inv_pi_v     <Float32x2> = LDF::const_inv_pi    <Float32x2>(); /**< ~0.318309886 */
+		template<> inline constexpr Float32x2 inv_sqrtpi_v <Float32x2> = LDF::const_inv_sqrtpi<Float32x2>(); /**< ~0.564189584 */
+		template<> inline constexpr Float32x2 ln2_v        <Float32x2> = LDF::const_ln2       <Float32x2>(); /**< ~0.693147181 */
+		template<> inline constexpr Float32x2 ln10_v       <Float32x2> = LDF::const_ln10      <Float32x2>(); /**< ~2.302585093 */
+		template<> inline constexpr Float32x2 sqrt2_v      <Float32x2> = LDF::const_sqrt2     <Float32x2>(); /**< ~1.414213562 */
+		template<> inline constexpr Float32x2 sqrt3_v      <Float32x2> = LDF::const_sqrt3     <Float32x2>(); /**< ~1.732050808 */
+		template<> inline constexpr Float32x2 inv_sqrt3_v  <Float32x2> = LDF::const_inv_sqrt3 <Float32x2>(); /**< ~0.577350269 */
+		template<> inline constexpr Float32x2 egamma_v     <Float32x2> = LDF::const_egamma    <Float32x2>(); /**< ~0.577215665 */
+		template<> inline constexpr Float32x2 phi_v        <Float32x2> = LDF::const_phi       <Float32x2>(); /**< ~1.618033989 */
 	}
 }
 #endif
@@ -1077,14 +1052,14 @@ namespace std {
 	 * currently implemeneted.
 	 */
 	inline Float32x2 log2(const Float32x2 x) {
-		return log(x) * Float32x2_log2e;
+		return log(x) * LDF::const_log2e<Float32x2>();
 	}
 	/** 
 	 * @note casts to Float32x2_Math for calculation as this function is not
 	 * currently implemeneted.
 	 */
 	inline Float32x2 log10(const Float32x2 x) {
-		return log(x) * Float32x2_log10e;
+		return log(x) * LDF::const_log10e<Float32x2>();
 	}
 	
 	inline Float32x2 logb(const Float32x2 x) { return logb(x.hi + x.lo); }
@@ -1106,14 +1081,14 @@ namespace std {
 	 * currently implemeneted.
 	 */
 	inline Float32x2 exp2(const Float32x2 x) {
-		return exp(x * Float32x2_ln2);
+		return exp(x * LDF::const_ln2<Float32x2>());
 	}
 	/** 
 	 * @note casts to Float32x2_Math for calculation as this function is not
 	 * currently implemeneted.
 	 */
 	inline Float32x2 exp10(const Float32x2 x) {
-		return exp(x * Float32x2_ln10);
+		return exp(x * LDF::const_ln10<Float32x2>());
 	}
 	/** 
 	 * @note casts to Float32x2_Math for calculation as this function is not

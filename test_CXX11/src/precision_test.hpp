@@ -12,8 +12,8 @@
 #include <cstdio>
 #include <cmath>
 #include <limits>
-#include "util_mpfr/MPFR_Float.hpp"
-#include "util_mpfr/mpfr_convert.hpp"
+#include "../../util_mpfr/MPFR_Float.hpp"
+#include "../../util_mpfr/mpfr_convert.hpp"
 
 /**
  * @brief Compares against MPFR
@@ -30,13 +30,10 @@ long double calc_precision(fpX x, fpX& ground_truth, fpX& func_result) {
 	mpfr_set_type<fpX>(y0_mpfr.value, x, MPFR_RNDN);
 
 	{ // Calculate ground truth
-		FloatMPFR temp1 = (x / 127362142.023794 - 531276.324);
-		FloatMPFR temp2 = (x + 99862.312);
-		mpfr_fma(y0_mpfr.value, y0_mpfr.value, temp1.value, temp2.value, MPFR_RNDN);
+		mpfr_erf(y0_mpfr.value, y0_mpfr.value, MPFR_RNDN);
 	}
 	{ // Calculate func result
-		// y1 = fma(x, (x / 127362142.023794 - 531276.324), (x + 99862.312));
-		y1 = (x * (x / 127362142.023794 - 531276.324)) + (x + 99862.312);
+		y1 = erf(x);
 	}
 
 	y0 = mpfr_get_type<fpX>(y0_mpfr.value, MPFR_RNDN);
@@ -56,12 +53,12 @@ long double calc_precision(fpX x, fpX& ground_truth, fpX& func_result) {
 
 template <typename fpX>
 void precision_test(void) {
-	constexpr size_t points = 655361;
+	constexpr size_t points = 6553;
 
 	long double max_diff = -9999999.0L;
 	size_t values_printed = 0;
 	for (size_t i = 0; i < points; i++) {
-		long double EP =     101.0L;
+		long double EP =     200.1L;
 		long double offset = 0.0L;
 		
 		fpX x = linearInterpolation(
@@ -79,9 +76,9 @@ void precision_test(void) {
 			diff = -std::numeric_limits<long double>::infinity();
 		}
 		// char comp_sign = (y0 == y1) ? '=' : ((y0 > y1) ? '>' : '<');
-		if (diff > max_diff || values_printed == 0) {
+		if (diff > max_diff + 1.0L || values_printed == 0 ) {
 			
-			if (!std::isnan(diff)) {
+			if (!std::isnan(diff) && diff > max_diff) {
 				max_diff = diff;
 			}
 			printf(

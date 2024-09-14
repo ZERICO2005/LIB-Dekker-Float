@@ -516,38 +516,29 @@ Float80x2 LDF::recip<Float80x2, fp80>
 /**
  * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero
  */
-template <> inline
+template <> inline constexpr
 Float80x2 LDF::mul_pwr2<Float80x2, Float80x2, fp80>
 (const Float80x2& x, const fp80& y) {
-	Float80x2 ret;
-	ret.hi = x.hi * y;
-	ret.lo = x.lo * y;
-	return ret;
+	return {x.hi * y, x.lo * y};
 }
 
 /**
  * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero
  */
-template <> inline
+template <> inline constexpr
 Float80x2 LDF::mul_pwr2<Float80x2, fp80, Float80x2>
 (const fp80& x, const Float80x2& y) {
-	Float80x2 ret;
-	ret.hi = x * y.hi;
-	ret.lo = x * y.lo;
-	return ret;
+	return {x * y.hi, x * y.hi};
 }
 
 /**
  * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero.
  * The result is stored as a Float80x2
  */
-template <> inline
+template <> inline constexpr
 Float80x2 LDF::mul_pwr2<Float80x2, fp80, fp80>
 (const fp80& x, const fp80& y) {
-	Float80x2 ret;
-	ret.hi = x * y;
-	ret.lo = static_cast<fp80>(0.0);
-	return ret;
+	return {x * y, static_cast<fp80>(0.0)};
 }
 
 //------------------------------------------------------------------------------
@@ -733,10 +724,10 @@ inline Float80x2 recip(const Float80x2& x) {
 	return LDF::recip<Float80x2, Float80x2>(x);
 }
 
-inline Float80x2 mul_pwr2(const Float80x2& x, const fp80 y) {
+inline constexpr Float80x2 mul_pwr2(const Float80x2& x, const fp80 y) {
 	return LDF::mul_pwr2<Float80x2, Float80x2, fp80>(x, y);
 }
-inline Float80x2 mul_pwr2(const fp80 x, const Float80x2& y) {
+inline constexpr Float80x2 mul_pwr2(const fp80 x, const Float80x2& y) {
 	return LDF::mul_pwr2<Float80x2, fp80, Float80x2>(x, y);
 }
 
@@ -828,8 +819,10 @@ namespace std {
 		 * @brief Dekker floats can represent FLT_MAX + FLT_MIN exactly, which
 		 * is why an absurd amount of digits may be required.
 		 */
+		#if __cplusplus >= 201103L
 		static constexpr int max_digits10 =
 			std::numeric_limits<fp80>::max_exponent10 - std::numeric_limits<fp80>::min_exponent10 + std::numeric_limits<fp80>::digits10 + 1;
+		#endif
 		static constexpr int radix = std::numeric_limits<fp80>::radix;
 		static constexpr int min_exponent   = std::numeric_limits<fp80>::min_exponent   + 64;
 		static constexpr int min_exponent10 = std::numeric_limits<fp80>::min_exponent10 + 20 /* ceil(64 * log10(2)) */;
@@ -852,7 +845,9 @@ namespace std {
 				std::numeric_limits<fp80>::max() * static_cast<fp80>(0x1.0p-65)
 			};
 		}
+		#if __cplusplus >= 201103L
 		inline static constexpr Float80x2 lowest() { return -max(); }
+		#endif
 		inline static constexpr Float80x2 epsilon() { return {static_cast<fp80>(0x1.0p-126), static_cast<fp80>(0.0)}; } // LDBL_EPSILON seems to be 0x1.0p-63
 		inline static constexpr Float80x2 round_error() { return {static_cast<fp80>(0.5), static_cast<fp80>(0.0)}; }
 		inline static constexpr Float80x2 infinity() {
@@ -885,49 +880,26 @@ namespace std {
 
 #include "Float80x2_constants.hpp"
 
-/* C++20 <numbers> */
-
-	constexpr Float80x2 Float80x2_e          = {0xa.df85458a2bb4a9bp-2L,-0xa.04753bfb185861cp-67L}; /**< ~2.718281828 */
-	constexpr Float80x2 Float80x2_log2e      = {0xb.8aa3b295c17f0bcp-3L,-0x8.2f0025f2dc582eep-68L}; /**< ~1.442695041 */
-	constexpr Float80x2 Float80x2_log10e     = {0xd.e5bd8a937287195p-5L,+0xd.56eaabeb4cf70c9p-71L}; /**< ~0.434294482 */
-	constexpr Float80x2 Float80x2_pi         = {0xc.90fdaa22168c235p-2L,-0xe.ce675d1fc8f8cbbp-68L}; /**< ~3.141592654 */
-	constexpr Float80x2 Float80x2_inv_pi     = {0xa.2f9836e4e44152ap-5L,-0xf.62a0b82b2c88fc9p-75L}; /**< ~0.318309886 */
-	constexpr Float80x2 Float80x2_inv_sqrtpi = {0x9.06eba8214db688dp-4L,+0xe.3a914fed7fd8688p-69L}; /**< ~0.564189584 */
-	constexpr Float80x2 Float80x2_ln2        = {0xb.17217f7d1cf79acp-4L,-0xd.871319ff0342543p-70L}; /**< ~0.693147181 */
-	constexpr Float80x2 Float80x2_ln10       = {0x9.35d8dddaaa8ac17p-2L,-0xa.d494ea3e967aeb9p-69L}; /**< ~2.302585093 */
-	constexpr Float80x2 Float80x2_sqrt2      = {0xb.504f333f9de6484p-3L,+0xb.2fb1366ea957d3ep-68L}; /**< ~1.414213562 */
-	constexpr Float80x2 Float80x2_sqrt3      = {0xd.db3d742c265539ep-3L,-0xd.a8bd28f8747c477p-68L}; /**< ~1.732050808 */
-	constexpr Float80x2 Float80x2_inv_sqrt3  = {0x9.3cd3a2c8198e269p-4L,+0xc.7c0f257d92be831p-72L}; /**< ~0.577350269 */
-	constexpr Float80x2 Float80x2_egamma     = {0x9.3c467e37db0c7a5p-4L,-0xb.90701fbfab4d2a5p-70L}; /**< ~0.577215665 */
-	constexpr Float80x2 Float80x2_phi        = {0xc.f1bbcdcbfa53e0bp-3L,-0xc.633f9fa31237cbfp-72L}; /**< ~1.618033989 */
-
 #if __cplusplus >= 201907L
 #include <numbers>
 namespace std {
 	namespace numbers {
-		template<> inline constexpr Float80x2 e_v          <Float80x2> = Float80x2_e         ; /**< ~2.718281828 */
-		template<> inline constexpr Float80x2 log2e_v      <Float80x2> = Float80x2_log2e     ; /**< ~1.442695041 */
-		template<> inline constexpr Float80x2 log10e_v     <Float80x2> = Float80x2_log10e    ; /**< ~0.434294482 */
-		template<> inline constexpr Float80x2 pi_v         <Float80x2> = Float80x2_pi        ; /**< ~3.141592654 */
-		template<> inline constexpr Float80x2 inv_pi_v     <Float80x2> = Float80x2_inv_pi    ; /**< ~0.318309886 */
-		template<> inline constexpr Float80x2 inv_sqrtpi_v <Float80x2> = Float80x2_inv_sqrtpi; /**< ~0.564189584 */
-		template<> inline constexpr Float80x2 ln2_v        <Float80x2> = Float80x2_ln2       ; /**< ~0.693147181 */
-		template<> inline constexpr Float80x2 ln10_v       <Float80x2> = Float80x2_ln10      ; /**< ~2.302585093 */
-		template<> inline constexpr Float80x2 sqrt2_v      <Float80x2> = Float80x2_sqrt2     ; /**< ~1.414213562 */
-		template<> inline constexpr Float80x2 sqrt3_v      <Float80x2> = Float80x2_sqrt3     ; /**< ~1.732050808 */
-		template<> inline constexpr Float80x2 inv_sqrt3_v  <Float80x2> = Float80x2_inv_sqrt3 ; /**< ~0.577350269 */
-		template<> inline constexpr Float80x2 egamma_v     <Float80x2> = Float80x2_egamma    ; /**< ~0.577215665 */
-		template<> inline constexpr Float80x2 phi_v        <Float80x2> = Float80x2_phi       ; /**< ~1.618033989 */
+		template<> inline constexpr Float80x2 e_v          <Float80x2> = LDF::const_e         <Float80x2>(); /**< ~2.718281828 */
+		template<> inline constexpr Float80x2 log2e_v      <Float80x2> = LDF::const_log2e     <Float80x2>(); /**< ~1.442695041 */
+		template<> inline constexpr Float80x2 log10e_v     <Float80x2> = LDF::const_log10e    <Float80x2>(); /**< ~0.434294482 */
+		template<> inline constexpr Float80x2 pi_v         <Float80x2> = LDF::const_pi        <Float80x2>(); /**< ~3.141592654 */
+		template<> inline constexpr Float80x2 inv_pi_v     <Float80x2> = LDF::const_inv_pi    <Float80x2>(); /**< ~0.318309886 */
+		template<> inline constexpr Float80x2 inv_sqrtpi_v <Float80x2> = LDF::const_inv_sqrtpi<Float80x2>(); /**< ~0.564189584 */
+		template<> inline constexpr Float80x2 ln2_v        <Float80x2> = LDF::const_ln2       <Float80x2>(); /**< ~0.693147181 */
+		template<> inline constexpr Float80x2 ln10_v       <Float80x2> = LDF::const_ln10      <Float80x2>(); /**< ~2.302585093 */
+		template<> inline constexpr Float80x2 sqrt2_v      <Float80x2> = LDF::const_sqrt2     <Float80x2>(); /**< ~1.414213562 */
+		template<> inline constexpr Float80x2 sqrt3_v      <Float80x2> = LDF::const_sqrt3     <Float80x2>(); /**< ~1.732050808 */
+		template<> inline constexpr Float80x2 inv_sqrt3_v  <Float80x2> = LDF::const_inv_sqrt3 <Float80x2>(); /**< ~0.577350269 */
+		template<> inline constexpr Float80x2 egamma_v     <Float80x2> = LDF::const_egamma    <Float80x2>(); /**< ~0.577215665 */
+		template<> inline constexpr Float80x2 phi_v        <Float80x2> = LDF::const_phi       <Float80x2>(); /**< ~1.618033989 */
 	}
 }
 #endif
-
-/* Other Constants */
-
-constexpr Float80x2 Float80x2_2pi    = {0xc.90fdaa22168c235p-1L,-0xe.ce675d1fc8f8cbbp-67L}; /**< ~6.283185307 */
-constexpr Float80x2 Float80x2_pi2    = {0xc.90fdaa22168c235p-3L,-0xe.ce675d1fc8f8cbbp-69L}; /**< ~1.570796327 */
-constexpr Float80x2 Float80x2_sqrtpi = {0xe.2dfc48da77b553dp-3L,-0xf.13eb7ca891b1f00p-70L}; /**< ~1.772453851 */
-
 
 //------------------------------------------------------------------------------
 // Float80x2 Math Functions
@@ -1161,14 +1133,14 @@ constexpr Float80x2 Float80x2_sqrtpi = {0xe.2dfc48da77b553dp-3L,-0xf.13eb7ca891b
 	 * @note Naive implementation of log2
 	 */
 	inline Float80x2 log2(const Float80x2& x) {
-		return log(x) * Float80x2_log2e;
+		return log(x) * LDF::const_log2e<Float80x2>();
 	}
 
 	/** 
 	 * @note Naive implementation of log10
 	 */
 	inline Float80x2 log10(const Float80x2& x) {
-		return log(x) * Float80x2_log10e;
+		return log(x) * LDF::const_log10e<Float80x2>();
 	}
 	
 	inline Float80x2 logb(const Float80x2 x) { return logb(x.hi + x.lo); }
@@ -1178,11 +1150,11 @@ constexpr Float80x2 Float80x2_sqrtpi = {0xe.2dfc48da77b553dp-3L,-0xf.13eb7ca891b
 	Float80x2 expm1(const Float80x2& x);
 
 	inline Float80x2 exp2(const Float80x2& x) {
-		return exp(x * Float80x2_ln2);
+		return exp(x * LDF::const_ln2<Float80x2>());
 	}
 
 	inline Float80x2 exp10(const Float80x2& x) {
-		return exp(x * Float80x2_ln10);
+		return exp(x * LDF::const_ln10<Float80x2>());
 	}
 
 	inline Float80x2 pow(const Float80x2& x, const Float80x2& y) {

@@ -208,13 +208,13 @@ static inline Float64x2 taylor_expm1(const Float64x2& x, fp64& m) {
 	constexpr fp64 k = 512.0;
 	constexpr fp64 inv_k = 1.0 / k;
 
-	m = floor(x.hi * Float64x2_log2e.hi + 0.5);
-	Float64x2 r = mul_pwr2(x - Float64x2_ln2 * m, inv_k);
+	m = floor(x.hi * LDF::const_log2e<fp64>() + static_cast<fp64>(0.5));
+	Float64x2 r = mul_pwr2(x - LDF::const_ln2<Float64x2>() * m, inv_k);
 	Float64x2 s, t, p;
 	const fp64 thresh = inv_k * std::numeric_limits<Float64x2>::epsilon().hi;
 
 	p = square(r);
-	s = r + mul_pwr2(p, 0.5);
+	s = r + mul_pwr2(p, static_cast<fp64>(0.5));
 	p *= r;
 	t = p * inv_fact[0];
 	size_t i = 0;
@@ -228,17 +228,17 @@ static inline Float64x2 taylor_expm1(const Float64x2& x, fp64& m) {
 
 	s += t;
 
-	s = mul_pwr2(s, 2.0) + square(s);
-	s = mul_pwr2(s, 2.0) + square(s);
-	s = mul_pwr2(s, 2.0) + square(s);
+	s = mul_pwr2(s, static_cast<fp64>(2.0)) + square(s);
+	s = mul_pwr2(s, static_cast<fp64>(2.0)) + square(s);
+	s = mul_pwr2(s, static_cast<fp64>(2.0)) + square(s);
 
-	s = mul_pwr2(s, 2.0) + square(s);
-	s = mul_pwr2(s, 2.0) + square(s);
-	s = mul_pwr2(s, 2.0) + square(s);
+	s = mul_pwr2(s, static_cast<fp64>(2.0)) + square(s);
+	s = mul_pwr2(s, static_cast<fp64>(2.0)) + square(s);
+	s = mul_pwr2(s, static_cast<fp64>(2.0)) + square(s);
 
-	s = mul_pwr2(s, 2.0) + square(s);
-	s = mul_pwr2(s, 2.0) + square(s);
-	s = mul_pwr2(s, 2.0) + square(s);
+	s = mul_pwr2(s, static_cast<fp64>(2.0)) + square(s);
+	s = mul_pwr2(s, static_cast<fp64>(2.0)) + square(s);
+	s = mul_pwr2(s, static_cast<fp64>(2.0)) + square(s);
 	
 	return s;
 	// Original return code:
@@ -247,32 +247,35 @@ static inline Float64x2 taylor_expm1(const Float64x2& x, fp64& m) {
 }
 
 Float64x2 exp(const Float64x2& x) {
-	if (x.hi <= -709.79) {
+	if (x.hi <= static_cast<fp64>(-709.79)) {
 		// Gives a better approximation near extreme values
 		return exp(x.hi);
 	}
 	/* ln(2^1023 * (1 + (1 - 2^-52)))) = ~709.782712893 */
-	if (x.hi >= 709.79) {
+	if (x.hi >= static_cast<fp64>(709.79)) {
 		return std::numeric_limits<Float64x2>::infinity();
 	}
 	if (isequal_zero(x)) {
 		return static_cast<Float64x2>(1.0);
 	}
-	if (x == 1.0) {
-		return Float64x2_e;
+	if (x == static_cast<fp64>(1.0)) {
+		return LDF::const_e<Float64x4>();
+	}
+	if (x == static_cast<fp64>(-1.0)) {
+		return LDF::const_inv_e<Float64x4>();
 	}
 
 	fp64 m;
 	Float64x2 ret = taylor_expm1(x, m);
-	ret += 1.0;
+	ret += static_cast<fp64>(1.0);
 	return ldexp(ret, static_cast<int>(m));
 }
 
 Float64x2 expm1(const Float64x2& x) {
-	if (x.hi <= -709.79) {
+	if (x.hi <= static_cast<fp64>(-709.79)) {
 		return static_cast<Float64x2>(-1.0);
 	}
-	if (x.hi >= 709.79) {
+	if (x.hi >= static_cast<fp64>(709.79)) {
 		return std::numeric_limits<Float64x2>::infinity();
 	}
 	if (isequal_zero(x)) {
@@ -281,20 +284,20 @@ Float64x2 expm1(const Float64x2& x) {
 	fp64 m;
 	Float64x2 ret = taylor_expm1(x, m);
 	/**
-	 * @remarks Float64x2_ln2.hi is less than Float64x2_ln2. If this were not the
+	 * @remarks LDF::const_ln2<fp64>() is less than LDF::const_ln2<Float64x2>(). If this were not the
 	 * case, then one would have to compare against
-	 * nextafter(Float64x2_ln2.hi, 0.0) to ensure the function behaves
+	 * nextafter(LDF::const_ln2<fp64>(), 0.0) to ensure the function behaves
 	 * correctly when `x` is very close to `ln2`.
 	 *
 	 * Although it still uses nextafter just to be safe and avoid pontential
 	 * rounding errors.
 	 */
-	if (fabs(x.hi) < static_cast<fp64>(0.5) * std::nextafter(Float64x2_ln2.hi, 0.0)) {
+	if (fabs(x) < mul_pwr2(static_cast<fp64>(0.5), LDF::const_ln2<Float64x2>())) {
 		return ret; // expm1 to higher accuracy
 	}
-	ret += 1.0;
+	ret += static_cast<fp64>(1.0);
 	ret = ldexp(ret, static_cast<int>(m));
-	return ret - 1.0; // expm1 to standard accuracy
+	return ret - static_cast<fp64>(1.0); // expm1 to standard accuracy
 }
 
 /** 
@@ -322,7 +325,7 @@ Float64x2 log(const Float64x2& x) {
 		approximately doubles the number of digits per iteration. */
 
 	if (x == static_cast<fp64>(1.0)) {
-		return 0.0;
+		return static_cast<fp64>(0.0);
 	}
 
 	if (islessequal_zero(x)) {
@@ -334,7 +337,7 @@ Float64x2 log(const Float64x2& x) {
 	}
 
 	Float64x2 guess = log(x.hi);   /* Initial approximation */
-	return guess.hi + x * exp(-guess) - 1.0;
+	return guess.hi + x * exp(-guess) - static_cast<fp64>(1.0);
 }
 
 /**
@@ -344,18 +347,18 @@ Float64x2 log(const Float64x2& x) {
  */
 Float64x2 log1p(const Float64x2& x) {
 	if (isequal_zero(x)) {
-		return 0.0;
+		return x;
 	}
-	if (x <= -1.0) {
-		if (x == -1.0) {
+	if (x <= static_cast<fp64>(-1.0)) {
+		if (x == static_cast<fp64>(-1.0)) {
 			return -std::numeric_limits<Float64x2>::infinity();
 		}
 		// Float64x2::error("(Float64x2::log): Non-positive argument.");
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
 	Float64x4 guess = log1p(x.hi);
-	Float64x4 x_plus1 = LDF::add<Float64x4>(x, 1.0); 
-	return guess.val[0] + static_cast<Float64x2>(x_plus1 * exp(-guess) - 1.0);
+	Float64x4 x_plus1 = LDF::add<Float64x4>(x, static_cast<fp64>(1.0)); 
+	return guess.val[0] + static_cast<Float64x2>(x_plus1 * exp(-guess) - static_cast<fp64>(1.0));
 }
 
 
@@ -477,8 +480,8 @@ static inline void trig_modulo(
 		ret = (x - Float64x2_2pi * z);
 
 		// approximately reduce modulo pi/2 and then modulo pi/16.
-		fp64 q = floor(ret.hi / Float64x2_pi2.hi + 0.5);
-		t = ret - Float64x2_pi2 * q;
+		fp64 q = floor(ret.hi / LDF::const_pi2<fp64>() + 0.5);
+		t = ret - LDF::const_pi2<Float64x2>() * q;
 		j = static_cast<int>(q);
 		q = floor(t.hi / Float64x2_pi16.hi + 0.5);
 		t -= Float64x2_pi16 * q;
@@ -489,8 +492,8 @@ static inline void trig_modulo(
 		ret = static_cast<Float64x2>(x - Float64x4_2pi * z);
 
 		// approximately reduce modulo pi/2 and then modulo pi/16.
-		fp64 q = floor(ret.hi / Float64x2_pi2.hi + 0.5);
-		t = ret - Float64x2_pi2 * q;
+		fp64 q = floor(ret.hi / LDF::const_pi2<fp64>() + 0.5);
+		t = ret - LDF::const_pi2<Float64x2>() * q;
 		j = static_cast<int>(q);
 		q = floor(t.hi / Float64x2_pi16.hi + 0.5);
 		t -= Float64x2_pi16 * q;
@@ -501,20 +504,20 @@ static inline void trig_modulo(
 		ret = static_cast<Float64x2>(x - Float64x4_2pi * z);
 
 		// approximately reduce modulo pi/2 and then modulo pi/16.
-		Float64x2 q = floor(ret / Float64x2_pi2 + 0.5);
-		t = ret - Float64x2_pi2 * q;
+		Float64x2 q = floor(ret / LDF::const_pi2<Float64x2>() + 0.5);
+		t = ret - LDF::const_pi2<Float64x2>() * q;
 		j = static_cast<int>(q);
 		q = floor(t / Float64x2_pi16 + 0.5);
 		t -= Float64x2_pi16 * q;
 		k = static_cast<int>(q);
 	#else
 		// approximately reduce modulo 2*pi
-		Float64x4 z = round(x / Float64x4_2pi);
-		Float64x4 ret_temp = x - Float64x4_2pi * z;
+		Float64x4 z = round(x / LDF::const_2pi<Float64x4>());
+		Float64x4 ret_temp = x - LDF::const_2pi<Float64x4>() * z;
 		
 		// approximately reduce modulo pi/2 and then modulo pi/16.
-		Float64x4 q = floor(ret_temp / Float64x4_pi2 + 0.5);
-		Float64x4 t_temp = ret_temp - Float64x4_pi2 * q;
+		Float64x4 q = floor(ret_temp / LDF::const_pi2<Float64x4>() + 0.5);
+		Float64x4 t_temp = ret_temp - LDF::const_pi2<Float64x4>() * q;
 		j = static_cast<int>(q);
 		q = floor(t / Float64x4_pi16 + 0.5);
 		t_temp -= Float64x4_pi16 * q;
@@ -776,11 +779,11 @@ Float64x2 atan(const Float64x2& y) {
 	}
 
 	if (y == static_cast<fp64>(1.0)) {
-		return Float64x2_pi4;
+		return LDF::const_pi4<Float64x2>();
 	}
 
 	if (y == static_cast<fp64>(-1.0)) {
-		return -Float64x2_pi4;
+		return -LDF::const_pi4<Float64x2>();
 	}
 
 	Float64x2 r = sqrt(static_cast<fp64>(1.0) + square(y));
@@ -834,17 +837,17 @@ Float64x2 atan2(const Float64x2& y, const Float64x2& x) {
 			return std::numeric_limits<Float64x2>::quiet_NaN();
 		}
 
-		return (isgreater_zero(y)) ? Float64x2_pi2 : -Float64x2_pi2;
+		return (isgreater_zero(y)) ? LDF::const_pi2<Float64x2>() : -LDF::const_pi2<Float64x2>();
 	} else if (isequal_zero(y)) {
-		return (isgreater_zero(x)) ? Float64x2(0.0) : Float64x2_pi;
+		return (isgreater_zero(x)) ? Float64x2(0.0) : LDF::const_pi<Float64x2>();
 	}
 
 	if (x == y) {
-		return (isgreater_zero(y)) ? Float64x2_pi4 : -Float64x2_3pi4;
+		return (isgreater_zero(y)) ? LDF::const_pi4<Float64x2>() : -LDF::const_3pi4<Float64x2>();
 	}
 
 	if (x == -y) {
-		return (isgreater_zero(y)) ? Float64x2_3pi4 : -Float64x2_pi4;
+		return (isgreater_zero(y)) ? LDF::const_3pi4<Float64x2>() : -LDF::const_pi4<Float64x2>();
 	}
 
 	/* Compute double precision approximation to atan. */
@@ -880,7 +883,7 @@ Float64x2 asin(const Float64x2& x) {
 	}
 
 	if (abs_x == static_cast<fp64>(1.0)) {
-		return (isgreater_zero(x)) ? Float64x2_pi2 : -Float64x2_pi2;
+		return (isgreater_zero(x)) ? LDF::const_pi2<Float64x2>() : -LDF::const_pi2<Float64x2>();
 	}
 
 	return atan2(x, sqrt(static_cast<fp64>(1.0) - square(x)));
@@ -892,7 +895,7 @@ Float64x2 asin(const Float64x2& x) {
  */
 Float64x2 acos(const Float64x2& x) {
 	if (isequal_zero(x)) {
-		return Float64x2_pi2;
+		return LDF::const_pi2<Float64x2>();
 	}
 	const Float64x2 abs_x = fabs(x);
 
@@ -902,7 +905,7 @@ Float64x2 acos(const Float64x2& x) {
 	}
 
 	if (abs_x == static_cast<fp64>(1.0)) {
-		return (isgreater_zero(x)) ? Float64x2(0.0) : Float64x2_pi;
+		return (isgreater_zero(x)) ? Float64x2(0.0) : LDF::const_pi<Float64x2>();
 	}
 
 	return atan2(sqrt(static_cast<fp64>(1.0) - square(x)), x);
@@ -1141,25 +1144,16 @@ __attribute__((unused)) static inline Float64x2 pown(const Float64x2& x, int n) 
 Float64x2 erf(const Float64x2& x) {
 
 	return libDDFUN_erf<
-		Float64x2, fp64, 2,
+		Float64x2, fp64,
 		256
-	>(
-		x,
-		Float64x2_sqrtpi, Float64x2_ln2.hi
-	);
+	>(x);
 }
 
 Float64x2 erfc(const Float64x2& x) {
-	/**
-	 * @remarks Appears to have the same or similar lower bound as erf()
-	 */
 	return libDDFUN_erfc<
-		Float64x2, fp64, 2,
+		Float64x2, fp64,
 		256
-	>(
-		x,
-		Float64x2_sqrtpi, Float64x2_ln2.hi
-	);
+	>(x);
 }
 
 //------------------------------------------------------------------------------
@@ -1170,13 +1164,9 @@ Float64x2 erfc(const Float64x2& x) {
 
 Float64x2 tgamma(const Float64x2& t) {
 	return libDQFUN_tgamma<
-		Float64x2, fp64, 2,
+		Float64x2, fp64,
 		100000
-	>(
-		t,
-		Float64x2_pi, Float64x2_sqrtpi,
-		Float64x2_ln2.hi
-	);
+	>(t);
 }
 
 //------------------------------------------------------------------------------
@@ -1202,13 +1192,12 @@ Float64x2 Float64x2_sin(Float64x2 x) {
 Float64x2 Float64x2_cos(Float64x2 x) {
 	return cos(x);
 }
-void Float64x2_sincos(Float64x2 theta, Float64x2* p_sin, Float64x2* p_cos) {
+void Float64x2_sincos(Float64x2 theta, Float64x2* LDF_restrict p_sin, Float64x2* LDF_restrict p_cos) {
 	sincos(theta, *p_sin, *p_cos);
 }
-// tan is inlined
-// Float64x2 Float64x2_tan(Float64x2 x) {
-// 	return tan(x);
-// }
+Float64x2 Float64x2_tan(Float64x2 x) {
+	return tan(x);
+}
 Float64x2 Float64x2_asin(Float64x2 x) {
 	return asin(x);
 }
@@ -1224,14 +1213,13 @@ Float64x2 Float64x2_atan2(Float64x2 y, Float64x2 x) {
 Float64x2 Float64x2_sinh(Float64x2 x) {
 	return sinh(x);
 }
-// cosh is inlined
-// Float64x2 Float64x2_cosh(Float64x2 x) {
-// 	return cosh(x);
-// }
+Float64x2 Float64x2_cosh(Float64x2 x) {
+	return cosh(x);
+}
 Float64x2 Float64x2_tanh(Float64x2 x) {
 	return tanh(x);
 }
-void Float64x2_sinhcosh(Float64x2 theta, Float64x2* p_sinh, Float64x2* p_cosh) {
+void Float64x2_sinhcosh(Float64x2 theta, Float64x2* LDF_restrict p_sinh, Float64x2* LDF_restrict p_cosh) {
 	sinhcosh(theta, *p_sinh, *p_cosh);
 }
 

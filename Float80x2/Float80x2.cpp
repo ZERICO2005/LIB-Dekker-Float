@@ -17,6 +17,7 @@
 */
 
 #include "Float80x2.hpp"
+#include "Float80x2_def.h"
 #include "Float80x2_string.h"
 
 #include "Float80x2_LUT.hpp"
@@ -45,8 +46,8 @@ static inline Float80x2 taylor_expm1(const Float80x2& x, fp80& m) {
 	// constexpr fp80 k = 0x1.0p+16L;
 	constexpr fp80 recip_k = static_cast<fp80>(0x1.0p-16L);
 
-	m = std::floor(x.hi * Float80x2_log2e.hi + static_cast<fp80>(0.5));
-	Float80x2 r = mul_pwr2(x - Float80x2_ln2 * m, recip_k);
+	m = std::floor(x.hi * LDF::const_log2e<fp80>() + static_cast<fp80>(0.5));
+	Float80x2 r = mul_pwr2(x - LDF::const_ln2<Float80x2>() * m, recip_k);
 	Float80x2 s, p, t;
 	fp80 thresh = recip_k * std::numeric_limits<Float80x2>::epsilon().hi;
 
@@ -95,7 +96,10 @@ Float80x2 exp(const Float80x2& x) {
 		return static_cast<Float80x2>(1.0);
 	}
 	if (x == static_cast<fp80>(1.0)) {
-		return Float80x2_e;
+		return LDF::const_e<Float80x2>();
+	}
+	if (x == static_cast<fp80>(-1.0)) {
+		return LDF::const_inv_e<Float80x2>();
 	}
 
 	fp80 m;
@@ -117,7 +121,7 @@ Float80x2 expm1(const Float80x2& x) {
 
 	fp80 m;
 	Float80x2 ret = taylor_expm1(x, m);
-	if (fabs(x) < static_cast<fp80>(0.5) * Float80x2_ln2) {
+	if (fabs(x) < mul_pwr2(static_cast<fp80>(0.5), LDF::const_ln2<Float80x2>())) {
 		return ret; // expm1 to higher accuracy
 	}
 	ret += static_cast<fp80>(1.0);
@@ -153,8 +157,8 @@ Float80x2 log(const Float80x2& x) {
 		return static_cast<fp80>(0.0);
 	}
 
-	if (x.hi <= static_cast<fp80>(0.0)) {
-		if (x == static_cast<fp80>(0.0)) {
+	if (islessequal_zero(x)) {
+		if (isequal_zero(x)) {
 			return -std::numeric_limits<Float80x2>::infinity();
 		}
 		// Float64x2::error("(Float80x2::log): Non-positive argument.");
@@ -282,12 +286,12 @@ Float80x2 sin(const Float80x2& a) {
 	}
 
 	// approximately reduce modulo 2*pi
-	Float80x2 z = round(a / Float80x2_2pi);
-	Float80x2 r = a - Float80x2_2pi * z;
+	Float80x2 z = round(a / LDF::const_2pi<Float80x2>());
+	Float80x2 r = a - LDF::const_2pi<Float80x2>() * z;
 
 	// approximately reduce modulo pi/2 and then modulo pi/1024
-	fp80 q = std::floor(r.hi / Float80x2_pi2.hi + static_cast<fp80>(0.5));
-	Float80x2 t = r - Float80x2_pi2 * q;
+	fp80 q = std::floor(r.hi / LDF::const_pi2<fp80>() + static_cast<fp80>(0.5));
+	Float80x2 t = r - LDF::const_pi2<Float80x2>() * q;
 	int j = static_cast<int>(q);
 	q = std::floor(t.hi / taylor_pi1024.hi + static_cast<fp80>(0.5));
 	t -= taylor_pi1024 * q;
@@ -362,12 +366,12 @@ Float80x2 cos(const Float80x2& a) {
 	}
 
 	// approximately reduce modulo 2*pi
-	Float80x2 z = round(a / Float80x2_2pi);
-	Float80x2 r = a - Float80x2_2pi * z;
+	Float80x2 z = round(a / LDF::const_2pi<Float80x2>());
+	Float80x2 r = a - LDF::const_2pi<Float80x2>() * z;
 
 	// approximately reduce modulo pi/2 and then modulo pi/1024
-	fp80 q = std::floor(r.hi / Float80x2_pi2.hi + static_cast<fp80>(0.5));
-	Float80x2 t = r - Float80x2_pi2 * q;
+	fp80 q = std::floor(r.hi / LDF::const_pi2<fp80>() + static_cast<fp80>(0.5));
+	Float80x2 t = r - LDF::const_pi2<Float80x2>() * q;
 	int j = static_cast<int>(q);
 	q = std::floor(t.hi / taylor_pi1024.hi + static_cast<fp80>(0.5));
 	t -= taylor_pi1024 * q;
@@ -444,13 +448,13 @@ void sincos(const Float80x2& a, Float80x2& sin_a, Float80x2& cos_a) {
 		return;
 	}
 
-	// approximately reduce by 2*pi
-	Float80x2 z = round(a / Float80x2_2pi);
-	Float80x2 t = a - Float80x2_2pi * z;
+	// approximately reduce modulo 2*pi
+	Float80x2 z = round(a / LDF::const_2pi<Float80x2>());
+	Float80x2 r = a - LDF::const_2pi<Float80x2>() * z;
 
-	// approximately reduce by pi/2 and then by pi/1024.
-	fp80 q = std::floor(t.hi / Float80x2_pi2.hi + static_cast<fp80>(0.5));
-	t -= Float80x2_pi2 * q;
+	// approximately reduce modulo pi/2 and then modulo pi/1024
+	fp80 q = std::floor(r.hi / LDF::const_pi2<fp80>() + static_cast<fp80>(0.5));
+	Float80x2 t = r - LDF::const_pi2<Float80x2>() * q;
 	int j = static_cast<int>(q);
 	q = std::floor(t.hi / taylor_pi1024.hi + static_cast<fp80>(0.5));
 	t -= taylor_pi1024 * q;
@@ -535,22 +539,16 @@ void sincos(const Float80x2& a, Float80x2& sin_a, Float80x2& cos_a) {
 
 Float80x2 erf(const Float80x2& x) {
 	return libDDFUN_erf<
-		Float80x2, fp80, 2,
+		Float80x2, fp80,
 		4096
-	>(
-		x,
-		Float80x2_sqrtpi, Float80x2_ln2.hi
-	);
+	>(x);
 }
 
 Float80x2 erfc(const Float80x2& x) {
 	return libDDFUN_erfc<
-		Float80x2, fp80, 2,
+		Float80x2, fp80,
 		4096
-	>(
-		x,
-		Float80x2_sqrtpi, Float80x2_ln2.hi
-	);
+	>(x);
 }
 
 //------------------------------------------------------------------------------
@@ -561,13 +559,9 @@ Float80x2 erfc(const Float80x2& x) {
 
 Float80x2 tgamma(const Float80x2& t) {
 	return libDQFUN_tgamma<
-		Float80x2, fp80, 2,
+		Float80x2, fp80,
 		100000
-	>(
-		t,
-		Float80x2_pi, Float80x2_sqrtpi,
-		Float80x2_ln2.hi
-	);
+	>(t);
 }
 
 //------------------------------------------------------------------------------

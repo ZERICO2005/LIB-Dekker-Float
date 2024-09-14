@@ -8,8 +8,7 @@
 #ifndef MPFR_FLOAT_HPP
 #define MPFR_FLOAT_HPP
 
-// Disabled for now. The overhead from operator overloading made it impractical for rendering fractals.
-#if defined(Enable_FloatMPFR)
+#ifdef Enable_FloatMPFR
 
 #include <cstdint>
 

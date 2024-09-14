@@ -255,9 +255,9 @@ int main(void) {
 	// run_math_demo(123456);
 	
 	// test_function();
-	// precision_test<Float64x4>();
+	precision_test<Float64x4>();
 
-	run_generate_constants();
+	// run_generate_constants();
 	
 	// __attribute__((unused)) char buf[999];
 	// Float32x2 x = {FLT_MAX, FLT_MIN};

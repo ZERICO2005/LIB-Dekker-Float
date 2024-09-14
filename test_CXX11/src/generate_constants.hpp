@@ -180,8 +180,8 @@ void output_constant(const char* label, __attribute__((unused)) const char* name
 	char dst_buf[999];
 	for (int i = 0; i < LDF::LDF_Type_Info<FloatX>::FloatBase_Count; i++) {
 		if (i != 0) { printf(",\n"); }
-		quadmath_snprintf(dst_buf, sizeof(dst_buf), "%+-*.*Qe", width, precision, dst[i]);
-		printf("\t%sQ", dst_buf);
+		snprintf(dst_buf, sizeof(dst_buf), "%+-*.*e", width, precision, dst[i]);
+		printf("\t%s", dst_buf);
 	};
 	printf("\n}; }\n\n");
 #endif

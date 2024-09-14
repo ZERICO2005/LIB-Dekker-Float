@@ -24,6 +24,8 @@
 #include <math.h>
 #include <fenv.h>
 
+#include "../LDF/LDF_restrict.h"
+
 //------------------------------------------------------------------------------
 // Float64x2 struct
 //------------------------------------------------------------------------------
@@ -1322,49 +1324,22 @@ static inline Float64x2 Float64x2_pow_dx2_d(const Float64x2 x, const fp64 y) {
 
 Float64x2 Float64x2_sin(Float64x2 x);
 Float64x2 Float64x2_cos(Float64x2 x);
-void Float64x2_sincos(Float64x2 x, Float64x2* p_sin, Float64x2* p_cos);
-static inline Float64x2 Float64x2_tan(const Float64x2 x) {
-	Float64x2 t_sin, t_cos;
-	Float64x2_sincos(x, &t_sin, &t_cos);
-	return Float64x2_div(t_sin, t_cos);
-}
+void Float64x2_sincos(Float64x2 x, Float64x2* LDF_restrict p_sin, Float64x2* LDF_restrict p_cos);
+Float64x2 Float64x2_tan(Float64x2 x);
 
 Float64x2 Float64x2_asin(Float64x2 x);
 Float64x2 Float64x2_acos(Float64x2 x);
 Float64x2 Float64x2_atan(Float64x2 x);
 Float64x2 Float64x2_atan2(Float64x2 y, Float64x2 x);
 
-/** @note sinh is inaccurate when x is close to 0, which is why it isn't inlined */
 Float64x2 Float64x2_sinh(Float64x2 x);
-static inline Float64x2 Float64x2_cosh(const Float64x2 x) {
-	Float64x2 exp_x = Float64x2_exp(x);
-	return Float64x2_mul_power2_dx2_d(Float64x2_add(
-		exp_x, Float64x2_recip(exp_x)
-	), 0.5);
-}
+Float64x2 Float64x2_cosh(Float64x2 x);
 Float64x2 Float64x2_tanh(Float64x2 x);
-void Float64x2_sinhcosh(Float64x2 x, Float64x2* p_sinh, Float64x2* p_cosh);
+void Float64x2_sinhcosh(Float64x2 x, Float64x2* LDF_restrict p_sinh, Float64x2* LDF_restrict p_cosh);
 
-static inline Float64x2 Float64x2_asinh(const Float64x2 x) {
-	return Float64x2_log(Float64x2_add(x,
-		Float64x2_sqrt(
-			Float64x2_sub_dx2_d(Float64x2_square(x), 1.0)
-		)
-	));
-}
-static inline Float64x2 Float64x2_acosh(const Float64x2 x) {
-	return Float64x2_log(Float64x2_add(x,
-		Float64x2_sqrt(
-			Float64x2_add_dx2_d(Float64x2_square(x), 1.0)
-		)
-	));
-}
-static inline Float64x2 Float64x2_atanh(const Float64x2 x) {
-	return Float64x2_mul_power2_dx2_d(Float64x2_log(Float64x2_div(
-			Float64x2_add_d_dx2(1.0, x),
-			Float64x2_sub_d_dx2(1.0, x)
-	)), 0.5);
-}
+Float64x2 Float64x2_asinh(Float64x2 x);
+Float64x2 Float64x2_acosh(Float64x2 x);
+Float64x2 Float64x2_atanh(Float64x2 x);
 
 
 //------------------------------------------------------------------------------

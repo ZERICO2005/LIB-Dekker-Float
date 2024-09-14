@@ -512,7 +512,60 @@ Float64x6 LDF::recip<Float64x6, fp64>
 }
 
 //------------------------------------------------------------------------------
-// Float64x6 Basic Arithmetic
+// Float64x6 specialized arithmetic
+//------------------------------------------------------------------------------
+
+/**
+ * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero
+ */
+template <> inline constexpr
+Float64x6 LDF::mul_pwr2<Float64x6, Float64x6, fp64>
+(const Float64x6& x, const fp64& y) {
+	return {
+		x.val[0] * y,
+		x.val[1] * y,
+		x.val[2] * y,
+		x.val[3] * y,
+		x.val[4] * y,
+		x.val[5] * y
+	};
+}
+
+/**
+ * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero
+ */
+template <> inline constexpr
+Float64x6 LDF::mul_pwr2<Float64x6, fp64, Float64x6>
+(const fp64& x, const Float64x6& y) {
+	return {
+		x * y.val[0],
+		x * y.val[1],
+		x * y.val[2],
+		x * y.val[3],
+		x * y.val[4],
+		x * y.val[5]
+	};
+}
+
+/**
+ * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero.
+ * The result is stored as a Float64x6
+ */
+template <> inline constexpr
+Float64x6 LDF::mul_pwr2<Float64x6, fp64, fp64>
+(const fp64& x, const fp64& y) {
+	return {
+		x * y,
+		static_cast<fp64>(0.0),
+		static_cast<fp64>(0.0),
+		static_cast<fp64>(0.0),
+		static_cast<fp64>(0.0),
+		static_cast<fp64>(0.0)
+	};
+}
+
+//------------------------------------------------------------------------------
+// Float64x6 Arithmetic Operator Overloads
 //------------------------------------------------------------------------------
 
 /* Negation */
@@ -613,6 +666,20 @@ inline Float64x6 operator/(const Float64x6& x, const fp64 y) {
 // 	return Float64x6_recip(x);
 // }
 
+/**
+ * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero
+ */
+inline constexpr Float64x6 mul_pwr2(const Float64x6& x, const fp64 y) {
+	return LDF::mul_pwr2<Float64x6, Float64x6, fp64>(x, y);
+}
+
+/**
+ * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero
+ */
+inline constexpr Float64x6 mul_pwr2(const fp64 x, const Float64x6& y) {
+	return LDF::mul_pwr2<Float64x6, fp64, Float64x6>(x, y);
+}
+
 //------------------------------------------------------------------------------
 // Float64x6 Compound Assignment
 //------------------------------------------------------------------------------
@@ -688,52 +755,25 @@ inline Float64x6& operator/=(Float64x6 &x, const fp64 y) {
 /* Increment/Decrement */
 
 inline Float64x6& operator++(Float64x6& x) {
-	x += 1.0;
+	x += static_cast<fp64>(1.0);
 	return x;
 }
 
 inline Float64x6& operator--(Float64x6& x) {
-	x -= 1.0;
+	x -= static_cast<fp64>(1.0);
 	return x;
 }
 
 inline Float64x6 operator++(Float64x6& x, int) {
 	Float64x6 temp = x;
-	x += 1.0;
+	x += static_cast<fp64>(1.0);
 	return temp;
 }
 
 inline Float64x6 operator--(Float64x6& x, int) {
 	Float64x6 temp = x;
-	x -= 1.0;
+	x -= static_cast<fp64>(1.0);
 	return temp;
-}
-
-
-//------------------------------------------------------------------------------
-// Float64x6 specialized arithmetic
-//------------------------------------------------------------------------------
-
-/**
- * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero
- */
-inline Float64x6 mul_pwr2(const Float64x6& x, const fp64 y) {
-	Float64x6 ret;
-	for (int i = 0; i <= 5; i++) {
-		ret.val[i] = x.val[i] * y;
-	}
-	return ret;
-}
-
-/**
- * @brief Multiplies by a known power of two (such as 2.0, 0.5, etc.) or zero
- */
-inline Float64x6 mul_pwr2(const fp64 x, const Float64x6& y) {
-	Float64x6 ret;
-	for (int i = 0; i <= 5; i++) {
-		ret.val[i] = x * y.val[i];
-	}
-	return ret;
 }
 
 //------------------------------------------------------------------------------
