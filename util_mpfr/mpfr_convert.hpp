@@ -9,9 +9,11 @@
 #ifndef MPFR_CONVERT_HPP
 #define MPFR_CONVERT_HPP
 
-#if defined(__float128) || defined(_Float128)
+// These preprocessor directives probably won't work
+#if !defined(MPFR_WANT_FLOAT128) && (defined(__float128) || defined(_Float128))
 	#define MPFR_WANT_FLOAT128
 #endif
+
 #include <mpfr.h>
 
 #include <cstdint>

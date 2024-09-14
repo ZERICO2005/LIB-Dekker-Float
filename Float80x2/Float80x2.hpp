@@ -14,14 +14,12 @@
 #include <cfenv>
 #include <limits>
 
-#include "Float80.hpp"
 #include "Float80x2_def.h"
 
 // Can be changed to other types for better accuracy
 typedef long double Float80x2_Math;
 
-#include "../FloatNxN/FloatNxN_arithmetic.hpp"
-#include "Float80x2_constants.hpp"
+#include "../LDF/LDF_arithmetic.hpp"
 
 //------------------------------------------------------------------------------
 // Float80x2 LDF Type Information
@@ -885,6 +883,8 @@ namespace std {
 // Float80x2 Constants
 //------------------------------------------------------------------------------
 
+#include "Float80x2_constants.hpp"
+
 /* C++20 <numbers> */
 
 	constexpr Float80x2 Float80x2_e          = {0xa.df85458a2bb4a9bp-2L,-0xa.04753bfb185861cp-67L}; /**< ~2.718281828 */
@@ -1074,48 +1074,17 @@ constexpr Float80x2 Float80x2_sqrtpi = {0xe.2dfc48da77b553dp-3L,-0xf.13eb7ca891b
 
 /* Trigonometry */
 
-	#if 1
-
 	Float80x2 sin(const Float80x2& x);
 	Float80x2 cos(const Float80x2& x);
+	
 	void sincos(const Float80x2& x, Float80x2& p_sin, Float80x2& p_cos);
+
 	inline Float80x2 tan(const Float80x2& x) {
 		Float80x2 sin_val, cos_val;
 		sincos(x, sin_val, cos_val);
 		return sin_val / cos_val;
 	}
 
-	#else
-
-	/** 
-	 * @note casts to Float80x2_Math for calculation as this function is not
-	 * currently implemeneted.
-	 */
-	inline Float80x2 sin(const Float80x2& x) { return static_cast<Float80x2>(sin(static_cast<Float80x2_Math>(x))); }
-	/** 
-	 * @note casts to Float80x2_Math for calculation as this function is not
-	 * currently implemeneted.
-	 */
-	inline Float80x2 cos(const Float80x2& x) { return static_cast<Float80x2>(cos(static_cast<Float80x2_Math>(x))); }
-	/** 
-	 * @note casts to Float80x2_Math for calculation as this function is not
-	 * currently implemeneted.
-	 */
-	inline void sincos(const Float80x2& x, Float80x2& p_sin, Float80x2& p_cos) {
-		p_sin = sin(x);
-		p_cos = cos(x);
-	}
-	/** 
-	 * @note casts to Float80x2_Math for calculation as this function is not
-	 * currently implemeneted.
-	 */
-	inline Float80x2 tan(const Float80x2& x) {
-		Float80x2 sin_val, cos_val;
-		sincos(x, sin_val, cos_val);
-		return sin_val / cos_val;
-	}
-
-	#endif
 	/** 
 	 * @note casts to Float80x2_Math for calculation as this function is not
 	 * currently implemeneted.
@@ -1187,78 +1156,41 @@ constexpr Float80x2 Float80x2_sqrtpi = {0xe.2dfc48da77b553dp-3L,-0xf.13eb7ca891b
 	inline Float80x2 log1p(const Float80x2& x) {
 		return log(x + static_cast<fp80>(1.0));
 	}
+	
 	/** 
 	 * @note Naive implementation of log2
 	 */
-	inline Float80x2 log2(const Float80x2 x) {
+	inline Float80x2 log2(const Float80x2& x) {
 		return log(x) * Float80x2_log2e;
 	}
+
 	/** 
 	 * @note Naive implementation of log10
 	 */
-	inline Float80x2 log10(const Float80x2 x) {
+	inline Float80x2 log10(const Float80x2& x) {
 		return log(x) * Float80x2_log10e;
 	}
 	
 	inline Float80x2 logb(const Float80x2 x) { return logb(x.hi + x.lo); }
-	
-	#if 1
 
 	Float80x2 exp(const Float80x2& x);
 
-	Float80x2 expm1(const Float80x2 x);
+	Float80x2 expm1(const Float80x2& x);
 
-	inline Float80x2 exp2(const Float80x2 x) {
+	inline Float80x2 exp2(const Float80x2& x) {
 		return exp(x * Float80x2_ln2);
 	}
 
-	inline Float80x2 exp10(const Float80x2 x) {
+	inline Float80x2 exp10(const Float80x2& x) {
 		return exp(x * Float80x2_ln10);
 	}
 
-	#else
-
-	/** 
-	 * @note casts to Float80x2_Math for calculation as this function is not
-	 * currently implemeneted.
-	 */
-	inline Float80x2 exp(const Float80x2& x) { return static_cast<Float80x2>(exp(static_cast<Float80x2_Math>(x))); }
-	/** 
-	 * @note casts to Float80x2_Math for calculation as this function is not
-	 * currently implemeneted.
-	 */
-	inline Float80x2 expm1(const Float80x2 x) {
-		return exp(x) - static_cast<fp80>(1.0);
-	}
-	/** 
-	 * @note casts to Float80x2_Math for calculation as this function is not
-	 * currently implemeneted.
-	 */
-	inline Float80x2 exp2(const Float80x2 x) {
-		return exp(x * Float80x2_ln2);
-	}
-	/** 
-	 * @note casts to Float80x2_Math for calculation as this function is not
-	 * currently implemeneted.
-	 */
-	inline Float80x2 exp10(const Float80x2 x) {
-		return exp(x * Float80x2_ln10);
-	}
-
-	#endif
-	/** 
-	 * @note casts to Float80x2_Math for calculation as this function is not
-	 * currently implemeneted.
-	 */
 	inline Float80x2 pow(const Float80x2& x, const Float80x2& y) {
 		return isequal_zero(x) ? (
 			isequal_zero(y) ? static_cast<Float80x2>(1.0) : static_cast<Float80x2>(0.0)
 		) : exp(y * log(x));
 	}
-	/** 
-	 * @note casts to Float80x2_Math for calculation as this function is not
-	 * currently implemeneted.
-	 */
+
 	inline Float80x2 pow(const Float80x2& x, const fp80 y) {
 		return isequal_zero(x) ? (
 			(y == static_cast<fp80>(0.0)) ? static_cast<Float80x2>(1.0) : static_cast<Float80x2>(0.0)
@@ -1406,34 +1338,11 @@ constexpr Float80x2 Float80x2_sqrtpi = {0xe.2dfc48da77b553dp-3L,-0xf.13eb7ca891b
 	}
 
 /* Transcendental Functions */
-	#if 1
 	
 	Float80x2 erf(const Float80x2& x);
 
 	Float80x2 erfc(const Float80x2& x);
-	
-	#else
-	/** 
-	 * @note casts to Float80x2_Math for calculation as this function is not
-	 * currently implemeneted.
-	 */
-	inline Float80x2 erf(const Float80x2& x) {
-		return static_cast<Float80x2>(
-			erf(static_cast<Float80x2_Math>(x))
-		);
-	}
-	/** 
-	 * @note casts to Float80x2_Math for calculation as this function is not
-	 * currently implemeneted.
-	 */
-	inline Float80x2 erfc(const Float80x2& x) {
-		return static_cast<Float80x2>(
-			erfc(static_cast<Float80x2_Math>(x))
-		);
-	}
-	#endif
 
-	#if 1
 	Float80x2 tgamma(const Float80x2& x);
 
 	/** 
@@ -1442,25 +1351,5 @@ constexpr Float80x2 Float80x2_sqrtpi = {0xe.2dfc48da77b553dp-3L,-0xf.13eb7ca891b
 	inline Float80x2 lgamma(const Float80x2& x) {
 		return log(fabs(tgamma(x)));
 	}
-	#else
-	/** 
-	 * @note casts to Float80x2_Math for calculation as this function is not
-	 * currently implemeneted.
-	 */
-	inline Float80x2 lgamma(const Float80x2& x) {
-		return static_cast<Float80x2>(
-			lgamma(static_cast<Float80x2_Math>(x))
-		);
-	}
-	/** 
-	 * @note casts to Float80x2_Math for calculation as this function is not
-	 * currently implemeneted.
-	 */
-	inline Float80x2 tgamma(const Float80x2& x) {
-		return static_cast<Float80x2>(
-			tgamma(static_cast<Float80x2_Math>(x))
-		);
-	}
-	#endif
 
 #endif /* FLOAT80X2_HPP */

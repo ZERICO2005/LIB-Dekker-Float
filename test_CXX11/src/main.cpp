@@ -6,7 +6,6 @@
 **	this project. If not, see https://opensource.org/license/MIT
 */
 
-#include <Float80x2/Float80x2_def.h>
 #include <limits>
 #include <math.h>
 #include <algorithm>
@@ -29,6 +28,8 @@ inline int64_t getNanoTime(void) {
 }
 
 #define MPFR_WANT_FLOAT128
+
+#include "Float80x2/Float80x2_def.h"
 
 #include "Float32/Float32.h"
 #include "Float64/Float64.h"

@@ -9,14 +9,14 @@
 #ifndef FLOAT80X2_DEF_H
 #define FLOAT80X2_DEF_H
 
-#include "Float80.hpp"
+#include "../Float80/Float80.hpp"
 
 /**
  * @brief defines the Float80x2 struct
  */
 
-#include "Float32/Float32.h"
-#include "Float64/Float64.h"
+#include "../Float32/Float32.h"
+#include "../Float64/Float64.h"
 
 //------------------------------------------------------------------------------
 // Float80x2 struct

@@ -17,8 +17,7 @@
 
 #include "Float64x2_def.h"
 
-#include "../FloatNxN/FloatNxN_arithmetic.hpp"
-#include "Float64x2_constants.hpp"
+#include "../LDF/LDF_arithmetic.hpp"
 
 #include <cstdint>
 #include <limits>
@@ -860,6 +859,8 @@ namespace std {
 // Float64x2 Constants
 //------------------------------------------------------------------------------
 
+#include "Float64x2_constants.hpp"
+
 /* C++20 <numbers> */
 
 	constexpr Float64x2 Float64x2_e          = {0x1.5bf0a8b145769p+1,+0x1.4d57ee2b1013ap-53}; /**< ~2.718281828 */
@@ -898,7 +899,6 @@ namespace std {
 #endif
 
 /* Other constants */
-
 
 	constexpr Float64x2 Float64x2_sqrtpi = {0x1.c5bf891b4ef6bp+0,-0x1.618f13eb7ca89p-54}; /**< ~1.772453851 */
 	constexpr Float64x2 Float64x2_inv_e  = {0x1.78b56362cef37p-2,+0x1.8d5d6f63c1482p-55}; /**< ~0.367879441 */

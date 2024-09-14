@@ -42,7 +42,7 @@
 
 #include "Float64x6_def.h"
 #include "../Float64x2/Float64x2.h"
-#include "../Float64x6/Float64x6.h"
+#include "../Float64x4/Float64x4.h"
 
 /**
  * @brief Allows for type punning

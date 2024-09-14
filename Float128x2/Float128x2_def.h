@@ -9,15 +9,15 @@
 #ifndef FLOAT128X2_DEF_H
 #define FLOAT128X2_DEF_H
 
-#include "Float128.hpp"
+#include "../Float128/Float128.hpp"
 #include "Float128x2.hpp"
 
 /**
  * @brief defines the Float128x2 struct
  */
 
-#include "Float32/Float32.h"
-#include "Float64/Float64.h"
+#include "../Float32/Float32.h"
+#include "../Float64/Float64.h"
 
 //------------------------------------------------------------------------------
 // Float128x2 struct

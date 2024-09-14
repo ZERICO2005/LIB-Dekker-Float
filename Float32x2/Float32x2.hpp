@@ -8,7 +8,6 @@
 #ifndef FLOAT32X2_HPP
 #define FLOAT32X2_HPP
 
-// #include "Float32x2.h"
 #include "Float32x2_def.h"
 
 #include <cstdarg>
@@ -18,11 +17,9 @@
 #include <cfenv>
 #include <limits>
 
-#include "../FloatNxN/FloatNxN_arithmetic.hpp"
-#include "Float32x2_constants.hpp"
+#include "../LDF/LDF_arithmetic.hpp"
 
-typedef float fp32;
-typedef double fp64;
+#include "../Float64/Float64.h"
 
 // Can be changed to other types for better accuracy
 typedef fp64 Float32x2_Math;
@@ -788,6 +785,8 @@ inline Float32x2 operator--(Float32x2& x, int) {
 //------------------------------------------------------------------------------
 // Float32x2 Constants
 //------------------------------------------------------------------------------
+
+#include "Float32x2_constants.hpp"
 
 /* C++20 <numbers> */
 

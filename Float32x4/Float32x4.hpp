@@ -13,8 +13,7 @@
 #include <cstdint>
 #include <cmath>
 
-#include "../FloatNxN/FloatNxN_arithmetic.hpp"
-#include "Float32x4_constants.hpp"
+#include "../LDF/LDF_arithmetic.hpp"
 
 /**
  * @note Float32x4 is currently unimplemented.
@@ -286,6 +285,8 @@ Float32x4 LDF::bitwise_xor<Float32x4, fp32>
 //------------------------------------------------------------------------------
 // Float32x4 Constants
 //------------------------------------------------------------------------------
+
+#include "Float32x4_constants.hpp"
 
 /* C++20 <numbers> */
 

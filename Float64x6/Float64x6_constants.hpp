@@ -10,7 +10,7 @@
 #define FLOAT64X6_CONSTANTS_HPP
 
 #include "Float64x6_def.h"
-#include "../FloatNxN/FloatNxN_constants.hpp"
+#include "../LDF/LDF_constants.hpp"
 
 namespace LDF {
 

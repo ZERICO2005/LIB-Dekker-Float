@@ -8,9 +8,7 @@
 #ifndef FLOAT128X2_HPP
 #define FLOAT128X2_HPP
 
-#include "Float128.hpp"
 #include "Float128x2_def.h"
-#include "../FloatNxN/FloatNxN_constants.hpp"
 
 //------------------------------------------------------------------------------
 // Float128x2 LDF Type Information
@@ -34,6 +32,8 @@ namespace LDF {
 //------------------------------------------------------------------------------
 // Float128x2 Constants
 //------------------------------------------------------------------------------
+
+#include "Float128x2_constants.hpp"
 
 /* C++20 <numbers> */
 

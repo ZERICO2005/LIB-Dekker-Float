@@ -10,7 +10,7 @@
 #define FLOAT128X2_CONSTANTS_HPP
 
 #include "Float128x2_def.h"
-#include "../FloatNxN/FloatNxN_constants.hpp"
+#include "../LDF/LDF_constants.hpp"
 
 namespace LDF {
 

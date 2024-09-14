@@ -6,10 +6,9 @@
 **	this project. If not, see https://opensource.org/license/MIT
 */
 
-#ifndef FLOAT32X2_CONSTANTS_HPP
-#define FLOAT32X2_CONSTANTS_HPP
+#ifndef FLOAT128_CONSTANTS_HPP
+#define FLOAT128_CONSTANTS_HPP
 
-#include "Float32x2_def.h"
 #include "../LDF/LDF_constants.hpp"
 
 namespace LDF {
@@ -18,4 +17,4 @@ namespace LDF {
 
 }
 
-#endif /* FLOAT32X2_CONSTANTS_HPP */
+#endif /* FLOAT128X2_CONSTANTS_HPP */

@@ -10,7 +10,7 @@
 #define FLOAT32X4_CONSTANTS_HPP
 
 #include "Float32x4_def.h"
-#include "../FloatNxN/FloatNxN_constants.hpp"
+#include "../LDF/LDF_constants.hpp"
 
 namespace LDF {
 

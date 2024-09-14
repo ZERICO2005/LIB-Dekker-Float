@@ -18,10 +18,10 @@
 typedef float fp32;
 typedef double fp64;
 #ifdef Enable_Float80
-	#include "../Float80x2/Float80.hpp"
+	#include "../Float80x2/Float80x2.hpp"
 #endif
 #ifdef Enable_Float128
-	#include "../Float128x2/Float128.hpp"
+	#include "../Float128x2/Float128x2.hpp"
 	#define MPFR_WANT_FLOAT128
 #endif
 #include <mpfr.h>

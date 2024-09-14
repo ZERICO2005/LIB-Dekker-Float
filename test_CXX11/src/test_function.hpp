@@ -14,10 +14,10 @@
 
 // #include "Float64x2/Float64x2.hpp"
 #ifdef Enable_Float80
-	#include "Float80x2/Float80.hpp"
+	#include "Float80x2/Float80x2.hpp"
 #endif
 #ifdef Enable_Float128
-	#include "Float128x2/Float128.hpp"
+	#include "Float128x2/Float128x2.hpp"
 #endif
 
 #include "util_mpfr/MPFR_Float.hpp"

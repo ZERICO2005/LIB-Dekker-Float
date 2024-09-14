@@ -26,8 +26,7 @@
 #include <cstdint>
 #include <cmath>
 
-#include "../FloatNxN/FloatNxN_arithmetic.hpp"
-#include "Float64x4_constants.hpp"
+#include "../LDF/LDF_arithmetic.hpp"
 
 //------------------------------------------------------------------------------
 // Float64x4 LDF Type Information
@@ -1004,11 +1003,7 @@ Float64x4 LDF::bitwise_xor<Float64x4, fp64>
 // Float64x4 Constants
 //------------------------------------------------------------------------------
 
-namespace LDF {
-
-
-
-}
+#include "Float64x4_constants.hpp"
 
 /* C++20 <numbers> */
 
