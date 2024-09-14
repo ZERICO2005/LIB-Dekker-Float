@@ -26,7 +26,6 @@
 #include <stdio.h>
 #include <cstdio>
 
-#if 0
 template<typename FloatX>
 void output_constant_SIMD(const char* label, FloatX dst) {
 	#if 0
@@ -122,223 +121,43 @@ void output_constant_SIMD(const char* label, FloatX dst) {
 	#endif
 }
 
-template<typename FloatX>
-void output_constant(const char* label, __attribute__((unused)) const char* name, FloatMPFR src) {
-#if 1
-mpfr_printf("%s %.40Re\n", label, src.value);
-#else
-	FloatX dst = mpfr_get_type<FloatX>(src.value, MPFR_RNDN);
-	#if 0
-	output_constant_SIMD(label, dst);
-	#elif 1
-		#if 0
-		printf(
-			"template<> inline constexpr %s %-12s <%s> = "\
-			"{%-16.7a, %+-17.7a, %+-17.7a, %+-17.7a};\n",
-			name, label, name, dst.val[0], dst.val[1], dst.val[2], dst.val[3]
-		);
-		#elif 1
-		printf(
-			"template<> inline constexpr %s %-12s <%s> = "\
-			"{%-22.13a, %+-23.13a, %+-23.13a, %+-23.13a};\n",
-			name, label, name, dst.val[0], dst.val[1], dst.val[2], dst.val[3]
-		);
-		#endif
-	#elif 0
-		char dst_hi[999];
-		char dst_lo[999];
-		quadmath_snprintf(dst_hi, sizeof(dst_hi), "%+-39.29Qa", dst.hi);
-		quadmath_snprintf(dst_lo, sizeof(dst_lo), "%+-39.29Qa", dst.lo);
-		printf(
-			"template<> inline constexpr Float64x2 %-12s <Float64x2> = "\
-			"{%s, %s};\n",
-			label, dst_hi, dst_lo
-		);
-	#endif
-#endif
-}
-
-template<typename FloatX>
-void generate_constants(const char* name) {
-	FloatMPFR num;
-	#if 1
-	// e_v
-	num = 1.0;
-	mpfr_exp(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("e_v         ", name, num);
-
-	// log2e_v
-	num = 1.0;
-	mpfr_exp(num.value, num.value, MPFR_RNDN);
-	mpfr_log2(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("log2e_v     ", name, num);
-
-	// log10e_v
-	num = 1.0;
-	mpfr_exp(num.value, num.value, MPFR_RNDN);
-	mpfr_log10(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("log10e_v    ", name, num);
-
-	// pi_v
-	mpfr_const_pi(num.value, MPFR_RNDN);
-	output_constant<FloatX>("pi_v        ", name, num);
-
-	// inv_pi_v
-	mpfr_const_pi(num.value, MPFR_RNDN);
-	mpfr_d_div(num.value, 1.0, num.value, MPFR_RNDN);
-	output_constant<FloatX>("inv_pi_v    ", name, num);
-
-	// inv_sqrtpi_v
-	mpfr_const_pi(num.value, MPFR_RNDN);
-	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
-	mpfr_d_div(num.value, 1.0, num.value, MPFR_RNDN);
-	output_constant<FloatX>("inv_sqrtpi_v", name, num);
-	
-	// log2e_v
-	mpfr_const_log2(num.value, MPFR_RNDN);
-	output_constant<FloatX>("ln2_v       ", name, num);
-
-	// log10e_v
-	num = 10.0;
-	mpfr_log(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("ln10_v      ", name, num);
-
-	// sqrt2_v
-	num = 2.0;
-	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("sqrt2_v     ", name, num);
-
-	// sqrt3_v
-	num = 3.0;
-	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("sqrt3_v     ", name, num);
-
-	// inv_sqrt3_v
-	num = 3.0;
-	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
-	mpfr_d_div(num.value, 1.0, num.value, MPFR_RNDN);
-	output_constant<FloatX>("inv_sqrt3_v ", name, num);
-
-	// egamma_v
-	mpfr_const_euler(num.value, MPFR_RNDN);
-	output_constant<FloatX>("egamma_v    ", name, num);
-
-	// phi_v
-	num = 5.0;
-	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
-	mpfr_add_d(num.value, num.value, 1.0, MPFR_RNDN);
-	mpfr_div_d(num.value, num.value, 2.0, MPFR_RNDN);
-	output_constant<FloatX>("phi_v       ", name, num);
-
-	#else
-	// e_v
-	num = 1.0;
-	mpfr_exp(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("e", name, num);
-
-	// log2e_v
-	num = 1.0;
-	mpfr_exp(num.value, num.value, MPFR_RNDN);
-	mpfr_log2(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("log2e", name, num);
-
-	// log10e_v
-	num = 1.0;
-	mpfr_exp(num.value, num.value, MPFR_RNDN);
-	mpfr_log10(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("log10e", name, num);
-
-	// pi_v
-	mpfr_const_pi(num.value, MPFR_RNDN);
-	output_constant<FloatX>("pi", name, num);
-
-	// inv_pi_v
-	mpfr_const_pi(num.value, MPFR_RNDN);
-	mpfr_d_div(num.value, 1.0, num.value, MPFR_RNDN);
-	output_constant<FloatX>("inv_pi", name, num);
-
-	// inv_sqrtpi_v
-	mpfr_const_pi(num.value, MPFR_RNDN);
-	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
-	mpfr_d_div(num.value, 1.0, num.value, MPFR_RNDN);
-	output_constant<FloatX>("inv_sqrtpi", name, num);
-	
-	// log2e_v
-	mpfr_const_log2(num.value, MPFR_RNDN);
-	output_constant<FloatX>("ln2", name, num);
-
-	// log10e_v
-	num = 10.0;
-	mpfr_log(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("ln10", name, num);
-
-	// sqrt2_v
-	num = 2.0;
-	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("sqrt2", name, num);
-
-	// sqrt3_v
-	num = 3.0;
-	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
-	output_constant<FloatX>("sqrt3", name, num);
-
-	// inv_sqrt3_v
-	num = 3.0;
-	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
-	mpfr_d_div(num.value, 1.0, num.value, MPFR_RNDN);
-	output_constant<FloatX>("inv_sqrt3", name, num);
-
-	// egamma_v
-	mpfr_const_euler(num.value, MPFR_RNDN);
-	output_constant<FloatX>("egamma", name, num);
-
-	// phi_v
-	num = 5.0;
-	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
-	mpfr_add_d(num.value, num.value, 1.0, MPFR_RNDN);
-	mpfr_div_d(num.value, num.value, 2.0, MPFR_RNDN);
-	output_constant<FloatX>("phi", name, num);
-	#endif
-}
-
-#else
-
 template<typename FloatX, typename FloatBase>
 void output_constant(const char* label, __attribute__((unused)) const char* name, FloatMPFR src, const char* comment = nullptr) {
 	constexpr bool enable_comment = true;
 	const int label_width = 14;
 	(void)label_width; // Gets rid of unused variable warnings
-#if 0
+#if 1
 	#if 0
 		mpfr_printf(
-			"template<typename T> inline constexpr T const_%-*s();",
+			"static constexpr T C_%-*s {};",
 			label_width, label
 		);
-		printf(" /**< ~%.9Lf", mpfr_get_ld(src.value, MPFR_RNDN));
-		if (comment != nullptr && enable_comment) { printf(" %s", comment); }
-		printf(" */\n");
+
 	#else
-		printf("/** ~%.9Lf", mpfr_get_ld(src.value, MPFR_RNDN));
-		if (comment != nullptr && enable_comment) { printf(" %s", comment); }
-		printf(" */\n");
+		// printf("/** ~%.9Lf", mpfr_get_ld(src.value, MPFR_RNDN));
+		// if (comment != nullptr && enable_comment) { printf(" %s", comment); }
+		// printf(" */\n");
 		#if 0
 
 		mpfr_printf(
-			"template<> inline constexpr long double const_%-*s<long double>() { return %.40ReL; }\n",
+			"static constexpr long double C_%-*s = %.40ReL;",
 			label_width, label, src.value
 		);
-		#elif 0
+		#elif 1
 		mpfr_printf(
-			"template<> inline constexpr double const_%-*s<double>() { return %.21Re; }\n",
+			"template<> inline constexpr double const_%-*s<double>() { return %.21Re; }",
 			label_width, label, src.value
 		);
 		#else
 		mpfr_printf(
-			"template<> inline constexpr float const_%-*s<float>() { return %.11Ref; }\n",
+			"template<> inline constexpr float const_%-*s<float>() { return %.11Ref; }",
 			label_width, label, src.value
 		);
 		#endif
 	#endif
+	printf(" /**< ~%.9Lf", mpfr_get_ld(src.value, MPFR_RNDN));
+	if (comment != nullptr && enable_comment) { printf(" %s", comment); }
+	printf(" */\n");
 #else
 	FloatX dst_value = mpfr_get_type<FloatX>(src.value, MPFR_RNDN);
 	const FloatBase* dst = reinterpret_cast<FloatBase*>(&dst_value);
@@ -606,5 +425,3 @@ if (print_headings) { printf("%s/* Additional Mathematical Constants */%s", pref
 	output_constant<FloatX, FloatBase>("gauss", name, num, "`lemniscate / pi`");
 
 }
-
-#endif
