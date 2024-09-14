@@ -8,6 +8,7 @@
 
 #include "../../util_mpfr/MPFR_Float.hpp"
 #include "../../util_mpfr/mpfr_convert.hpp"
+#include "../../LDF/LDF_type_info.hpp"
 
 // template<typename FloatX>
 // FloatX FloatMPFR_to_FloatX(FloatMPFR src) {
@@ -126,38 +127,42 @@ void output_constant(const char* label, __attribute__((unused)) const char* name
 	constexpr bool enable_comment = true;
 	const int label_width = 14;
 	(void)label_width; // Gets rid of unused variable warnings
-#if 1
+#if 0
 	#if 0
 		mpfr_printf(
 			"static constexpr T C_%-*s {};",
 			label_width, label
 		);
-
+		printf(" /**< ~%.9Lf", mpfr_get_ld(src.value, MPFR_RNDN));
+		if (comment != nullptr && enable_comment) { printf(" %s", comment); }
+		printf(" */\n");
 	#else
-		// printf("/** ~%.9Lf", mpfr_get_ld(src.value, MPFR_RNDN));
-		// if (comment != nullptr && enable_comment) { printf(" %s", comment); }
-		// printf(" */\n");
-		#if 0
+		printf("/** ~%.9Lf", mpfr_get_ld(src.value, MPFR_RNDN));
+		if (comment != nullptr && enable_comment) { printf(" %s", comment); }
+		printf(" */\n");
 
+		#if 0
 		mpfr_printf(
-			"static constexpr long double C_%-*s = %.40ReL;",
+			"template<> inline constexpr long double const_%-*s<long double>() { return %.40ReL; }\n",
 			label_width, label, src.value
 		);
-		#elif 1
+		#elif 0
 		mpfr_printf(
-			"template<> inline constexpr double const_%-*s<double>() { return %.21Re; }",
+			"template<> inline constexpr double const_%-*s<double>() { return %.21Re; }\n",
+			label_width, label, src.value
+		);
+		#elif 0
+		mpfr_printf(
+			"template<> inline constexpr float const_%-*s<float>() { return %.11Ref; }\n",
 			label_width, label, src.value
 		);
 		#else
 		mpfr_printf(
-			"template<> inline constexpr float const_%-*s<float>() { return %.11Ref; }",
+			"template<> inline constexpr __float128 const_%-*s<__float128>() { return %.36ReQ; }\n",
 			label_width, label, src.value
 		);
 		#endif
 	#endif
-	printf(" /**< ~%.9Lf", mpfr_get_ld(src.value, MPFR_RNDN));
-	if (comment != nullptr && enable_comment) { printf(" %s", comment); }
-	printf(" */\n");
 #else
 	FloatX dst_value = mpfr_get_type<FloatX>(src.value, MPFR_RNDN);
 	const FloatBase* dst = reinterpret_cast<FloatBase*>(&dst_value);
@@ -172,11 +177,11 @@ void output_constant(const char* label, __attribute__((unused)) const char* name
 		"template<> inline constexpr %s const_%-s<%s>() { return {\n",
 		name, label, name
 	);
-	for (int i = 0; i < 6; i++) {
-		char dst_buf[999];
+	char dst_buf[999];
+	for (int i = 0; i < LDF::LDF_Type_Info<FloatX>::FloatBase_Count; i++) {
 		if (i != 0) { printf(",\n"); }
-		snprintf(dst_buf, sizeof(dst_buf), "\t%-+*.*e", width, precision, dst[i]);
-		printf("%s", dst_buf);
+		quadmath_snprintf(dst_buf, sizeof(dst_buf), "%+-*.*Qe", width, precision, dst[i]);
+		printf("\t%sQ", dst_buf);
 	};
 	printf("\n}; }\n\n");
 #endif
@@ -192,10 +197,10 @@ void generate_constants(const char* name) {
 	FloatMPFR num;
 	FloatMPFR temp;
 	constexpr bool print_headings = true;
-	const char prefix_ln[] = "\n";
+	const char prefix_ln[] = "";
 	const char suffix_ln[] = "\n\n";
 
-if (print_headings) { printf("%s/* Multiples of pi*/%s", prefix_ln, suffix_ln); }
+if (print_headings) { printf("%s/* Multiples of pi */%s", prefix_ln, suffix_ln); }
 
 	mpfr_const_pi(num.value, MPFR_RNDN);
 	output_constant<FloatX, FloatBase>("pi", name, num);
@@ -419,9 +424,9 @@ if (print_headings) { printf("%s/* Additional Mathematical Constants */%s", pref
 	mpfr_div_d(num.value, num.value, 4.0, MPFR_RNDN);
 	output_constant<FloatX, FloatBase>("lemniscate2", name, num, "`1/2 * lemniscate`");
 
-	mpfr_const_pi(temp.value, MPFR_RNDN);
-	mpfr_set_str(num.value, lemniscate_const_text, 10, MPFR_RNDN);
-	mpfr_div(num.value, num.value, temp.value, MPFR_RNDN);
-	output_constant<FloatX, FloatBase>("gauss", name, num, "`lemniscate / pi`");
+	// mpfr_const_pi(temp.value, MPFR_RNDN);
+	// mpfr_set_str(num.value, lemniscate_const_text, 10, MPFR_RNDN);
+	// mpfr_div(num.value, num.value, temp.value, MPFR_RNDN);
+	// output_constant<FloatX, FloatBase>("gauss", name, num, "`lemniscate / pi`");
 
 }

@@ -853,50 +853,26 @@ Float64x6 LDF::bitwise_xor<Float64x6, fp64>
 
 #include "Float64x6_constants.hpp"
 
-/* C++20 <numbers> */
-
-	constexpr Float64x6 Float64x6_e          = {0x1.5bf0a8b145769p+1,+0x1.4d57ee2b1013ap-53,-0x1.618713a31d3e2p-109,+0x1.c5a6d2b53c26dp-163,0.0,0.0}; /**< ~2.718281828 */
-	constexpr Float64x6 Float64x6_log2e      = {0x1.71547652b82fep+0,+0x1.777d0ffda0d24p-56,-0x1.60bb8a5442ab9p-110,-0x1.4b52d3ba6d74dp-166,0.0,0.0}; /**< ~1.442695041 */
-	constexpr Float64x6 Float64x6_log10e     = {0x1.bcb7b1526e50ep-2,+0x1.95355baaafad3p-57,+0x1.ee191f71a3012p-112,+0x1.7268808e8fcb5p-167,0.0,0.0}; /**< ~0.434294482 */
-	constexpr Float64x6 Float64x6_pi         = {0x1.921fb54442d18p+1,+0x1.1a62633145c07p-53,-0x1.f1976b7ed8fbcp-109,+0x1.4cf98e804177dp-163,0.0,0.0}; /**< ~3.141592654 */
-	constexpr Float64x6 Float64x6_inv_pi     = {0x1.45f306dc9c883p-2,-0x1.6b01ec5417056p-56,-0x1.6447e493ad4cep-110,+0x1.e21c820ff28b2p-164,0.0,0.0}; /**< ~0.318309886 */
-	constexpr Float64x6 Float64x6_inv_sqrtpi = {0x1.20dd750429b6dp-1,+0x1.1ae3a914fed80p-57,-0x1.3cbbebf65f145p-112,-0x1.e0c574632f53ep-167,0.0,0.0}; /**< ~0.564189584 */
-	constexpr Float64x6 Float64x6_ln2        = {0x1.62e42fefa39efp-1,+0x1.abc9e3b39803fp-56,+0x1.7b57a079a1934p-111,-0x1.ace93a4ebe5d1p-165,0.0,0.0}; /**< ~0.693147181 */
-	constexpr Float64x6 Float64x6_ln10       = {0x1.26bb1bbb55516p+1,-0x1.f48ad494ea3e9p-53,-0x1.9ebae3ae0260cp-107,-0x1.2d10378be1cf1p-161,0.0,0.0}; /**< ~2.302585093 */
-	constexpr Float64x6 Float64x6_sqrt2      = {0x1.6a09e667f3bcdp+0,-0x1.bdd3413b26456p-54,+0x1.57d3e3adec175p-108,+0x1.2775099da2f59p-164,0.0,0.0}; /**< ~1.414213562 */
-	constexpr Float64x6 Float64x6_sqrt3      = {0x1.bb67ae8584caap+0,+0x1.cec95d0b5c1e3p-54,-0x1.f11db689f2ccfp-110,+0x1.3da4798c720a6p-164,0.0,0.0}; /**< ~1.732050808 */
-	constexpr Float64x6 Float64x6_inv_sqrt3  = {0x1.279a74590331cp-1,+0x1.34863e0792bedp-55,-0x1.a82f9e6c53222p-109,-0x1.cb0f41134253ap-163,0.0,0.0}; /**< ~0.577350269 */
-	constexpr Float64x6 Float64x6_egamma     = {0x1.2788cfc6fb619p-1,-0x1.6cb90701fbfabp-58,-0x1.34a95e3133c51p-112,+0x1.9730064300f7dp-166,0.0,0.0}; /**< ~0.577215665 */
-	constexpr Float64x6 Float64x6_phi        = {0x1.9e3779b97f4a8p+0,-0x1.f506319fcfd19p-55,+0x1.b906821044ed8p-109,-0x1.8bb1b5c0f272cp-165,0.0,0.0}; /**< ~1.618033989 */
-
 #if __cplusplus >= 201907L
 #include <numbers>
 namespace std {
 	namespace numbers {
-		template<> inline constexpr Float64x6 e_v          <Float64x6> = Float64x6_e         ; /**< ~2.718281828 */
-		template<> inline constexpr Float64x6 log2e_v      <Float64x6> = Float64x6_log2e     ; /**< ~1.442695041 */
-		template<> inline constexpr Float64x6 log10e_v     <Float64x6> = Float64x6_log10e    ; /**< ~0.434294482 */
-		template<> inline constexpr Float64x6 pi_v         <Float64x6> = Float64x6_pi        ; /**< ~3.141592654 */
-		template<> inline constexpr Float64x6 inv_pi_v     <Float64x6> = Float64x6_inv_pi    ; /**< ~0.318309886 */
-		template<> inline constexpr Float64x6 inv_sqrtpi_v <Float64x6> = Float64x6_inv_sqrtpi; /**< ~0.564189584 */
-		template<> inline constexpr Float64x6 ln2_v        <Float64x6> = Float64x6_ln2       ; /**< ~0.693147181 */
-		template<> inline constexpr Float64x6 ln10_v       <Float64x6> = Float64x6_ln10      ; /**< ~2.302585093 */
-		template<> inline constexpr Float64x6 sqrt2_v      <Float64x6> = Float64x6_sqrt2     ; /**< ~1.414213562 */
-		template<> inline constexpr Float64x6 sqrt3_v      <Float64x6> = Float64x6_sqrt3     ; /**< ~1.732050808 */
-		template<> inline constexpr Float64x6 inv_sqrt3_v  <Float64x6> = Float64x6_inv_sqrt3 ; /**< ~0.577350269 */
-		template<> inline constexpr Float64x6 egamma_v     <Float64x6> = Float64x6_egamma    ; /**< ~0.577215665 */
-		template<> inline constexpr Float64x6 phi_v        <Float64x6> = Float64x6_phi       ; /**< ~1.618033989 */
+		template<> inline constexpr Float64x6 e_v          <Float64x6> = LDF::const_e         <Float64x6>(); /**< ~2.718281828 */
+		template<> inline constexpr Float64x6 log2e_v      <Float64x6> = LDF::const_log2e     <Float64x6>(); /**< ~1.442695041 */
+		template<> inline constexpr Float64x6 log10e_v     <Float64x6> = LDF::const_log10e    <Float64x6>(); /**< ~0.434294482 */
+		template<> inline constexpr Float64x6 pi_v         <Float64x6> = LDF::const_pi        <Float64x6>(); /**< ~3.141592654 */
+		template<> inline constexpr Float64x6 inv_pi_v     <Float64x6> = LDF::const_inv_pi    <Float64x6>(); /**< ~0.318309886 */
+		template<> inline constexpr Float64x6 inv_sqrtpi_v <Float64x6> = LDF::const_inv_sqrtpi<Float64x6>(); /**< ~0.564189584 */
+		template<> inline constexpr Float64x6 ln2_v        <Float64x6> = LDF::const_ln2       <Float64x6>(); /**< ~0.693147181 */
+		template<> inline constexpr Float64x6 ln10_v       <Float64x6> = LDF::const_ln10      <Float64x6>(); /**< ~2.302585093 */
+		template<> inline constexpr Float64x6 sqrt2_v      <Float64x6> = LDF::const_sqrt2     <Float64x6>(); /**< ~1.414213562 */
+		template<> inline constexpr Float64x6 sqrt3_v      <Float64x6> = LDF::const_sqrt3     <Float64x6>(); /**< ~1.732050808 */
+		template<> inline constexpr Float64x6 inv_sqrt3_v  <Float64x6> = LDF::const_inv_sqrt3 <Float64x6>(); /**< ~0.577350269 */
+		template<> inline constexpr Float64x6 egamma_v     <Float64x6> = LDF::const_egamma    <Float64x6>(); /**< ~0.577215665 */
+		template<> inline constexpr Float64x6 phi_v        <Float64x6> = LDF::const_phi       <Float64x6>(); /**< ~1.618033989 */
 	}
 }
 #endif
-
-constexpr Float64x6 Float64x6_sqrtpi = {0x1.c5bf891b4ef6bp+0,-0x1.618f13eb7ca89p-54,-0x1.b1f0071b7aae4p-110,-0x1.389b5a46bdfe8p-165,0.0,0.0}; /**< ~1.772453851 */
-
-constexpr Float64x6 Float64x6_2pi    = {0x1.921fb54442d18p+2,+0x1.1a62633145c07p-52,-0x1.f1976b7ed8fbcp-108,+0x1.4cf98e804177dp-162,0.0,0.0}; /**< ~6.283185307 */
-constexpr Float64x6 Float64x6_pi2    = {0x1.921fb54442d18p+0,+0x1.1a62633145c07p-54,-0x1.f1976b7ed8fbcp-110,+0x1.4cf98e804177dp-164,0.0,0.0}; /**< ~1.570796327 */
-constexpr Float64x6 Float64x6_pi4    = {0x1.921fb54442d18p-1,+0x1.1a62633145c07p-55,-0x1.f1976b7ed8fbcp-111,+0x1.4cf98e804177dp-165,0.0,0.0}; /**< ~0.785398163 */
-constexpr Float64x6 Float64x6_3pi4   = {0x1.2d97c7f3321d2p+1,+0x1.a79394c9e8a0ap-54,+0x1.456737b06ea1ap-108,-0x1.83226a8fe7731p-162,0.0,0.0}; /**< ~2.356194490 */
-constexpr Float64x6 Float64x6_tau    = Float64x6_2pi; /**< ~6.283185307 */
 
 //------------------------------------------------------------------------------
 // Float64x6 math.h functions

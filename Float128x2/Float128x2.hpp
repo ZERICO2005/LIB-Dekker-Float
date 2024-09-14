@@ -33,6 +33,7 @@ namespace LDF {
 // Float128x2 Constants
 //------------------------------------------------------------------------------
 
+#include "../Float128/Float128_constants.hpp"
 #include "Float128x2_constants.hpp"
 
 /* C++20 <numbers> */
