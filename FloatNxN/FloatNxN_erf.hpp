@@ -133,7 +133,7 @@ static inline FloatNxN libDDFUN_erf(const FloatNxN& z) {
 	
 	constexpr FloatBase dcon = static_cast<FloatBase>(100.0); /**< Unknown magic number */
 	FloatBase d1, d2;
-	FloatNxN t1, t2, t3, t4, t5, t6;
+	FloatNxN t5, t6;
 
 	// int dd_nw, dd_nw1;
 	// dd_nw = FloatNxN_count;
@@ -166,22 +166,22 @@ static inline FloatNxN libDDFUN_erf(const FloatNxN& z) {
 	const FloatNxN z2 = square(z);
 
 	if (z < d2) {
-		t1 = static_cast<FloatBase>(0.0);
-		t2 = z;
-		t3 = static_cast<FloatBase>(1.0);
+		FloatNxN taylor_sum = static_cast<FloatBase>(0.0);
+
 		call_dd_dmc(static_cast<FloatBase>(1.0e10), 0, t5);
 
+		FloatNxN taylor_val = z;
 		const FloatNxN z2_mul2 = mul_pwr2(z2, static_cast<FloatBase>(2.0));
 		FloatBase k_mult = static_cast<FloatBase>(1.0);
 		for (int k = 0; k <= max_iter; k++) {
 			if (k > 0) {
-				t2 *= z2_mul2;
-				t3 *= k_mult;
+				taylor_val *= z2_mul2;
+				taylor_val /= k_mult;
 			}
-
-			t4 = t2 / t3;
-			t1 += t4;
-			t6 = t4 / t1;
+			taylor_sum += taylor_val;
+			t6 = taylor_val / taylor_sum;
+			
+			// Unordered comparisions protect against NAN
 			if (!(t6 > target_epsilon) || t6 >= t5) {
 				// goto JMP_120;
 				break;
@@ -196,25 +196,36 @@ static inline FloatNxN libDDFUN_erf(const FloatNxN& z) {
 	// call_dd_abrt
 	// /* label */ JMP_120:
 
-		terf = mul_pwr2(t1, static_cast<FloatBase>(2.0)) * (LDF::const_inv_sqrtpi<FloatNxN>() * exp(-z2));
+		terf = mul_pwr2(taylor_sum, static_cast<FloatBase>(2.0)) * (LDF::const_inv_sqrtpi<FloatNxN>() * exp(-z2));
 	} else {
-		t1 = static_cast<FloatBase>(0.0);
+		/**
+		 * @remarks Performs this approximation:
+		 * erf(x) = 1 - e^(-x^2) / sqrt(pi)
+		 * This works when x is sufficiently large
+		 */
+		FloatNxN t2, t3, t4;
 		t2 = static_cast<FloatBase>(1.0);
 		t3 = fabs(z);
-		call_dd_dmc(static_cast<FloatBase>(1.0e10), 0, t5);
 
-		FloatBase k_mult = static_cast<FloatBase>(1.0);
+		FloatNxN taylor_sum = t3;
+		FloatBase k_mult = static_cast<FloatBase>(-1.0);
+
+		t5 = static_cast<FloatBase>(1.0);
+
 		for (int k = 0; k <= max_iter; k++) {
-			if (k > 0) {
-				t2 *= k_mult;
-				t3 *= t2;
-			}
+			t2 *= k_mult;
+			t3 /= t2;
+			t4 = t2 * t3;
+			taylor_sum += t4;
+			t6 = t4 / taylor_sum;
 
-			t4 = t2 / t3;
-			t1 += t4;
-			t6 = t4 / t1;
+			// printf(
+			// 	"%4d: t1: % -#12.6Lg t2: % -#12.6Lg t3: % -#12.6Lg t4: % -#12.6Lg t5: % -#12.6Lg t6: % -#12.6Lg\n",
+			// 	k, (long double)taylor_sum, (long double)t2, (long double)t3, (long double)t4, (long double)t5, (long double)t6
+			// );
 
-			if (t6 <= target_epsilon || t6 >= t5) {
+			// Unordered comparisions protect against NAN
+			if (!(t6 > target_epsilon) || t6 >= t5) {
 				// goto JMP_130;
 				break;
 			}
@@ -227,7 +238,7 @@ static inline FloatNxN libDDFUN_erf(const FloatNxN& z) {
 	// /* label */ JMP_130:
 
 		terf = static_cast<FloatBase>(1.0) - (
-			t1 * (LDF::const_inv_sqrtpi<FloatNxN>() * exp(-z2))
+			taylor_sum * (LDF::const_inv_sqrtpi<FloatNxN>() * exp(-z2))
 		);
 		if (isless_zero(z)) { // sign(z) < 0
 			terf = -terf;
@@ -272,7 +283,7 @@ static inline FloatNxN libDDFUN_erfc(const FloatNxN& z) {
 	FloatNxN terfc;
 
 	constexpr FloatBase dcon = static_cast<FloatBase>(100.0); /**< Unknown magic number */
-	FloatNxN t2, t3, t5, t6;
+	FloatNxN t5, t6;
 
 	// int dd_nw, dd_nw1;
 	// dd_nw = Float80x2_count;
@@ -282,13 +293,19 @@ static inline FloatNxN libDDFUN_erfc(const FloatNxN& z) {
 		-LDF::LDF_Type_Info<FloatNxN>::FloatBase_Count * std::numeric_limits<FloatBase>::digits
 	);
 
-	const FloatBase d1 = trunc(static_cast<FloatBase>(1.0) + sqrt(
+	__attribute__((unused)) const FloatBase d1 = trunc(static_cast<FloatBase>(1.0) + sqrt(
 		static_cast<FloatBase>(std::numeric_limits<FloatNxN>::digits) * LDF::const_ln2<FloatBase>()
 	));
-	const FloatBase d2 = trunc((
+	__attribute__((unused)) const FloatBase d2 = trunc((
 		static_cast<FloatBase>(std::numeric_limits<FloatNxN>::digits) / dcon
 	) + static_cast<FloatBase>(8.0));
 
+
+	/**
+	 * @remarks z will go to +1.0 instead of +2.0 or +0.0 when it is outside
+	 * the range of either d1 or d2. I am not sure which one of the two values
+	 * it follows.
+	 */
 	if (isequal_zero(z)) { // sign(z) == 0
 		// z == 0.0
 		return static_cast<FloatBase>(1.0);
@@ -304,7 +321,12 @@ static inline FloatNxN libDDFUN_erfc(const FloatNxN& z) {
 
 	const FloatNxN z2 = square(z);
 
-	if (z < d2 || true) {
+#if 0
+	if (z < d2) {
+#else
+	// I think I read a formula or something that said erfc for x >= 2.0
+	if (z < d2 && z < static_cast<FloatBase>(2.0) ) {
+#endif
 		FloatNxN taylor_sum = z;
 		
 		// I'm guessing that it was supposed to check that z < 1.0e10, breaking/returning otherwise.
@@ -314,19 +336,21 @@ static inline FloatNxN libDDFUN_erfc(const FloatNxN& z) {
 
 		const FloatNxN z2_mul2 = mul_pwr2(z2, static_cast<FloatBase>(2.0));
 
-		t5 = static_cast<FloatBase>(1.0);
-		FloatBase k_mult = static_cast<FloatBase>(0.0);
+		t5 = static_cast<FloatBase>(1.0e10);
+		FloatBase k_mult = static_cast<FloatBase>(3.0);
 		for (int k = 1; k <= max_iter; k++) {
 			taylor_val *= z2_mul2 / k_mult;
 
 			taylor_sum += taylor_val;
 			t6 = taylor_val / taylor_sum;
 
+			// Unordered comparisions protect against NAN
 			if (!(t6 > target_epsilon) || t6 >= t5) {
 				// goto JMP_120;
 				break;
 			}
 			t5 = t6;
+			
 			k_mult += static_cast<FloatBase>(2.0);
 		}
 
@@ -340,9 +364,10 @@ static inline FloatNxN libDDFUN_erfc(const FloatNxN& z) {
 			LDF::const_inv_sqrtpi<FloatNxN>() * exp(-z2)
 		);
 	} else {
+	#if 0
 		
-		t2 = static_cast<FloatBase>(1.0);
-		t3 = fabs(z);
+		FloatNxN t2 = static_cast<FloatBase>(1.0);
+		FloatNxN t3 = fabs(z);
 		FloatNxN t4;
 
 		// I'm guessing that it was supposed to check that z < 1.0e10, breaking/returning otherwise.
@@ -353,13 +378,20 @@ static inline FloatNxN libDDFUN_erfc(const FloatNxN& z) {
 		t5 = static_cast<FloatBase>(1.0);
 
 		FloatBase k_mult = static_cast<FloatBase>(-1.0);
-		for (int k = 1; k <= max_iter; k++) {
+		for (int k = 1; k <= max_iter && k < 20; k++) {
 			t2 *= k_mult;
 			t3 *= t2;
 
 			t4 = t2 / t3;
 			taylor_sum += t4;
 			t6 = t4 / taylor_sum;
+
+			// printf(
+			// 	"%4d: z: % 8.4Lf t1: % -#12.6Lg t2: % -#12.6Lg t3: % -#12.6Lg t4: % -#12.6Lg t5: % -#12.6Lg t6: % -#12.6Lg\n",
+			// 	k, (long double)z, (long double)taylor_sum, (long double)t2, (long double)t3, (long double)t4, (long double)t5, (long double)t6
+			// );
+
+			// Unordered comparisions protect against NAN
 			if (!(t6 > target_epsilon) || t6 >= t5) {
 				// goto JMP_130;
 				break;
@@ -367,7 +399,8 @@ static inline FloatNxN libDDFUN_erfc(const FloatNxN& z) {
 			t5 = t6;
 			k_mult -= static_cast<FloatBase>(2.0);
 		}
-
+		
+	
 	// write (dd_ldb, 3) 2, max_iter;
 	// call_dd_abrt
 	// /* label */ JMP_130:
@@ -376,6 +409,10 @@ static inline FloatNxN libDDFUN_erfc(const FloatNxN& z) {
 		if (isless_zero(z)) { // sign(z) < 0
 			terfc = static_cast<FloatBase>(2.0) - terfc;
 		}
+	#else
+		// Best solution until I can resolve the accuracy problems
+		return static_cast<FloatNxN>(erfc(static_cast<FloatBase>(z)));
+	#endif
 	}
 
 	return terfc;

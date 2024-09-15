@@ -9,6 +9,7 @@
 #ifndef FLOATNXN_PRECISION_TEST_HPP
 #define FLOATNXN_PRECISION_TEST_HPP
 
+#include <_mingw_stat64.h>
 #include <cstdio>
 #include <cmath>
 #include <limits>
@@ -30,10 +31,10 @@ long double calc_precision(fpX x, fpX& ground_truth, fpX& func_result) {
 	mpfr_set_type<fpX>(y0_mpfr.value, x, MPFR_RNDN);
 
 	{ // Calculate ground truth
-		mpfr_erf(y0_mpfr.value, y0_mpfr.value, MPFR_RNDN);
+		mpfr_erfc(y0_mpfr.value, y0_mpfr.value, MPFR_RNDN);
 	}
 	{ // Calculate func result
-		y1 = erf(x);
+		y1 = erfc(x);
 	}
 
 	y0 = mpfr_get_type<fpX>(y0_mpfr.value, MPFR_RNDN);
@@ -57,13 +58,15 @@ void precision_test(void) {
 
 	long double max_diff = -9999999.0L;
 	size_t values_printed = 0;
+
+	long double range =     200.1L;
+	long double offset = 0.0L;
+
 	for (size_t i = 0; i < points; i++) {
-		long double EP =     200.1L;
-		long double offset = 0.0L;
-		
+
 		fpX x = linearInterpolation(
 			(long double)i, 0.0L, (long double)points,
-			offset - EP,  offset + EP
+			offset - range,  offset + range
 		);
 
 		fpX y0;
@@ -76,7 +79,7 @@ void precision_test(void) {
 			diff = -std::numeric_limits<long double>::infinity();
 		}
 		// char comp_sign = (y0 == y1) ? '=' : ((y0 > y1) ? '>' : '<');
-		if (diff > max_diff + 1.0L || values_printed == 0 ) {
+		if (diff > max_diff || values_printed == 0 || (isnan(y0) != isnan(y1))) {
 			
 			if (!std::isnan(diff) && diff > max_diff) {
 				max_diff = diff;
@@ -93,6 +96,84 @@ void precision_test(void) {
 			values_printed++;
 		}
 	}
+}
+
+template <typename fpX>
+void graph_precision(const size_t points, const long double range, const long double offset) {
+	struct graph_point {
+		long double x;
+		long double diff;
+		long double y0;
+		long double y1;
+	};
+	graph_point* data = (graph_point*)calloc(points, sizeof(graph_point));
+	if (data == nullptr) {
+		printf("calloc failure\n");
+		return;
+	}
+
+	int64_t start_time = getNanoTime();
+	for (size_t i = 0; i < points; i++) {
+		
+		fpX x = linearInterpolation(
+			(long double)i, 0.0L, (long double)points,
+			offset - range,  offset + range
+		);
+
+		fpX y0;
+		fpX y1;
+		long double diff =
+			calc_precision(static_cast<fpX>(x), y0, y1) -
+			static_cast<long double>(ilogb(fabs(static_cast<long double>(y0))));
+
+		if (y0 == static_cast<fpX>(0.0) && y1 == static_cast<fpX>(0.0)) {
+			diff = -std::numeric_limits<long double>::infinity();
+		}
+
+		data[i].x    = static_cast<long double>(x );
+		data[i].diff = static_cast<long double>(diff);
+		data[i].y0   = static_cast<long double>(y0);
+		data[i].y1   = static_cast<long double>(y1);
+
+		if (i % 100 == 0) {
+			printf(
+				"%6zu: %+20.15Lf | x = %+15.9Le | %+15.9Le - %+15.9Le = %+15.9Le\n",
+				i, diff,
+				static_cast<long double>(x),
+				static_cast<long double>(y1),
+				static_cast<long double>(y0),
+				static_cast<long double>(y1 - y0)
+			);
+		}
+	}
+	int64_t finish_time = getNanoTime();
+
+	
+	FILE* data_file;
+	#if 0
+		// Use double
+		const char path_name[] = "./graph.bin";
+		data_file = fopen(path_name, "wb");
+		fwrite(data, points, sizeof(graph_point), data_file);
+	#else
+		// Use long double
+		const char path_name[] = "./graph.csv";
+		data_file = fopen(path_name, "wb");
+		for (size_t i = 0; i < points; i++) {
+			fprintf(data_file,
+				"% #16.12Lg, % #16.12Lg, % #16.12Lg, % #16.12Lg,\n",
+				data[i].x, data[i].diff, data[i].y0, data[i].y1
+			);
+		}
+	#endif
+	fclose(data_file);
+	printf(
+		"Time Taken: %.3lfs. Wrote %zu points to %s\n",
+		static_cast<fp64>(finish_time - start_time) * 1.0e-9, points, path_name
+	);
+
+	free(data);
+	data = nullptr;
 }
 
 #endif /* FLOATNXN_PRECISION_TEST_HPP */

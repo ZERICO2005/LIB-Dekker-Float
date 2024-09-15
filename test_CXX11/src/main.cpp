@@ -255,7 +255,9 @@ int main(void) {
 	// run_math_demo(123456);
 	
 	// test_function();
-	precision_test<Float64x4>();
+
+	// precision_test<Float80x2>();
+	graph_precision<Float64x2>(60, 30.0, 0.0L);
 
 	// run_generate_constants();
 	

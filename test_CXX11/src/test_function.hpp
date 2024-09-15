@@ -20,7 +20,7 @@
 	#include "Float128x2/Float128x2.hpp"
 #endif
 
-#include "util_mpfr/MPFR_Float.hpp"
+#include "../../util_mpfr/MPFR_Float.hpp"
 #include <mpfr.h>
 
 // void foo() {
@@ -38,8 +38,8 @@
 #define linearInterpolation(x, x0, x1, y0, y1) \
 	((y0) + ( (((y1) - (y0)) * ((x) - (x0))) / ((x1) - (x0)) ))
 
-#include "Float64x2/Float64x2_mpfr.h"
-#include "Float64x4/Float64x4_mpfr.h"
+#include "../../Float64x2/Float64x2_mpfr.h"
+#include "../../Float64x4/Float64x4_mpfr.h"
 
 #include <cmath>
 
