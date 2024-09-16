@@ -332,16 +332,13 @@ static inline FloatNxN libDDFUN_erfc(const FloatNxN& z) {
 	}
 
 	const FloatNxN z2 = square(z);
-
 #if 0
 	if (z < d2) {
-#elif 1
-	if (z < d2 / static_cast<FloatBase>(2.0)) {
 #else
-	// I think I read a formula or something that said erfc for x >= 2.0
-	if (z < d2 && z < static_cast<FloatBase>(2.0) ) {
+	// d2 / 2.0 is a guess
+	if (z < d2 / static_cast<FloatBase>(2.0)) {
 #endif
-		FloatNxN taylor_sum = z;
+		FloatNxN taylor_sum = static_cast<FloatBase>(0.0);
 		
 		// I'm guessing that it was supposed to check that z < 1.0e10, breaking/returning otherwise.
 		// t5 = static_cast<FloatBase>(1.0e10);
@@ -353,10 +350,11 @@ static inline FloatNxN libDDFUN_erfc(const FloatNxN& z) {
 		t5 = static_cast<FloatBase>(1.0e10);
 		FloatBase k_mult = static_cast<FloatBase>(3.0);
 		for (int k = 1; k <= max_iter; k++) {
-			taylor_val *= z2_mul2 / k_mult;
+			taylor_val /= k_mult;
+			taylor_val *= z2_mul2;
 
 			taylor_sum += taylor_val;
-			t6 = taylor_val / taylor_sum;
+			t6 = taylor_val / (taylor_sum + z);
 
 			// Unordered comparisions protect against NAN
 			if (!(t6 > target_epsilon) || t6 >= t5) {
@@ -367,6 +365,7 @@ static inline FloatNxN libDDFUN_erfc(const FloatNxN& z) {
 			
 			k_mult += static_cast<FloatBase>(2.0);
 		}
+		taylor_sum += z;
 
 	// write (dd_ldb, 3) 1, max_iter;
 	// 3 format ('*** DDERFCR: iteration limit exceeded',2i10);
@@ -377,71 +376,34 @@ static inline FloatNxN libDDFUN_erfc(const FloatNxN& z) {
 			mul_pwr2(taylor_sum, static_cast<FloatBase>(2.0)) *
 			LDF::const_inv_sqrtpi<FloatNxN>() * exp(-z2)
 		);
+#if 1
+	} else if(z < d2) {
+		// Best solution until I can resolve the accuracy problems between 0.0 and d2
+		return static_cast<FloatNxN>(erfc(static_cast<FloatBase>(z)));
+#endif
 	} else {
-	#if 0
-		
-		FloatNxN t2 = static_cast<FloatBase>(1.0);
-		FloatNxN t3 = fabs(z);
-		FloatNxN t4;
+		/**
+		 * @author This algorithm was described in this paper
+		 * S. Chevillard,
+		 * The functions erf and erfc computed with arbitrary precision and explicit error bounds,
+		 * Information and Computation,
+		 * Volume 216,
+		 * 2012,
+		 * Pages 72-95,
+		 * ISSN 0890-5401,
+		 * https://doi.org/10.1016/j.ic.2011.09.001.
+		 * (https://www.sciencedirect.com/science/article/pii/S0890540112000697)
+		 * 
+		 */
+		 
+		const FloatNxN result_mult = LDF::const_inv_sqrtpi<FloatNxN>() * exp(-z2) / z;
+		const FloatNxN z2_mul2 = mul_pwr2(z2, static_cast<FloatBase>(2.0));
 
-		// I'm guessing that it was supposed to check that z < 1.0e10, breaking/returning otherwise.
-		// t5 = static_cast<FloatBase>(1.0e10);
-		
-		FloatNxN taylor_sum = recip(t3);
+		FloatNxN taylor_sum = static_cast<FloatBase>(0.0);
+		int term_count = static_cast<int>(static_cast<FloatBase>(
+			floor(z2 + static_cast<FloatBase>(0.5))
+		));
 
-		t5 = static_cast<FloatBase>(1.0);
-
-		FloatBase k_mult = static_cast<FloatBase>(-1.0);
-		for (int k = 1; k <= max_iter && k < 20; k++) {
-			t2 *= k_mult;
-			t3 *= t2;
-
-			t4 = t2 / t3;
-			taylor_sum += t4;
-			t6 = t4 / taylor_sum;
-
-			// printf(
-			// 	"%4d: z: % 8.4Lf t1: % -#12.6Lg t2: % -#12.6Lg t3: % -#12.6Lg t4: % -#12.6Lg t5: % -#12.6Lg t6: % -#12.6Lg\n",
-			// 	k, (long double)z, (long double)taylor_sum, (long double)t2, (long double)t3, (long double)t4, (long double)t5, (long double)t6
-			// );
-
-			// Unordered comparisions protect against NAN
-			if (!(t6 > target_epsilon) || t6 >= t5) {
-				// goto JMP_130;
-				break;
-			}
-			t5 = t6;
-			k_mult -= static_cast<FloatBase>(2.0);
-		}
-		
-	
-	// write (dd_ldb, 3) 2, max_iter;
-	// call_dd_abrt
-	// /* label */ JMP_130:
-
-		terfc = taylor_sum * (LDF::const_inv_sqrtpi<FloatNxN>() * exp(-z2));
-		if (isless_zero(z)) { // sign(z) < 0
-			terfc = static_cast<FloatBase>(2.0) - terfc;
-		}
-	#elif 1
-
-	const FloatNxN result_mult = LDF::const_inv_sqrtpi<FloatNxN>() * exp(-z2) / z;
-	const FloatNxN z2_mul2 = mul_pwr2(z2, static_cast<FloatBase>(2.0));
-
-	FloatNxN taylor_sum = static_cast<FloatBase>(0.0);
-	int term_count = static_cast<int>(static_cast<FloatBase>(
-		floor(z2 + static_cast<FloatBase>(0.5))
-	));
-
-	#if 0
-		FloatNxN divide_term = z2_mul2;
-		FloatNxN fact_prod = static_cast<FloatBase>(1.0);
-		for (int i = 1; i <= term_count; i++) {
-			fact_prod = double_odd_factorial<FloatNxN, FloatBase>(i) / divide_term;
-			taylor_sum += (i % 2 != 0) ? -fact_prod : fact_prod;
-			divide_term *= z2_mul2;
-		}
-	#elif 1
 		FloatBase fact_term = static_cast<FloatBase>(1.0);
 		FloatNxN fact_prod = static_cast<FloatBase>(1.0);
 		FloatNxN recip_z2_mul2 = recip(z2_mul2);
@@ -452,24 +414,9 @@ static inline FloatNxN libDDFUN_erfc(const FloatNxN& z) {
 			taylor_sum += (i % 2 != 0) ? -fact_prod : fact_prod;
 			fact_term += static_cast<FloatBase>(2.0);
 		}
-	#endif
-	
-	#if 0
-		// Adding the epsilon term reduces precision slightly
-		FloatNxN epsilon_term = double_odd_factorial<FloatNxN, FloatBase>(term_count);
-		for (int i = 1; i < term_count; i++) {
-			epsilon_term *= recip_z2_mul2;
-		}
-		terfc = result_mult * (static_cast<FloatBase>(1.0) + taylor_sum);
-		terfc += result_mult * epsilon_term;
-	#else
+		
 		terfc = result_mult * (static_cast<FloatBase>(1.0) + (taylor_sum));
-	#endif
 
-	#else
-		// Best solution until I can resolve the accuracy problems
-		return static_cast<FloatNxN>(erfc(static_cast<FloatBase>(z)));
-	#endif
 	}
 
 	return terfc;

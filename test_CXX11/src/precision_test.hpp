@@ -54,13 +54,13 @@ long double calc_precision(fpX x, fpX& ground_truth, fpX& func_result) {
 
 template <typename fpX>
 void precision_test(void) {
-	constexpr size_t points = 6553;
+	constexpr size_t points = 65536;
 
 	long double max_diff = -9999999.0L;
 	size_t values_printed = 0;
 
-	long double range =     200.1L;
-	long double offset = 0.0L;
+	long double range =  -10.1L;
+	long double offset = 10.0L;
 
 	for (size_t i = 0; i < points; i++) {
 

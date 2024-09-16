@@ -257,8 +257,8 @@ int main(void) {
 	
 	// test_function();
 
-	// precision_test<Float80x2>();
-	graph_precision<Float80x2>(24000, 120.0, 0.0L);
+	precision_test<Float80x2>();
+	// graph_precision<Float80x2>(24000, 120.0, 0.0L);
 
 	// run_generate_constants();
 	
