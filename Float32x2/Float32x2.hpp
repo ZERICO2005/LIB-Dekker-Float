@@ -1269,6 +1269,11 @@ namespace std {
 			erfc(static_cast<Float32x2_Math>(x))
 		);
 	}
+	// /**
+	//  * @brief Calculates `1 - erf(x)` without losing precision when `x > 0`.
+	//  * @note Result will round to zero when `x > ~10.054194`
+	//  */
+	// Float32x2 erfc(const Float32x2& x);
 	/** 
 	 * @note casts to Float32x2_Math for calculation as this function is not
 	 * currently implemeneted.

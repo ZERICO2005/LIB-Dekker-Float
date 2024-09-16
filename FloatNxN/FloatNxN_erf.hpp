@@ -91,6 +91,17 @@ static inline void call_dd_cpr(const FloatNxN& x, const FloatBase y, int& ret) {
 	return;
 }
 
+template<typename FloatNxN, typename FloatBase>
+static inline FloatNxN double_odd_factorial(int k) {
+	FloatNxN ret = static_cast<FloatBase>(1.0);
+	FloatBase k_mult = static_cast<FloatBase>(3.0);
+	for (int i = 1; i < k; i++) {
+		ret *= k_mult;
+		k_mult += static_cast<FloatBase>(2.0);
+	}
+	return ret;
+}
+
 //------------------------------------------------------------------------------
 // FloatNxN erf and erfc
 //------------------------------------------------------------------------------
@@ -253,6 +264,7 @@ static inline FloatNxN libDDFUN_erf(const FloatNxN& z) {
  * Limited-BSD license from https://www.davidhbailey.com/dhbsoftware/
  * @remarks It appears that the exact same implementation is used in
  * libQDFUN as well.
+ * @brief Uses up to floor(x^2 + 0.5) iterations to calculate erfc(x)
  */
 template<
 	typename FloatNxN, typename FloatBase,
@@ -323,6 +335,8 @@ static inline FloatNxN libDDFUN_erfc(const FloatNxN& z) {
 
 #if 0
 	if (z < d2) {
+#elif 1
+	if (z < d2 / static_cast<FloatBase>(2.0)) {
 #else
 	// I think I read a formula or something that said erfc for x >= 2.0
 	if (z < d2 && z < static_cast<FloatBase>(2.0) ) {
@@ -409,6 +423,49 @@ static inline FloatNxN libDDFUN_erfc(const FloatNxN& z) {
 		if (isless_zero(z)) { // sign(z) < 0
 			terfc = static_cast<FloatBase>(2.0) - terfc;
 		}
+	#elif 1
+
+	const FloatNxN result_mult = LDF::const_inv_sqrtpi<FloatNxN>() * exp(-z2) / z;
+	const FloatNxN z2_mul2 = mul_pwr2(z2, static_cast<FloatBase>(2.0));
+
+	FloatNxN taylor_sum = static_cast<FloatBase>(0.0);
+	int term_count = static_cast<int>(static_cast<FloatBase>(
+		floor(z2 + static_cast<FloatBase>(0.5))
+	));
+
+	#if 0
+		FloatNxN divide_term = z2_mul2;
+		FloatNxN fact_prod = static_cast<FloatBase>(1.0);
+		for (int i = 1; i <= term_count; i++) {
+			fact_prod = double_odd_factorial<FloatNxN, FloatBase>(i) / divide_term;
+			taylor_sum += (i % 2 != 0) ? -fact_prod : fact_prod;
+			divide_term *= z2_mul2;
+		}
+	#elif 1
+		FloatBase fact_term = static_cast<FloatBase>(1.0);
+		FloatNxN fact_prod = static_cast<FloatBase>(1.0);
+		FloatNxN recip_z2_mul2 = recip(z2_mul2);
+		for (int i = 1; i <= term_count; i++) {
+			fact_prod *= fact_term;
+			fact_prod *= recip_z2_mul2;
+
+			taylor_sum += (i % 2 != 0) ? -fact_prod : fact_prod;
+			fact_term += static_cast<FloatBase>(2.0);
+		}
+	#endif
+	
+	#if 0
+		// Adding the epsilon term reduces precision slightly
+		FloatNxN epsilon_term = double_odd_factorial<FloatNxN, FloatBase>(term_count);
+		for (int i = 1; i < term_count; i++) {
+			epsilon_term *= recip_z2_mul2;
+		}
+		terfc = result_mult * (static_cast<FloatBase>(1.0) + taylor_sum);
+		terfc += result_mult * epsilon_term;
+	#else
+		terfc = result_mult * (static_cast<FloatBase>(1.0) + (taylor_sum));
+	#endif
+
 	#else
 		// Best solution until I can resolve the accuracy problems
 		return static_cast<FloatNxN>(erfc(static_cast<FloatBase>(z)));

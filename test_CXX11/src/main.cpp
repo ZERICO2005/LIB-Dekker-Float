@@ -206,31 +206,31 @@ void get_fact(void) {
 
 #endif
 
-#if 0
+#if 1
 #include <quadmath.h>
 void aaa(void) {
-	#if 0
+	#if 1
+	const int count = 65536;
 	{
 		int64_t start = getNanoTime();
-		char buf[999];
-		for (int i = 0; i < 65536; i++) {
-			Float80x2 ret = (fp80)((__float128)i);
-			ret = sin(ret);
+		for (int i = 0; i < count; i++) {
+			Float64x4 ret = ((fp64)i / 8192.0);
+			ret *= erf(ret);
 		}
 		int64_t finish = getNanoTime();
 		printf("Time: %.3Lfms\n", static_cast<long double>(finish - start) * 1.0e-6L);
 	}
 	{
 		int64_t start = getNanoTime();
-		char buf[999];
-		for (int i = 0; i < 65536; i++) {
-			__float128 ret = ((__float128)i);
-			ret = sinq(ret);
+		for (int i = 0; i < count; i++) {
+			FloatMPFR ret = ((fp64)i / 8192.0);
+			ret *= erf(ret);
 		}
 		int64_t finish = getNanoTime();
 		printf("Time: %.3Lfms\n", static_cast<long double>(finish - start) * 1.0e-6L);
 	}
 	#endif
+	#if 0
 	fp80 max_diff = -1000.0L;
 	for (int i = 0; i < 16777216; i++) {
 		Float80x2 x0 = (fp80)i;
@@ -243,6 +243,7 @@ void aaa(void) {
 			printf("%5d: %+24.18Le %+24.18Le | %+11.8Lf\n", i, (fp80)x0, (fp80)x1, diff);
 		}
 	}
+	#endif
 }
 #endif
 
@@ -257,7 +258,7 @@ int main(void) {
 	// test_function();
 
 	// precision_test<Float80x2>();
-	graph_precision<Float64x2>(60, 30.0, 0.0L);
+	graph_precision<Float80x2>(24000, 120.0, 0.0L);
 
 	// run_generate_constants();
 	

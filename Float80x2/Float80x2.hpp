@@ -1313,6 +1313,10 @@ namespace std {
 	
 	Float80x2 erf(const Float80x2& x);
 
+	/**
+	 * @brief Calculates `1 - erf(x)` without losing precision when `x > 0`.
+	 * @note Result will round to zero when `x > ~106.743878`
+	 */
 	Float80x2 erfc(const Float80x2& x);
 
 	Float80x2 tgamma(const Float80x2& x);

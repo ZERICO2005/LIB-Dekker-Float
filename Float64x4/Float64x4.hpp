@@ -1416,6 +1416,10 @@ namespace std {
 	
 	Float64x4 erf(const Float64x4& x);
 
+	/**
+	 * @brief Calculates `1 - erf(x)` without losing precision when `x > 0`.
+	 * @note Result will round to zero when `x > ~27.226017`
+	 */
 	Float64x4 erfc(const Float64x4& x);
 
 	Float64x4 tgamma(const Float64x4& x);

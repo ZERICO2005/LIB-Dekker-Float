@@ -105,4 +105,17 @@ inline constexpr Float128x2 mul_pwr2(const fp128 x, const Float128x2& y) {
 	return LDF::mul_pwr2<Float128x2, fp128, Float128x2>(x, y);
 }
 
+
+//------------------------------------------------------------------------------
+// Float128x2 Math Functions
+//------------------------------------------------------------------------------
+
+/* Transcendental Functions */
+
+	// /**
+	//  * @brief Calculates `1 - erf(x)` without losing precision when `x > 0`.
+	//  * @note Result will round to zero when `x > ~106.902845`
+	//  */
+	// Float128x2 erfc(const Float128x2& x);
+
 #endif /* FLOAT128X2_HPP */
