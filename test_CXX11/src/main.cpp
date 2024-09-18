@@ -66,9 +66,6 @@ inline int64_t getNanoTime(void) {
 
 #include "util_mpfr/auto_include_FloatX_mpfr.h"
 
-#include "test_function.hpp"
-
-
 #include "FloatNx2_demo.hpp"
 
 #include "FloatNx2_math_demo.hpp"
@@ -206,6 +203,9 @@ void get_fact(void) {
 
 #endif
 
+void generate_inverf(int Precision, int Maxiumum_Terms, int Digits = 0);
+void test_inverf(void);
+
 #if 1
 #include <quadmath.h>
 void aaa(void) {
@@ -254,10 +254,12 @@ int main(void) {
 	// aaa();
 	// run_demo();
 	// run_math_demo(123456);
-	
 	// test_function();
 
-	precision_test<Float80x2>();
+	// generate_inverf(8192, 300);
+	test_inverf();
+
+	// precision_test<Float80x2>();
 	// graph_precision<Float80x2>(24000, 120.0, 0.0L);
 
 	// run_generate_constants();

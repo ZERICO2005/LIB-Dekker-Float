@@ -15,6 +15,13 @@
 
 #include <quadmath.h>
 
+/* Classification */
+inline bool signbit(__float128 x) { return (signbitq(x) != 0); }
+inline bool isfinite(__float128 x) { return (finiteq(x) != 0); }
+inline bool isinf(__float128 x) { return (isinfq(x) != 0); }
+inline bool isnan(__float128 x) { return (isnanq(x) != 0); }
+inline bool issignaling(__float128 x) { return (issignalingq(x) != 0); }
+
 /* Arithmetic */
 inline __float128 fmax(__float128 x, __float128 y) { return fmaxq(x, y); }
 inline __float128 fmin(__float128 x, __float128 y) { return fminq(x, y); }
@@ -73,12 +80,7 @@ inline __float128 frexp  (__float128 x, int* exp) { return frexpq  (x, exp); }
 inline __float128 ldexp  (__float128 x, int  exp) { return ldexpq  (x, exp); }
 inline __float128 scalbn (__float128 x, int  exp) { return scalbnq (x, exp); }
 inline __float128 scalbln(__float128 x, long exp) { return scalblnq(x, exp); }
-/* Tests */
-inline bool signbit(__float128 x) { return (signbitq(x) != 0); }
-inline bool isfinite(__float128 x) { return (finiteq(x) != 0); }
-inline bool isinf(__float128 x) { return (isinfq(x) != 0); }
-inline bool isnan(__float128 x) { return (isnanq(x) != 0); }
-inline bool issignaling(__float128 x) { return (issignalingq(x) != 0); }
+
 /* Transcendental Functions */
 inline __float128 erf (__float128 x) { return erfq (x); }
 inline __float128 erfc(__float128 x) { return erfcq(x); }

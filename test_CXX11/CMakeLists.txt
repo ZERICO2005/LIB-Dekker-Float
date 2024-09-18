@@ -32,7 +32,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./bin")
 	set(CMAKE_CXX_STANDARD 11)
 
 # Compiler Flags
-	set(OPT_FLAG -O3 -g)
+	set(OPT_FLAG -O3)
 	set(MARCH_FLAGS -msse2 -mavx)
 
 # Source Files

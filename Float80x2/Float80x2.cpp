@@ -23,6 +23,8 @@
 #include "Float80x2_LUT.hpp"
 
 #include <cmath>
+#include <cstddef>
+#include <limits>
 
 
 //------------------------------------------------------------------------------
@@ -562,6 +564,155 @@ Float80x2 tgamma(const Float80x2& t) {
 		Float80x2, fp80,
 		100000
 	>(t);
+}
+
+//------------------------------------------------------------------------------
+// Float80x2 inverf
+//------------------------------------------------------------------------------
+
+#if 0
+
+Float80x2 inverf(const Float80x2& x) {
+	Float80x2 sum = static_cast<fp80>(0.0);
+	const Float80x2 x_squared = square(x);
+	Float80x2 x_pow = x;
+	for (size_t i = 0; i < 20; i++) {
+		sum += x_pow * inverf_table[i];
+		x_pow *= x_squared;
+	}
+	return sum;
+}
+
+#elif 1
+
+static inline void inverf_newton(const Float80x2& x, Float80x2& guess, const int max_iter) {
+	constexpr Float80x2 sqrt_pi4 = mul_pwr2(LDF::const_sqrtpi<Float80x2>(), static_cast<fp80>(0.5));
+	Float80x2 next_guess;
+	for (int i = 0; i < max_iter; i++) {
+		next_guess = guess - (erf(guess) - x) * exp(square(guess)) * sqrt_pi4;
+		// Unordered comparisons protect against NaN
+		if (!(fabs(next_guess - guess) > std::numeric_limits<Float80x2>::epsilon().hi)) {
+			break;
+		}
+		guess = next_guess;
+	}
+}
+
+/**
+ * @remarks Calculates an approximation, and the performs newtons method to find inverf
+ * @author https://en.wikipedia.org/wiki/Error_function
+ */
+Float80x2 inverf(const Float80x2& x) {
+	if (isequal_zero(x)) {
+		return x;
+	}
+	// Unordered NLE catches NaN's
+	if (!(fabs(x) < static_cast<fp80>(1.0))) {
+		if (x == static_cast<fp80>(1.0)) {
+			return std::numeric_limits<Float80x2>::infinity();
+		}
+		if (x == static_cast<fp80>(-1.0)) {
+			return -std::numeric_limits<Float80x2>::infinity();
+		}
+		return std::numeric_limits<Float80x2>::quiet_NaN();
+	}
+
+	#if 0
+		Float80x2 guess;
+		if (x > static_cast<fp80>(9.0)) {
+			guess = x;
+			inverf_newton(x, guess, 1000);
+		} else {
+			// alternate value 0.140012
+			const fp80 alpha = static_cast<fp80>(0.147);
+			// 2 / (pi * alpha)
+			const Float80x2 alpha_term = static_cast<fp80>(2.0) / (LDF::const_pi<Float80x2>() * alpha);
+
+			// ln(1 - x^2) == log1p(-x^2)
+			const Float80x2 log_term = log1p(-square(x));
+			
+			// alpha_term + log_term / 2
+			const Float80x2 alpha_log_term = alpha_term + mul_pwr2(log_term, static_cast<fp80>(0.5));
+
+			guess = sqrt(
+				sqrt(square(alpha_log_term) - log_term / alpha) - alpha_log_term
+			);
+			inverf_newton(x, guess, 32);
+		}
+	#else
+		// Rough approximation
+		Float80x2 guess = sqrt(log(recip(static_cast<fp80>(1.0) - square(x))));
+		if (isless_zero(x)) {
+			guess = -guess;
+		}
+		inverf_newton(x, guess, 32);
+	#endif
+
+	/**
+	 * @remarks since erf(inf) approaches 1.0 instead of 0.0 like erfc(inf),
+	 * there appears to be some precision issues, which outputs random large
+	 * values with the wrong signage. The incorrect signage can be used to
+	 * sort-of detect arithmetic errors from inverf_newton.
+	 */
+	if (signbit(x) != signbit(guess) || isnan(x)) {
+		return signbit(x) ?
+			-std::numeric_limits<Float80x2>::infinity() :
+			 std::numeric_limits<Float80x2>::infinity();
+	}
+	return guess;
+}
+
+#endif
+
+static int64_t total_itr = 0;
+
+static inline void inverfc_newton(const Float80x2& x, Float80x2& guess, const int max_iter) {
+	constexpr Float80x2 sqrt_pi4 = mul_pwr2(LDF::const_sqrtpi<Float80x2>(), static_cast<fp80>(0.5));
+	Float80x2 next_guess;
+	for (int i = 0; i < max_iter; i++) {
+		total_itr++;
+		next_guess = guess + (erfc(guess) - x) * exp(square(guess)) * sqrt_pi4;
+		// Unordered comparisons protect against NaN
+		if (!(fabs(next_guess - guess) > std::numeric_limits<Float80x2>::epsilon().hi)) {
+			break;
+		}
+		guess = next_guess;
+	}
+}
+
+Float80x2 inverfc(const Float80x2& x) {
+	if (islessequal_zero(x)) {
+		if (isequal_zero(x)) {
+			return std::numeric_limits<Float80x2>::infinity();
+		}
+		return std::numeric_limits<Float80x2>::quiet_NaN();
+	}
+	if (x >= static_cast<fp80>(2.0)) {
+		if (x == static_cast<fp80>(2.0)) {
+			return -std::numeric_limits<Float80x2>::infinity();
+		}
+		return std::numeric_limits<Float80x2>::quiet_NaN();
+	}
+	// Probably more accurate, and avoids the asymptotes around 1.0 for inverfc
+	if (x.hi >= static_cast<fp80>(0.5)) {
+		return inverf(static_cast<fp80>(1.0) - x);
+	}
+
+	const Float80x2 log_half_x = log(mul_pwr2(static_cast<fp80>(0.5), x));
+	const Float80x2 sqrt_neg_log_half_x = sqrt(-log_half_x);
+
+	/**
+	 * @remarks Tweaking this value can reduce the average iterations used. It
+	 * subtracts a value between 0.0 and 0.289179 from the guess to get a better
+	 * approximation.
+	 */
+	// 0.023178 is the error in the guess when calculating inverfc(erfc(106.4))
+	const fp80 underestimate_value = static_cast<fp80>(0.023178);
+	Float80x2 guess = sqrt_neg_log_half_x - log_half_x / mul_pwr2(static_cast<fp80>(2.0), sqrt_neg_log_half_x) - underestimate_value;
+
+	inverfc_newton(x, guess, 32);
+	printf("Total itr %8lld ", total_itr);
+	return guess;
 }
 
 //------------------------------------------------------------------------------

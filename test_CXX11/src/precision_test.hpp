@@ -16,6 +16,9 @@
 #include "../../util_mpfr/MPFR_Float.hpp"
 #include "../../util_mpfr/mpfr_convert.hpp"
 
+#define linearInterpolation(x, x0, x1, y0, y1) \
+	((y0) + ( (((y1) - (y0)) * ((x) - (x0))) / ((x1) - (x0)) ))
+
 /**
  * @brief Compares against MPFR
  * @returns log2(fabs(y1 - y0))
