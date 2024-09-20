@@ -1309,7 +1309,7 @@ namespace std {
 		return ret;
 	}
 
-/* Transcendental Functions */
+/* C99 <math.h> Transcendental Functions */
 	
 	Float80x2 erf(const Float80x2& x);
 
@@ -1328,6 +1328,79 @@ namespace std {
 		return log(fabs(tgamma(x)));
 	}
 
+/* Mathematical Special Functions */
+
+	/**
+	 * @brief calls `(tgamma(x) * tgamma(y)) / tgamma(x + y)`
+	 * @note naive implementation of beta(x, y)
+	 */
+	inline Float80x2 beta(const Float80x2& x, const Float80x2& y) {
+		return (tgamma(x) * tgamma(y)) / tgamma(x + y);
+	}
+
+	/** @brief Calls `-incgamma(0.0, -x)` */
+	Float80x2 expint(const Float80x2& x);
+
+#if 0
+	Float80x2 riemann_zeta(const Float80x2& x);
+#endif
+
+/* Bessel Functions */
+
+#if 0
+
+	/** @brief regular modified cylindrical Bessel function */
+	Float80x2 cyl_bessel_i(const Float80x2& nu, const Float80x2& x);
+
+	/** @brief cylindrical Bessel functions (of the first kind) */
+	Float80x2 cyl_bessel_j(const Float80x2& nu, const Float80x2& x);
+
+	/** @brief irregular modified cylindrical Bessel functions  */
+	Float80x2 cyl_bessel_k(const Float80x2& nu, const Float80x2& x);
+
+	/**
+	 * @brief Bessel function of the second kind.
+	 * Calls `(cyl_bessel_j(nu, x) * cos(pi * nu) - cyl_bessel_j(-nu, x)) / sin(pi * nu)`
+	 * @note naive implementation of cyl_neumann(nu, x)
+	 */
+	inline Float80x2 cyl_neumann(const Float80x2& nu, const Float80x2& x) {
+		Float80x2 sin_val, cos_val;
+		sincos(LDF::const_pi<Float80x2>() * nu, sin_val, cos_val);
+		return (cyl_bessel_j(nu, x) * cos_val - cyl_bessel_j(-nu, x)) / sin_val;
+	}
+
+	/**
+	 * @brief spherical Bessel function of the first kind of n and x.
+	 * Calls `sqrt(pi / 2x) * cyl_bessel_j(n + 0.5, x)`
+	 * @note naive implementation of sph_bessel(n, x)
+	 */
+	inline Float80x2 sph_bessel(const unsigned int n, const Float80x2& x) {
+		return sqrt(LDF::const_pi2<Float80x2>() / x) * cyl_bessel_j(
+			static_cast<Float80x2>(n) + static_cast<fp80>(0.5), x
+		);
+	}
+
+	/**
+	 * @brief spherical Bessel function of the second kind.
+	 * Calls `sqrt(pi / 2x) * cyl_neumann(n + 0.5, x)`
+	 * @note naive implementation of sph_neumann(n, x)
+	 */
+	inline Float80x2 sph_neumann(const unsigned int n, const Float80x2& x) {
+		return sqrt(LDF::const_pi2<Float80x2>() / x) * cyl_neumann(
+			static_cast<Float80x2>(n) + static_cast<fp80>(0.5), x
+		);
+	}
+
+#endif
+
+/* Additional Functions */
+
+	/**
+	 * @brief Calulates the incomplete gamma function.
+	 * @warning The name of this function may change in the future.
+	 */
+	Float80x2 incgamma(const Float80x2& s, const Float80x2& z);
+
 	/**
 	 * @brief Calculates inverse erf or `x = erf(y)`
 	 * @warning Loses precision when `|x| > 2.0`, and inaccurate when `|x| > 6.5`
@@ -1341,10 +1414,5 @@ namespace std {
 	 * @note This function may be slow, as it may call `erfc(x)` up to 32 times.
 	 */
 	Float80x2 inverfc(const Float80x2& x);
-
-	Float80x2 incgamma(const Float80x2& s, const Float80x2& z);
-
-	/** @brief Calls `-incgamma(0.0, -x)` */
-	Float80x2 expint(const Float80x2& x);
 
 #endif /* FLOAT80X2_HPP */
