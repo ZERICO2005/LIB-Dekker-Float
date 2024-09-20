@@ -822,6 +822,46 @@ Float64x4 fma(const Float64x4& x, const Float64x4& y, const Float64x4& z) {
 }
 
 //------------------------------------------------------------------------------
+// Float64x2 pown
+//------------------------------------------------------------------------------
+
+Float64x4 pown(const Float64x4& x, int n) {
+	
+	if (n == 0) {
+		return static_cast<fp64>(1.0);
+	}
+	if (isequal_zero(x)) {
+		return static_cast<fp64>(0.0);
+	}
+
+	Float64x4 r = x;
+	Float64x4 s = static_cast<fp64>(1.0);
+	// casts to unsigned int since abs(INT_MIN) < 0
+	unsigned int N = static_cast<unsigned int>((n < 0) ? -n : n);
+
+	if (N > 1) {
+		/* Use binary exponentiation */
+		while (N > 0) {
+			if (N % 2 == 1) {
+				s *= r;
+			}
+			N /= 2;
+			if (N > 0) {
+				r = square(r);
+			}
+		}
+	} else {
+		s = r;
+	}
+
+	/* Compute the reciprocal if n is negative. */
+	if (n < 0) {
+		return recip(s);
+	}
+	return s;
+}
+
+//------------------------------------------------------------------------------
 // Float64x2 erf and erfc
 //------------------------------------------------------------------------------
 
@@ -854,6 +894,29 @@ Float64x4 tgamma(const Float64x4& t) {
 	>(t);
 }
 
+//------------------------------------------------------------------------------
+// Float64x4 incgamma
+//------------------------------------------------------------------------------
+
+#include "../FloatNxN/FloatNxN_incgamma.hpp"
+
+Float64x4 incgamma(const Float64x4& s, const Float64x4& z) {
+	return libDDFUN_incgamma<
+		Float64x4, fp64,
+		1000000
+	>(s, z);
+}
+
+//------------------------------------------------------------------------------
+// Float64x4 expint
+//------------------------------------------------------------------------------
+
+Float64x4 expint(const Float64x4& x) {
+	return libDDFUN_expint<
+		Float64x4, fp64,
+		1000000
+	>(x);
+}
 
 //------------------------------------------------------------------------------
 // Float64x4 math.h wrapper functions

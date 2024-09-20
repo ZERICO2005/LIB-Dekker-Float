@@ -1091,19 +1091,19 @@ Float64x2 fma(const Float64x2& x, const Float64x2& y, const Float64x2& z) {
 // Float64x2 pown
 //------------------------------------------------------------------------------
 
-__attribute__((unused)) static inline Float64x2 pown(const Float64x2& x, int n) {
+Float64x2 pown(const Float64x2& x, int n) {
 	
 	if (n == 0) {
-		return 1.0;
+		return static_cast<fp64>(1.0);
 	}
 	if (isequal_zero(x)) {
-		return 0.0;
+		return static_cast<fp64>(0.0);
 	}
 
 	Float64x2 r = x;
-	Float64x2 s = 1.0;
+	Float64x2 s = static_cast<fp64>(1.0);
 	// casts to unsigned int since abs(INT_MIN) < 0
-	unsigned int N = (unsigned int)((n < 0) ? -n : n);
+	unsigned int N = static_cast<unsigned int>((n < 0) ? -n : n);
 
 	if (N > 1) {
 		/* Use binary exponentiation */
@@ -1122,7 +1122,7 @@ __attribute__((unused)) static inline Float64x2 pown(const Float64x2& x, int n) 
 
 	/* Compute the reciprocal if n is negative. */
 	if (n < 0) {
-		return (1.0 / s);
+		return recip(s);
 	}
 	return s;
 }
@@ -1167,6 +1167,30 @@ Float64x2 tgamma(const Float64x2& t) {
 		Float64x2, fp64,
 		100000
 	>(t);
+}
+
+//------------------------------------------------------------------------------
+// Float64x2 incgamma
+//------------------------------------------------------------------------------
+
+#include "../FloatNxN/FloatNxN_incgamma.hpp"
+
+Float64x2 incgamma(const Float64x2& s, const Float64x2& z) {
+	return libDDFUN_incgamma<
+		Float64x2, fp64,
+		1000000
+	>(s, z);
+}
+
+//------------------------------------------------------------------------------
+// Float64x2 expint
+//------------------------------------------------------------------------------
+
+Float64x2 expint(const Float64x2& x) {
+	return libDDFUN_expint<
+		Float64x2, fp64,
+		1000000
+	>(x);
 }
 
 //------------------------------------------------------------------------------

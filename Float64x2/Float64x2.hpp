@@ -1351,4 +1351,9 @@ namespace std {
 		return log(fabs(tgamma(x)));
 	}
 
+	Float64x2 incgamma(const Float64x2& s, const Float64x2& z);
+
+	/** @brief Calls `-incgamma(0.0, -x)` */
+	Float64x2 expint(const Float64x2& x);
+
 #endif /* FLOAT64X2_HPP */

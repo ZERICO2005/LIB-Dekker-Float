@@ -163,7 +163,7 @@ Float80x2 log(const Float80x2& x) {
 		if (isequal_zero(x)) {
 			return -std::numeric_limits<Float80x2>::infinity();
 		}
-		// Float64x2::error("(Float80x2::log): Non-positive argument.");
+		// Float80x2::error("(Float80x2::log): Non-positive argument.");
 		return std::numeric_limits<Float80x2>::quiet_NaN();
 	}
 
@@ -534,6 +534,46 @@ void sincos(const Float80x2& a, Float80x2& sin_a, Float80x2& cos_a) {
 }
 
 //------------------------------------------------------------------------------
+// Float80x2 pown
+//------------------------------------------------------------------------------
+
+Float80x2 pown(const Float80x2& x, int n) {
+	
+	if (n == 0) {
+		return static_cast<fp80>(1.0);
+	}
+	if (isequal_zero(x)) {
+		return static_cast<fp80>(0.0);
+	}
+
+	Float80x2 r = x;
+	Float80x2 s = static_cast<fp80>(1.0);
+	// casts to unsigned int since abs(INT_MIN) < 0
+	unsigned int N = static_cast<unsigned int>((n < 0) ? -n : n);
+
+	if (N > 1) {
+		/* Use binary exponentiation */
+		while (N > 0) {
+			if (N % 2 == 1) {
+				s *= r;
+			}
+			N /= 2;
+			if (N > 0) {
+				r = square(r);
+			}
+		}
+	} else {
+		s = r;
+	}
+
+	/* Compute the reciprocal if n is negative. */
+	if (n < 0) {
+		return recip(s);
+	}
+	return s;
+}
+
+//------------------------------------------------------------------------------
 // Float80x2 erf and erfc
 //------------------------------------------------------------------------------
 
@@ -551,19 +591,6 @@ Float80x2 erfc(const Float80x2& x) {
 		Float80x2, fp80,
 		4096
 	>(x);
-}
-
-//------------------------------------------------------------------------------
-// Float80x2 tgamma
-//------------------------------------------------------------------------------
-
-#include "../FloatNxN/FloatNxN_tgamma.hpp"
-
-Float80x2 tgamma(const Float80x2& t) {
-	return libDQFUN_tgamma<
-		Float80x2, fp80,
-		100000
-	>(t);
 }
 
 //------------------------------------------------------------------------------
@@ -713,6 +740,43 @@ Float80x2 inverfc(const Float80x2& x) {
 	inverfc_newton(x, guess, 32);
 	printf("Total itr %8lld ", total_itr);
 	return guess;
+}
+
+//------------------------------------------------------------------------------
+// Float80x2 tgamma
+//------------------------------------------------------------------------------
+
+#include "../FloatNxN/FloatNxN_tgamma.hpp"
+
+Float80x2 tgamma(const Float80x2& t) {
+	return libDQFUN_tgamma<
+		Float80x2, fp80,
+		100000
+	>(t);
+}
+
+//------------------------------------------------------------------------------
+// Float80x2 incgamma
+//------------------------------------------------------------------------------
+
+#include "../FloatNxN/FloatNxN_incgamma.hpp"
+
+Float80x2 incgamma(const Float80x2& s, const Float80x2& z) {
+	return libDDFUN_incgamma<
+		Float80x2, fp80,
+		1000000
+	>(s, z);
+}
+
+//------------------------------------------------------------------------------
+// Float80x2 expint
+//------------------------------------------------------------------------------
+
+Float80x2 expint(const Float80x2& x) {
+	return libDDFUN_expint<
+		Float80x2, fp80,
+		1000000
+	>(x);
 }
 
 //------------------------------------------------------------------------------

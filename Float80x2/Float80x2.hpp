@@ -1328,19 +1328,23 @@ namespace std {
 		return log(fabs(tgamma(x)));
 	}
 
-/* Non-standard functions */
-
 	/**
 	 * @brief Calculates inverse erf or `x = erf(y)`
-	 * @warning Loses precision when |x| > 2.0, and inaccurate when |x| > 6.5
+	 * @warning Loses precision when `|x| > 2.0`, and inaccurate when `|x| > 6.5`
 	 * @note This function may be slow, as it may call `erf(x)` up to 32 times.
 	 */
 	Float80x2 inverf(const Float80x2& x);
 
 	/**
 	 * @brief Calculates inverse erfc or `x = erfc(y)`
+	 * @warning Loses precision when `x < -2.0`, and inaccurate when `x < -6.5`
 	 * @note This function may be slow, as it may call `erfc(x)` up to 32 times.
 	 */
 	Float80x2 inverfc(const Float80x2& x);
+
+	Float80x2 incgamma(const Float80x2& s, const Float80x2& z);
+
+	/** @brief Calls `-incgamma(0.0, -x)` */
+	Float80x2 expint(const Float80x2& x);
 
 #endif /* FLOAT80X2_HPP */

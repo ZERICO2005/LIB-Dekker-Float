@@ -25,71 +25,7 @@
 #include "../LDF/LDF_type_info.hpp"
 #include "../LDF/LDF_constants.hpp"
 
-/**
- * @remarks This function computes ldexp(x, n) storing the result
- * as a Float80x2. Although most of the time n is zero, which leads me to
- * believe that this function is just for converting FloatBase to FloatNxN.
- */
-template<typename FloatNxN, typename FloatBase>
-static inline void call_dd_dmc(const FloatBase x, const int n, FloatNxN& ret) {
-	if (n == 0) {
-		ret = x;
-	} else {
-		ret = static_cast<FloatNxN>(ldexp(x, n));
-	}
-}
-
-/**
- * @brief Three way comparison <=> possibly?
- */
-template<typename FloatNxN>
-static inline void call_dd_cpr(const FloatNxN& x, const FloatNxN& y, int& ret) {
-	#if 1
-		if (x < y) {
-			ret = -1;
-			return;
-		}
-		if (x == y) {
-			ret = 0;
-			return;
-		}
-		ret = 1;
-		return;
-	#else
-		// ret = (x < y) ? -1 : (x > y) ? 1 : 0;
-
-		if (x.hi < y.hi) {
-			ret = -1;
-		} else if (x.hi == y.hi) {
-			if (x.lo < y.lo) {
-				ret = -1;
-			} else if (x.lo == y.lo) {
-				ret = 0;
-			} else {
-				ret = 1;
-			}
-		} else {
-			ret = 1;
-		}
-	#endif
-}
-
-/**
- * @brief Three way comparison <=> possibly?
- */
-template<typename FloatNxN, typename FloatBase>
-static inline void call_dd_cpr(const FloatNxN& x, const FloatBase y, int& ret) {
-	if (x < y) {
-		ret = -1;
-		return;
-	}
-	if (x == y) {
-		ret = 0;
-		return;
-	}
-	ret = 1;
-	return;
-}
+#include "FloatNxN_fortran_def.h"
 
 template<typename FloatNxN, typename FloatBase>
 static inline FloatNxN double_odd_factorial(int k) {
@@ -105,8 +41,6 @@ static inline FloatNxN double_odd_factorial(int k) {
 //------------------------------------------------------------------------------
 // FloatNxN erf and erfc
 //------------------------------------------------------------------------------
-
-#define call_dd_dmc(x, n, ret) ret = x
 
 /** 
  * @author Taken from libDDFUN ddfune.f90 which can be found under a
