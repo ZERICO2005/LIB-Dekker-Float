@@ -54,7 +54,7 @@ static inline FloatNxN libDDFUN_incgamma(const FloatNxN& s, const FloatNxN& z) {
 	// constexpr FloatBase egam = 0.5772156649015328606e0;
 	int ic1, k, nn, n1, n2;
 	FloatBase d1, d2, bits;
-	FloatNxN t0, t1, t2, t3, t4, t5, f1, tc1, tc2, tc3, target_epsilon;
+	FloatNxN t0, t1, t2, t3, t4, t5, f1, tc1, target_epsilon;
 
 	// End of declaration
 	int dd_nw, dd_nw1;
@@ -65,15 +65,29 @@ static inline FloatNxN libDDFUN_incgamma(const FloatNxN& s, const FloatNxN& z) {
 
 	dd_nw = dd_nwx;
 
-	n1 = call_dd_sgn (s);
-	n2 = call_dd_sgn (z);
-	if (n2 == 0 || (n1 != 0 && n2 < 0)) {
-		// 	write (dd_ldb, 2);
-		// 2 format ('*** DDINCGAMMAR: The second argument must not be zero,'/ &
-		// 		'and must not be negative unless the first is zero.');
-		// 	call_dd_abrt
-		printf("*** DDINCGAMMAR: Loop end error 1\n");
-		return std::numeric_limits<FloatNxN>::quiet_NaN();
+	#if 0
+		n1 = call_dd_sgn (s);
+		n2 = call_dd_sgn (z);
+		if (n2 == 0 || (n1 != 0 && n2 < 0)) {
+			// 	write (dd_ldb, 2);
+			// 2 format ('*** DDINCGAMMAR: The second argument must not be zero,'/ &
+			// 		'and must not be negative unless the first is zero.');
+			// 	call_dd_abrt
+			printf("*** DDINCGAMMAR: Loop end error 1A\n");
+			return std::numeric_limits<FloatNxN>::quiet_NaN();
+		}
+	#else
+		if (isequal_zero(z)) {
+			return std::numeric_limits<FloatNxN>::quiet_NaN();
+		}
+		if (isnotequal_zero(s) && isless_zero(z)) {
+			return std::numeric_limits<FloatNxN>::quiet_NaN();
+		}
+	#endif
+
+	// This may give unexpected results when z is squared before calling this function.
+	if (s == static_cast<FloatBase>(0.5)) {
+		return LDF::const_sqrtpi<FloatNxN>() * erfc(sqrt(z));
 	}
 
 	dd_nw1 = std::min(dd_nw + 1, dd_nwx);
@@ -85,7 +99,7 @@ static inline FloatNxN libDDFUN_incgamma(const FloatNxN& s, const FloatNxN& z) {
 	d1 = d1 * ldexp(static_cast<FloatBase>(1.0), n1);
 	bits = dd_nw1 * dd_nbt;
 
-	if (abs (d1) < dmax * bits) {
+	if (abs(d1) < dmax * bits) {
 
 		//  This is for modest-sized z.
 
@@ -94,16 +108,17 @@ static inline FloatNxN libDDFUN_incgamma(const FloatNxN& s, const FloatNxN& z) {
 		call_dd_mdc (s, d2, n2);
 		
 		// nn = d2 * ldexp(static_cast<FloatBase>(1.0), n2);
-		nn = call_dd_int_ldexp(d2, n2);
+		// nn = call_dd_int_ldexp(d2, n2);
+		nn = static_cast<int>(d2 * ldexp(static_cast<FloatBase>(1.0), n2));
 
 		if (ic1 == 0 && nn == 1) {
 
-		//  S = 1; result is exp (-z).
-
-			call_dd_neg (z, t0);
-			call_dd_exp (t0, t1);
-			goto JMP_200;
-		} else if (ic1 == 0 && nn <= 0) {
+			//  S = 1; result is exp (-z).
+			return exp(-z);
+			// goto JMP_200;
+			
+		}
+		if (ic1 == 0 && nn <= 0) {
 
 		//   S is zero or a negative integer -- use a different algorithm. In
 		//   either event, first compute incgamma for S = 0. For large Z, the
@@ -129,11 +144,7 @@ static inline FloatNxN libDDFUN_incgamma(const FloatNxN& s, const FloatNxN& z) {
 				call_dd_add(t0, t3, t4);
 				call_dd_eq (t4, t0);
 
-				call_dd_abs (t3, tc1);
-				call_dd_mul (target_epsilon, t0, tc3);
-				call_dd_abs (tc3, tc2);
-				call_dd_cpr (tc1, tc2, ic1);
-				if (ic1 <= 0) {
+				if (fabs(t3) <= fabs(target_epsilon * t0)) {
 					goto JMP_100;
 				}
 			}
@@ -141,7 +152,7 @@ static inline FloatNxN libDDFUN_incgamma(const FloatNxN& s, const FloatNxN& z) {
 	// 		write (dd_ldb, 4);
 	// 4   format ('*** DDINCGAMMAR: Loop end error 1');
 	// 		call_dd_abrt
-	printf("*** DDINCGAMMAR: Loop end error 1\n");
+	printf("*** DDINCGAMMAR: Loop end error 1B\n");
 	return std::numeric_limits<FloatNxN>::quiet_NaN();
 
 	/* continue */ JMP_100:
@@ -206,11 +217,7 @@ static inline FloatNxN libDDFUN_incgamma(const FloatNxN& s, const FloatNxN& z) {
 			call_dd_add(t0, t2, t3);
 			call_dd_eq (t3, t0);
 
-			call_dd_abs (t2, tc1);
-			call_dd_mul (target_epsilon, t0, tc3);
-			call_dd_abs (tc3, tc2);
-			call_dd_cpr (tc1, tc2, ic1);
-			if (ic1 <= 0) {
+			if (fabs(t2) <= fabs(target_epsilon * t0)) {
 				goto JMP_110;
 			}
 		}
@@ -218,7 +225,7 @@ static inline FloatNxN libDDFUN_incgamma(const FloatNxN& s, const FloatNxN& z) {
 	// 	write (dd_ldb, 5) max_iter
 	// 5   format ('*** DDINCGAMMAR: Loop end error 1');
 	// 	call_dd_abrt
-	printf("*** DDINCGAMMAR: Loop end error 1\n");
+	printf("*** DDINCGAMMAR: Loop end error 1C\n");
 	return std::numeric_limits<FloatNxN>::quiet_NaN();
 
 	/* continue */ JMP_110:
@@ -247,11 +254,7 @@ static inline FloatNxN libDDFUN_incgamma(const FloatNxN& s, const FloatNxN& z) {
 			call_dd_add(t0, t1, t2);
 			call_dd_eq (t2, t0);
 
-			call_dd_abs (t1, tc1);
-			call_dd_mul (target_epsilon, t0, tc3);
-			call_dd_abs (tc3, tc2);
-			call_dd_cpr (tc1, tc2, ic1);
-			if (ic1 <= 0) {
+			if (fabs(t1) <= fabs(target_epsilon * t0)) {
 				goto JMP_120;
 			}
 		}
@@ -274,7 +277,7 @@ static inline FloatNxN libDDFUN_incgamma(const FloatNxN& s, const FloatNxN& z) {
 
 	/* continue */ JMP_200:
 
-	call_dd_eq (t1, g);
+	g = t1;
 
 	return g;
 }

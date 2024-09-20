@@ -257,10 +257,10 @@ int main(void) {
 	// test_function();
 
 	// generate_inverf(8192, 300);
-	test_inverf();
+	// test_inverf();
 
 	// precision_test<Float80x2>();
-	// graph_precision<Float80x2>(24000, 120.0, 0.0L);
+	graph_precision<Float80x2>(24000, 120.0, 0.0L);
 
 	// run_generate_constants();
 	
