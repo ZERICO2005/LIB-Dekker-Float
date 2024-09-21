@@ -780,10 +780,87 @@ Float80x2 expint(const Float80x2& x) {
 }
 
 //------------------------------------------------------------------------------
+// Float80x2 riemann_zeta
+//------------------------------------------------------------------------------
+
+#include "../FLoatNxN/FloatNxN_riemann_zeta.hpp"
+
+Float80x2 riemann_zeta(const Float80x2& x) {
+	return libDDFUN_riemann_zeta<
+		Float80x2, fp80,
+		1000000
+	>(x);
+}
+
+//------------------------------------------------------------------------------
 // Float80x2 Bessel Functions
 //------------------------------------------------------------------------------
 
 #include "../FLoatNxN/FloatNxN_cyl_bessel.hpp"
+
+/** @brief regular modified cylindrical Bessel function */
+Float80x2 cyl_bessel_i(const Float80x2& nu, const Float80x2& x) {
+	return libDDFUN_cyl_bessel_i<
+		Float80x2, fp80,
+		1000000
+	>(nu, x);
+}
+
+/** @brief cylindrical Bessel functions (of the first kind) */
+Float80x2 cyl_bessel_j(const Float80x2& nu, const Float80x2& x) {
+	return libDDFUN_cyl_bessel_j<
+		Float80x2, fp80,
+		1000000
+	>(nu, x);
+}
+
+/** @brief irregular modified cylindrical Bessel functions  */
+Float80x2 cyl_bessel_k(const Float80x2& nu, const Float80x2& x) {
+	return libDDFUN_cyl_bessel_k<
+		Float80x2, fp80,
+		1000000
+	>(nu, x);
+}
+
+/** @brief Bessel function of the second kind. */
+Float80x2 cyl_neumann(const Float80x2& nu, const Float80x2& x) {
+	return libDDFUN_cyl_bessel_y<
+		Float80x2, fp80,
+		1000000
+	>(nu, x);
+}
+
+/** @brief regular modified cylindrical Bessel function */
+Float80x2 cyl_bessel_i(int nu, const Float80x2& x) {
+	return libDDFUN_cyl_bessel_i_integer<
+		Float80x2, fp80,
+		1000000
+	>(nu, x);
+}
+
+/** @brief cylindrical Bessel functions (of the first kind) */
+Float80x2 cyl_bessel_j(int nu, const Float80x2& x) {
+	return libDDFUN_cyl_bessel_j_integer<
+		Float80x2, fp80,
+		1000000
+	>(nu, x);
+}
+
+/** @brief irregular modified cylindrical Bessel functions  */
+Float80x2 cyl_bessel_k(int nu, const Float80x2& x) {
+	return libDDFUN_cyl_bessel_k_integer<
+		Float80x2, fp80,
+		1000000
+	>(nu, x);
+}
+
+/** @brief Bessel function of the second kind. */
+Float80x2 cyl_neumann(int nu, const Float80x2& x) {
+	return libDDFUN_cyl_bessel_y_integer<
+		Float80x2, fp80,
+		1000000
+	>(nu, x);
+}
 
 //------------------------------------------------------------------------------
 // Float80x2 from string

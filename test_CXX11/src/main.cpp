@@ -29,42 +29,42 @@ inline int64_t getNanoTime(void) {
 
 #define MPFR_WANT_FLOAT128
 
-#include "Float80x2/Float80x2_def.h"
+#include "../../Float80x2/Float80x2_def.h"
 
-#include "Float32/Float32.h"
-#include "Float64/Float64.h"
+#include "../../Float32/Float32.h"
+#include "../../Float64/Float64.h"
 
 #if 1
-#include "Float32x2/Float32x2.hpp"
+#include "../../Float32x2/Float32x2.hpp"
 #endif
 
-#include "Float64x2/Float64x2.hpp"
+#include "../../Float64x2/Float64x2.hpp"
 
 #if 1
 
-#include "Float64x2/Float64x2.h"
+#include "../../Float64x2/Float64x2.h"
 
 // #include "Float64x4/Float64x4.hpp"
 
 #ifdef Enable_Float80
-	#include "Float80x2/Float80x2.hpp"
+	#include "../../Float80x2/Float80x2.hpp"
 #endif
 #ifdef Enable_Float128
-	#include "Float128x2/Float128x2.hpp"
+	#include "../../Float128x2/Float128x2.hpp"
 #endif
 
-#include "Float32x4/Float32x4.hpp"
-#include "Float64x4/Float64x4.h"
-#include "Float64x4/Float64x4.hpp"
-#include "Float64x6/Float64x6.hpp"
+#include "../../Float32x4/Float32x4.hpp"
+#include "../../Float64x4/Float64x4.h"
+#include "../../Float64x4/Float64x4.hpp"
+#include "../../Float64x6/Float64x6.hpp"
 
 // Deprecated since it runs slower than mpfr_t. It could be faster than the overhead from C++ wrappers for mpfr_t
 // #include "Float80x4/Float80x4.h"
 
-#include "Float64x4/Float64x4_AVX.h"
-#include "Float64x2/Float64x2_AVX.h"
+#include "../../Float64x4/Float64x4_AVX.h"
+#include "../../Float64x2/Float64x2_AVX.h"
 
-#include "util_mpfr/auto_include_FloatX_mpfr.h"
+#include "../../util_mpfr/auto_include_FloatX_mpfr.h"
 
 #include "FloatNx2_demo.hpp"
 
@@ -260,7 +260,7 @@ int main(void) {
 	// test_inverf();
 
 	// precision_test<Float80x2>();
-	graph_precision<Float80x2>(24000, 120.0, 0.0L);
+	graph_precision<Float64x2>(24000, 120.0L, 0.0L);
 
 	// run_generate_constants();
 	

@@ -12,6 +12,12 @@
 #include "Float128x2_def.h"
 #include "../LDF/LDF_constants.hpp"
 
+#ifdef __GNUC__
+	// Silence warnings about non-standard floating point suffixes
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+
 namespace LDF {
 
 /* Multiples of pi */
@@ -303,5 +309,9 @@ template<> inline constexpr Float128x2 const_lemniscate2<Float128x2>() { return 
 }; }
 
 }
+
+#ifdef __GNUC__
+	#pragma GCC diagnostic pop
+#endif
 
 #endif /* FLOAT128X2_CONSTANTS_HPP */

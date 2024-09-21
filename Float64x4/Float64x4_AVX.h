@@ -25,8 +25,8 @@
  */
 
 #include "Float64x4_def.h"
-#include "Float64/Float64_AVX.h"
-#include "Float64x2/Float64x2_AVX.h"
+#include "../Float64/Float64_AVX.h"
+#include "../Float64x2/Float64x2_AVX.h"
 
 #include <stdint.h>
 

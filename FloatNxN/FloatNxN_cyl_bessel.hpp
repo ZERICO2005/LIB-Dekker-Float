@@ -21,18 +21,23 @@
 
 #include "../LDF/LDF_type_info.hpp"
 #include "../LDF/LDF_constants.hpp"
+#include "../LDF/LDF_arithmetic.hpp"
 
 #include <limits>
 #include <cmath>
+#include <cassert>
+#include <cstdio>
 
 #include "FloatNxN_fortran_def.h"
 
-
+/**
+ * @brief dd_besselinr
+ */
 template<
 	typename FloatNxN, typename FloatBase,
 	int max_iter
 >
-static inline FloatNxN libDDFUN_besselinr(const int nu, const FloatNxN& rr) {
+static inline FloatNxN libDDFUN_cyl_bessel_i_integer(const int nu, const FloatNxN& rr) {
 
 	//  This evaluates the modified Bessel function BesselI (NU,RR).
 	//  NU is an integer. The algorithm is DLMF formula 10.25.2 for modest RR,
@@ -45,7 +50,6 @@ static inline FloatNxN libDDFUN_besselinr(const int nu, const FloatNxN& rr) {
 	// integer, parameter:: max_iter = 1000000
 	FloatNxN ss;
 	constexpr FloatBase dfrac = static_cast<FloatBase>(1.5);
-	constexpr FloatBase pi = static_cast<FloatBase>(3.1415926535897932385);
 	int ic1, k, nua, n1;
 	FloatBase d1;
 	FloatNxN f1, f2, sum, td, tn, t1, t2, t3, t4, rra, tc1, tc2, tc3, target_epsilon;
@@ -55,7 +59,7 @@ static inline FloatNxN libDDFUN_besselinr(const int nu, const FloatNxN& rr) {
 	constexpr FloatBase dd_dpw = static_cast<FloatBase>(std::numeric_limits<FloatBase>::digits) * static_cast<FloatBase>(0.30102999566398119521373889472449);
 
 	// End of declaration
-	int dd_nw, dd_nw1, dd_nw2;
+	int dd_nw, dd_nw1;
 
 
 
@@ -84,7 +88,7 @@ static inline FloatNxN libDDFUN_besselinr(const int nu, const FloatNxN& rr) {
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, f1);
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, f2);
 		call_dd_mul (rra, rra, t2);
-		call_dd_muld (t2, static_cast<FloatBase>(0.25), t1);
+		t1 = mul_pwr2(t2, static_cast<FloatBase>(0.25));
 
 		for (k = 1; k <= nua; k++) {
 			call_dd_muld (f2, fortran_dble (k), t2);
@@ -111,7 +115,9 @@ static inline FloatNxN libDDFUN_besselinr(const int nu, const FloatNxN& rr) {
 			call_dd_mul (target_epsilon, sum, tc3);
 			call_dd_abs (tc3, tc2);
 			call_dd_cpr (tc1, tc2, ic1);
-			if (ic1 <= 0) goto JMP_100;
+			if (ic1 <= 0) {
+				goto JMP_100;
+			}
 		}
 
 		// write (ddldb, 4);
@@ -122,7 +128,7 @@ static inline FloatNxN libDDFUN_besselinr(const int nu, const FloatNxN& rr) {
 
 	/* continue */ JMP_100:
 
-		call_dd_muld (rra, static_cast<FloatBase>(0.5), t1);
+		t1 = mul_pwr2(rra, static_cast<FloatBase>(0.5));
 		call_dd_npwr (t1, nua, t2);
 		call_dd_mul (sum, t2, t3);
 	} else {
@@ -132,7 +138,7 @@ static inline FloatNxN libDDFUN_besselinr(const int nu, const FloatNxN& rr) {
 	// t3 = mpreal (static_cast<FloatBase>(1.0), mpnw);
 
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, sum);
-		d1 = static_cast<FloatBase>(4.0) * square(fortran_dble (nua));
+		d1 = static_cast<FloatBase>(4 * (nua * nua));
 		call_dd_dmc (d1, 0, t1);
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, tn);
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, td);
@@ -149,7 +155,7 @@ static inline FloatNxN libDDFUN_besselinr(const int nu, const FloatNxN& rr) {
 			call_dd_sub (t1, t3, t2);
 			call_dd_mul (tn, t2, t3);
 			call_dd_neg (t3, tn);
-			call_dd_muld (rra, static_cast<FloatBase>(8.0) * k, t2);
+			call_dd_muld (rra, static_cast<FloatBase>(8.0) * static_cast<FloatBase>(k), t2);
 			call_dd_mul (td, t2, t3);
 			call_dd_eq (t3, td);
 			call_dd_div (tn, td, t4);
@@ -162,7 +168,9 @@ static inline FloatNxN libDDFUN_besselinr(const int nu, const FloatNxN& rr) {
 			call_dd_mul (target_epsilon, sum, tc3);
 			call_dd_abs (tc3, tc2);
 			call_dd_cpr (tc1, tc2, ic1);
-			if (ic1 <= 0) goto JMP_110;
+			if (ic1 <= 0) {
+				goto JMP_110;
+			}
 		}
 
 	// write (ddldb, 5);
@@ -177,7 +185,7 @@ static inline FloatNxN libDDFUN_besselinr(const int nu, const FloatNxN& rr) {
 	//besseli = t1 * sum1
 
 		call_dd_exp (rra, t1);
-		call_dd_muld (LDF::const_pi<FloatNxN>(), static_cast<FloatBase>(2.0), t2);
+		t2 = LDF::const_2pi<FloatNxN>();
 		call_dd_mul (t2, rra, t3);
 		call_dd_sqrt (t3, t4);
 		call_dd_div (t1, t4, t2);
@@ -196,11 +204,14 @@ static inline FloatNxN libDDFUN_besselinr(const int nu, const FloatNxN& rr) {
 	return ss;
 }
 
+/**
+ * @brief dd_besselir
+ */
 template<
 	typename FloatNxN, typename FloatBase,
 	int max_iter
 >
-static inline FloatNxN libDDFUN_besselir(const FloatNxN& qq, const FloatNxN& rr) {
+static inline FloatNxN libDDFUN_cyl_bessel_i(const FloatNxN& qq, const FloatNxN& rr) {
 
 	//  This evaluates the modified Bessel function BesselI (QQ,RR) for QQ and RR
 	//  both MPR. The algorithm is DLMF formula 10.25.2 for modest RR, and
@@ -213,7 +224,6 @@ static inline FloatNxN libDDFUN_besselir(const FloatNxN& qq, const FloatNxN& rr)
 	int ic1, i1, i2, k, n1;
 	// integer, parameter:: max_iter = 1000000
 	constexpr FloatBase dfrac = static_cast<FloatBase>(1.5);
-	constexpr FloatBase pi = static_cast<FloatBase>(3.1415926535897932385);
 	FloatBase d1;
 	FloatNxN f1, f2, sum, td, tn, t1, t2, t3, t4, rra, tc1, tc2, tc3, target_epsilon;
 
@@ -222,7 +232,7 @@ static inline FloatNxN libDDFUN_besselir(const FloatNxN& qq, const FloatNxN& rr)
 	constexpr FloatBase dd_dpw = static_cast<FloatBase>(std::numeric_limits<FloatBase>::digits) * static_cast<FloatBase>(0.30102999566398119521373889472449);
 
 	// End of declaration
-	int dd_nw, dd_nw1, dd_nw2;
+	int dd_nw, dd_nw1;
 
 
 
@@ -240,7 +250,10 @@ static inline FloatNxN libDDFUN_besselir(const FloatNxN& qq, const FloatNxN& rr)
 	if (call_dd_sgn (t2) == 0) {
 		call_dd_mdc (qq, d1, n1);
 		d1 = ldexp(d1, n1);
-		n1 = fortran_nint (d1);
+		
+		n1 = static_cast<int>(fortran_nint (d1));
+		assert(d1 <= static_cast<FloatBase>(std::numeric_limits<int>::max()));
+		
 		call_dd_besselinr (n1, rr, t3);
 		goto JMP_120;
 	} else if (i1 < 0 && i2 <= 0) {
@@ -261,7 +274,7 @@ static inline FloatNxN libDDFUN_besselir(const FloatNxN& qq, const FloatNxN& rr)
 		call_dd_add (qq, f1, t1);
 		call_dd_gammar (t1, f2);
 		call_dd_mul (rra, rra, t2);
-		call_dd_muld (t2, static_cast<FloatBase>(0.25), t1);
+		t1 = mul_pwr2(t2, static_cast<FloatBase>(0.25));
 
 		call_dd_mul (f1, f2, td);
 		call_dd_div (tn, td, t2);
@@ -285,7 +298,9 @@ static inline FloatNxN libDDFUN_besselir(const FloatNxN& qq, const FloatNxN& rr)
 			call_dd_mul (target_epsilon, sum, tc3);
 			call_dd_abs (tc3, tc2);
 			call_dd_cpr (tc1, tc2, ic1);
-			if (ic1 <= 0) goto JMP_100;
+			if (ic1 <= 0) {
+				goto JMP_100;
+			}
 		}
 
 		// write (ddldb, 4);
@@ -296,7 +311,7 @@ static inline FloatNxN libDDFUN_besselir(const FloatNxN& qq, const FloatNxN& rr)
 
 	/* continue */ JMP_100:
 
-		call_dd_muld (rra, static_cast<FloatBase>(0.5), t1);
+		t1 = mul_pwr2(rra, static_cast<FloatBase>(0.5));
 		call_dd_power (t1, qq, t2);
 		call_dd_mul (sum, t2, t3);
 	} else {
@@ -307,7 +322,7 @@ static inline FloatNxN libDDFUN_besselir(const FloatNxN& qq, const FloatNxN& rr)
 
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, sum);
 		call_dd_mul (qq, qq, t2);
-		call_dd_muld (t2, static_cast<FloatBase>(4.0), t1);
+		t1 = mul_pwr2(t2, static_cast<FloatBase>(4.0));
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, tn);
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, td);
 
@@ -317,13 +332,13 @@ static inline FloatNxN libDDFUN_besselir(const FloatNxN& qq, const FloatNxN& rr)
 	// t4 = t2 / t3
 	// sum1 = sum1 + t4
 
-			d1 = static_cast<FloatBase>(2.0) * k - static_cast<FloatBase>(1.0);
+			d1 = static_cast<FloatBase>(2.0) * static_cast<FloatBase>(k) - static_cast<FloatBase>(1.0);
 			call_dd_dmc (d1, 0, t2);
 			call_dd_mul (t2, t2, t3);
 			call_dd_sub (t1, t3, t2);
 			call_dd_mul (tn, t2, t3);
 			call_dd_neg (t3, tn);
-			call_dd_muld (rra, static_cast<FloatBase>(8.0) * k, t2);
+			call_dd_muld (rra, static_cast<FloatBase>(8.0) * static_cast<FloatBase>(k), t2);
 			call_dd_mul (td, t2, t3);
 			call_dd_eq (t3, td);
 			call_dd_div (tn, td, t4);
@@ -336,7 +351,9 @@ static inline FloatNxN libDDFUN_besselir(const FloatNxN& qq, const FloatNxN& rr)
 			call_dd_mul (target_epsilon, sum, tc3);
 			call_dd_abs (tc3, tc2);
 			call_dd_cpr (tc1, tc2, ic1);
-			if (ic1 <= 0) goto JMP_110;
+			if (ic1 <= 0) {
+				goto JMP_110;
+			}
 		}
 
 	// write (ddldb, 5);
@@ -351,7 +368,7 @@ static inline FloatNxN libDDFUN_besselir(const FloatNxN& qq, const FloatNxN& rr)
 	//besseli = t1 * sum1
 
 		call_dd_exp (rra, t1);
-		call_dd_muld (LDF::const_pi<FloatNxN>(), static_cast<FloatBase>(2.0), t2);
+		t2 = LDF::const_2pi<FloatNxN>();
 		call_dd_mul (t2, rra, t3);
 		call_dd_sqrt (t3, t4);
 		call_dd_div (t1, t4, t2);
@@ -365,11 +382,14 @@ static inline FloatNxN libDDFUN_besselir(const FloatNxN& qq, const FloatNxN& rr)
 	return ss;
 }
 
+/**
+ * @brief dd_besseljnr
+ */
 template<
 	typename FloatNxN, typename FloatBase,
 	int max_iter
 >
-static inline FloatNxN libDDFUN_besseljnr(const int nu, const FloatNxN& rr) {
+static inline FloatNxN libDDFUN_cyl_bessel_j_integer(const int nu, const FloatNxN& rr) {
 
 	//  This evaluates the modified Bessel function BesselJ (NU,RR).
 	//  NU is an integer. The algorithm is DLMF formula 10.2.2 for modest RR,
@@ -382,7 +402,6 @@ static inline FloatNxN libDDFUN_besseljnr(const int nu, const FloatNxN& rr) {
 	// integer, parameter:: max_iter = 1000000
 	FloatNxN ss;
 	constexpr FloatBase dfrac = static_cast<FloatBase>(1.5);
-	constexpr FloatBase pi = static_cast<FloatBase>(3.1415926535897932385);
 	int ic1, ic2, k, nua, n1;
 	FloatBase d1, d2;
 	FloatNxN f1, f2, sum1, sum2, td1, td2, tn1, tn2, t1, t2, t3, t41, t42, t5, rra, rr2, tc1, tc2, tc3, target_epsilon;
@@ -392,7 +411,7 @@ static inline FloatNxN libDDFUN_besseljnr(const int nu, const FloatNxN& rr) {
 	constexpr FloatBase dd_dpw = static_cast<FloatBase>(std::numeric_limits<FloatBase>::digits) * static_cast<FloatBase>(0.30102999566398119521373889472449);
 
 	// End of declaration
-	int dd_nw, dd_nw1, dd_nw2;
+	int dd_nw, dd_nw1;
 
 
 
@@ -416,13 +435,17 @@ static inline FloatNxN libDDFUN_besseljnr(const int nu, const FloatNxN& rr) {
 	d1 = fabs(ldexp(d1, n1));
 
 	if (d1 < dfrac * dd_nw1 * dd_dpw) {
-		dd_nw1 = std::min(dd_nw + fortran_nint (d1 / (dfrac * dd_dpw)), 2 * dd_nw + 1, dd_nwx);
+		dd_nw1 = std::min(
+			std::min(
+				dd_nw + static_cast<int>(fortran_nint (d1 / (dfrac * dd_dpw))), 2 * dd_nw + 1
+			), dd_nwx
+		);
 		call_dd_abs (rr, rra);
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, tn1);
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, f1);
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, f2);
 		call_dd_mul (rra, rra, t2);
-		call_dd_muld (t2, static_cast<FloatBase>(0.25), t1);
+		t1 = mul_pwr2(t2, static_cast<FloatBase>(0.25));
 
 		for (k = 1; k <= nua; k++) {
 			call_dd_muld (f2, fortran_dble (k), t2);
@@ -449,7 +472,9 @@ static inline FloatNxN libDDFUN_besseljnr(const int nu, const FloatNxN& rr) {
 			call_dd_mul (target_epsilon, sum1, tc3);
 			call_dd_abs (tc3, tc2);
 			call_dd_cpr (tc1, tc2, ic1);
-			if (ic1 <= 0) goto JMP_100;
+			if (ic1 <= 0) {
+				goto JMP_100;
+			}
 		}
 
 		// write (ddldb, 4);
@@ -460,7 +485,7 @@ static inline FloatNxN libDDFUN_besseljnr(const int nu, const FloatNxN& rr) {
 
 	/* continue */ JMP_100:
 
-		call_dd_muld (rra, static_cast<FloatBase>(0.5), t1);
+		t1 = mul_pwr2(rra, static_cast<FloatBase>(0.5));
 		call_dd_npwr (t1, nua, t2);
 		call_dd_mul (sum1, t2, t3);
 	} else {
@@ -476,11 +501,11 @@ static inline FloatNxN libDDFUN_besseljnr(const int nu, const FloatNxN& rr) {
 		dd_nw1 = std::min(dd_nw + 1, dd_nwx);
 		call_dd_abs (rr, rra);
 		call_dd_mul (rra, rra, rr2);
-		d1 = static_cast<FloatBase>(4.0) * square(fortran_dble (nua));
+		d1 = static_cast<FloatBase>(4 * (nua * nua));
 		call_dd_dmc (d1, 0, t1);
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, tn1);
 		call_dd_sub (t1, tn1, t2);
-		call_dd_divd (t2, static_cast<FloatBase>(8.0), tn2);
+		tn2 = mul_pwr2(t2, static_cast<FloatBase>(0.125));
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, td1);
 		call_dd_eq (rra, td2);
 		call_dd_div (tn1, td1, sum1);
@@ -489,8 +514,8 @@ static inline FloatNxN libDDFUN_besseljnr(const int nu, const FloatNxN& rr) {
 		for (k = 1; k <= max_iter; k++) {
 	//  tn1 = -tn1 * (t1 - (static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k - static_cast<FloatBase>(1.0)) - static_cast<FloatBase>(1.0))**2) * (t1 - (static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k) - static_cast<FloatBase>(1.0))**2);
 
-			d1 = square(static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k - static_cast<FloatBase>(1.0)) - static_cast<FloatBase>(1.0));
-			d2 = square(static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k) - static_cast<FloatBase>(1.0));
+			d1 = LDF::square<FloatBase, FloatBase>(static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k - static_cast<FloatBase>(1.0)) - static_cast<FloatBase>(1.0));
+			d2 = LDF::square<FloatBase, FloatBase>(static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k) - static_cast<FloatBase>(1.0));
 			call_dd_dmc (d1, 0, t2);
 			call_dd_sub (t1, t2, t3);
 			call_dd_dmc (d2, 0, t2);
@@ -514,8 +539,8 @@ static inline FloatNxN libDDFUN_besseljnr(const int nu, const FloatNxN& rr) {
 
 	//  tn2 = -tn2 * (t1 - (static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k) - static_cast<FloatBase>(1.0))**2) * (t1 - (static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k + static_cast<FloatBase>(1.0)) - static_cast<FloatBase>(1.0))**2);
 
-			d1 = square(static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k) - static_cast<FloatBase>(1.0));
-			d2 = square(static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k + static_cast<FloatBase>(1.0)) - static_cast<FloatBase>(1.0));
+			d1 = LDF::square<FloatBase, FloatBase>(static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k) - static_cast<FloatBase>(1.0));
+			d2 = LDF::square<FloatBase, FloatBase>(static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k + static_cast<FloatBase>(1.0)) - static_cast<FloatBase>(1.0));
 			call_dd_dmc (d1, 0, t2);
 			call_dd_sub (t1, t2, t3);
 			call_dd_dmc (d2, 0, t2);
@@ -547,7 +572,9 @@ static inline FloatNxN libDDFUN_besseljnr(const int nu, const FloatNxN& rr) {
 			call_dd_mul (target_epsilon, sum2, tc3);
 			call_dd_abs (tc3, tc2);
 			call_dd_cpr (tc1, tc2, ic2);
-			if (ic1 <= 0 && ic2 <= 0) goto JMP_110;
+			if (ic1 <= 0 && ic2 <= 0) {
+				goto JMP_110;
+			}
 		}
 
 		// write (ddldb, 5);
@@ -562,17 +589,16 @@ static inline FloatNxN libDDFUN_besseljnr(const int nu, const FloatNxN& rr) {
 	//t1 = xa - static_cast<FloatBase>(0.5) * nua * pi - static_cast<FloatBase>(0.25) * pi
 	//besselj = sqrt (static_cast<FloatBase>(2.0) / (pi * xa)) * (cos (t1) * sum1 - sin (t1) * sum2);
 
-		call_dd_muld (LDF::const_pi<FloatNxN>(), static_cast<FloatBase>(0.5) * nua, t1);
+		call_dd_muld (LDF::const_pi2<FloatNxN>(), static_cast<FloatBase>(nua), t1);
 		call_dd_sub (rra, t1, t2);
-		call_dd_muld (LDF::const_pi<FloatNxN>(), static_cast<FloatBase>(0.25), t1);
+		t1 = LDF ::const_pi4<FloatNxN>();
 		call_dd_sub (t2, t1, t3);
 		call_dd_cssnr (t3, t41, t42);
 		call_dd_mul (t41, sum1, t1);
 		call_dd_mul (t42, sum2, t2);
 		call_dd_sub (t1, t2, t5);
 		call_dd_mul (LDF::const_pi<FloatNxN>(), rra, t1);
-		call_dd_dmc (static_cast<FloatBase>(2.0), 0, t2);
-		call_dd_div (t2, t1, t3);
+		t3 = static_cast<FloatBase>(2.0) / t1;
 		call_dd_sqrt (t3, t1);
 		call_dd_mul (t1, t5, t3);
 	}
@@ -581,9 +607,8 @@ static inline FloatNxN libDDFUN_besseljnr(const int nu, const FloatNxN& rr) {
 	// if (nu < 0 && x > static_cast<FloatBase>(0.0) || nu > 0 && x < static_cast<FloatBase>(0.0)) besselj = - besselj
 
 		ic1 = call_dd_sgn (rr);
-		if (nu < 0 && ic1 > 0 || nu > 0 && ic1 < 0) {
-			call_dd_neg (t3, t2);
-			call_dd_eq (t2, t3);
+		if ((nu < 0 && ic1 > 0) || (nu > 0 && ic1 < 0)) {
+			t3 = -t3;
 		}
 	}
 
@@ -592,11 +617,14 @@ static inline FloatNxN libDDFUN_besseljnr(const int nu, const FloatNxN& rr) {
 	return ss;
 }
 
+/**
+ * @brief dd_besseljr
+ */
 template<
 	typename FloatNxN, typename FloatBase,
 	int max_iter
 >
-static inline FloatNxN libDDFUN_besseljr(const FloatNxN& qq, const FloatNxN& rr) {
+static inline FloatNxN libDDFUN_cyl_bessel_j(const FloatNxN& qq, const FloatNxN& rr) {
 
 	//  This evaluates the modified Bessel function BesselJ (QQ,RR) for QQ and RR
 	//  both MPR. The algorithm is DLMF formula 10.2.2 for modest RR,
@@ -606,11 +634,10 @@ static inline FloatNxN libDDFUN_besseljr(const FloatNxN& qq, const FloatNxN& rr)
 	// FloatNxN, intent(in):: qq, rr;
 	// FloatNxN, intent(out):: ss;
 	FloatNxN ss;
-	int ic1, ic2, i1, i2, k, n1;
+	int ic1, ic2, i2, k, n1;
 	FloatBase d1, d2;
 	// integer, parameter:: max_iter = 1000000
 	constexpr FloatBase dfrac = static_cast<FloatBase>(1.5);
-	constexpr FloatBase pi = static_cast<FloatBase>(3.1415926535897932385);
 	FloatNxN f1, f2, sum1, sum2, td1, td2, tn1, tn2, t1, t2, t3, t4, t41, t42, t5, rra, rr2, tc1, tc2, tc3, target_epsilon;
 
 	constexpr int dd_nwx = LDF::LDF_Type_Info<FloatNxN>::FloatBase_Count;
@@ -618,25 +645,29 @@ static inline FloatNxN libDDFUN_besseljr(const FloatNxN& qq, const FloatNxN& rr)
 	constexpr FloatBase dd_dpw = static_cast<FloatBase>(std::numeric_limits<FloatBase>::digits) * static_cast<FloatBase>(0.30102999566398119521373889472449);
 
 	// End of declaration
-	int dd_nw, dd_nw1, dd_nw2;
+	int dd_nw, dd_nw1;
 
 
 
 	dd_nw = dd_nwx;
 
 	dd_nw1 = std::min(2 * dd_nw + 1, dd_nwx);
+	
 	call_dd_dmc (static_cast<FloatBase>(2.0), 0, tc1);
 	call_dd_npwr (tc1, -dd_nw * dd_nbt, target_epsilon);
 
 	//  If QQ is integer, call_mpbesseljnr; if RR <= 0, then error.
 
 	call_dd_infr (qq, t1, t2);
-	i1 = call_dd_sgn (qq);
+	// int i1 = call_dd_sgn (qq);
 	i2 = call_dd_sgn (rr);
 	if (call_dd_sgn (t2) == 0) {
 		call_dd_mdc (qq, d1, n1);
 		d1 = ldexp(d1, n1);
-		n1 = fortran_nint (d1);
+
+		n1 = static_cast<int>(fortran_nint (d1));
+		assert(d1 <= static_cast<FloatBase>(std::numeric_limits<int>::max()));
+
 		call_dd_besseljnr (n1, rr, t3);
 		goto JMP_120;
 	} else if (i2 <= 0) {
@@ -651,14 +682,19 @@ static inline FloatNxN libDDFUN_besseljr(const FloatNxN& qq, const FloatNxN& rr)
 	d1 = fabs(ldexp(d1, n1));
 
 	if (d1 < dfrac * dd_nw1 * dd_dpw) {
-		dd_nw1 = std::min(dd_nw + fortran_nint (d1 / (dfrac * dd_dpw)), 2 * dd_nw + 1, dd_nwx);
+		dd_nw1 = std::min(
+			std::min(
+				dd_nw + static_cast<int>(fortran_nint (d1 / (dfrac * dd_dpw))),
+				2 * dd_nw + 1
+			), dd_nwx
+		);
 		call_dd_abs (rr, rra);
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, tn1);
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, f1);
 		call_dd_add (qq, f1, t1);
 		call_dd_gammar (t1, f2);
 		call_dd_mul (rra, rra, t2);
-		call_dd_muld (t2, static_cast<FloatBase>(0.25), t1);
+		t1 = mul_pwr2(t2, static_cast<FloatBase>(0.25));
 
 		call_dd_mul (f1, f2, td1);
 		call_dd_div (tn1, td1, t2);
@@ -682,7 +718,9 @@ static inline FloatNxN libDDFUN_besseljr(const FloatNxN& qq, const FloatNxN& rr)
 			call_dd_mul (target_epsilon, sum1, tc3);
 			call_dd_abs (tc3, tc2);
 			call_dd_cpr (tc1, tc2, ic1);
-			if (ic1 <= 0) goto JMP_100;
+			if (ic1 <= 0) {
+				goto JMP_100;
+			}
 		}
 
 		// write (ddldb, 4);
@@ -693,9 +731,9 @@ static inline FloatNxN libDDFUN_besseljr(const FloatNxN& qq, const FloatNxN& rr)
 
 	/* continue */ JMP_100:
 
-		call_dd_muld (rr, static_cast<FloatBase>(0.5), t1);
-		call_dd_power (t1, qq, t2);
-		call_dd_mul (sum1, t2, t3);
+		t1 = mul_pwr2(rr, static_cast<FloatBase>(0.5));
+		call_dd_power(t1, qq, t2);
+		call_dd_mul(sum1, t2, t3);
 	} else {
 	//xa2 = xa ** 2
 	//t1 = mpreal (static_cast<FloatBase>(4.0) * fortran_dble (nua)**2, mpnw);
@@ -710,10 +748,10 @@ static inline FloatNxN libDDFUN_besseljr(const FloatNxN& qq, const FloatNxN& rr)
 		call_dd_abs (rr, rra);
 		call_dd_mul (rra, rra, rr2);
 		call_dd_mul (qq, qq, t2);
-		call_dd_muld (t2, static_cast<FloatBase>(4.0), t1);
+		t1 = mul_pwr2(t2, static_cast<FloatBase>(4.0));
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, tn1);
 		call_dd_sub (t1, tn1, t2);
-		call_dd_divd (t2, static_cast<FloatBase>(8.0), tn2);
+		tn2 = mul_pwr2(t2, static_cast<FloatBase>(0.125));
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, td1);
 		call_dd_eq (rra, td2);
 		call_dd_div (tn1, td1, sum1);
@@ -722,8 +760,8 @@ static inline FloatNxN libDDFUN_besseljr(const FloatNxN& qq, const FloatNxN& rr)
 		for (k = 1; k <= max_iter; k++) {
 	//  tn1 = -tn1 * (t1 - (static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k - static_cast<FloatBase>(1.0)) - static_cast<FloatBase>(1.0))**2) * (t1 - (static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k) - static_cast<FloatBase>(1.0))**2);
 
-			d1 = square(static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k - static_cast<FloatBase>(1.0)) - static_cast<FloatBase>(1.0));
-			d2 = square(static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k) - static_cast<FloatBase>(1.0));
+			d1 = LDF::square<FloatBase, FloatBase>(static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k - static_cast<FloatBase>(1.0)) - static_cast<FloatBase>(1.0));
+			d2 = LDF::square<FloatBase, FloatBase>(static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k) - static_cast<FloatBase>(1.0));
 			call_dd_dmc (d1, 0, t2);
 			call_dd_sub (t1, t2, t3);
 			call_dd_dmc (d2, 0, t2);
@@ -747,8 +785,8 @@ static inline FloatNxN libDDFUN_besseljr(const FloatNxN& qq, const FloatNxN& rr)
 
 	//  tn2 = -tn2 * (t1 - (static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k) - static_cast<FloatBase>(1.0))**2) * (t1 - (static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k + static_cast<FloatBase>(1.0)) - static_cast<FloatBase>(1.0))**2);
 
-			d1 = square(static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k) - static_cast<FloatBase>(1.0));
-			d2 = square(static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k + static_cast<FloatBase>(1.0)) - static_cast<FloatBase>(1.0));
+			d1 = LDF::square<FloatBase, FloatBase>(static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k) - static_cast<FloatBase>(1.0));
+			d2 = LDF::square<FloatBase, FloatBase>(static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k + static_cast<FloatBase>(1.0)) - static_cast<FloatBase>(1.0));
 			call_dd_dmc (d1, 0, t2);
 			call_dd_sub (t1, t2, t3);
 			call_dd_dmc (d2, 0, t2);
@@ -780,7 +818,9 @@ static inline FloatNxN libDDFUN_besseljr(const FloatNxN& qq, const FloatNxN& rr)
 			call_dd_mul (target_epsilon, sum2, tc3);
 			call_dd_abs (tc3, tc2);
 			call_dd_cpr (tc1, tc2, ic2);
-			if (ic1 <= 0 && ic2 <= 0) goto JMP_110;
+			if (ic1 <= 0 && ic2 <= 0) {
+				goto JMP_110;
+			}
 		}
 
 		// write (ddldb, 5);
@@ -797,17 +837,16 @@ static inline FloatNxN libDDFUN_besseljr(const FloatNxN& qq, const FloatNxN& rr)
 	//  call_mpmuld (mppicon, static_cast<FloatBase>(0.5) * nua, t1, mpnw1);
 
 		call_dd_mul (LDF::const_pi<FloatNxN>(), qq, t2);
-		call_dd_muld (t2, static_cast<FloatBase>(0.5), t1);
+		t1 = mul_pwr2(t2, static_cast<FloatBase>(0.5));
 		call_dd_sub (rra, t1, t2);
-		call_dd_muld (LDF::const_pi<FloatNxN>(), static_cast<FloatBase>(0.25), t1);
+		t1 = LDF ::const_pi4<FloatNxN>();
 		call_dd_sub (t2, t1, t3);
 		call_dd_cssnr (t3, t41, t42);
 		call_dd_mul (t41, sum1, t1);
 		call_dd_mul (t42, sum2, t2);
 		call_dd_sub (t1, t2, t5);
 		call_dd_mul (LDF::const_pi<FloatNxN>(), rra, t1);
-		call_dd_dmc (static_cast<FloatBase>(2.0), 0, t2);
-		call_dd_div (t2, t1, t3);
+		t3 = static_cast<FloatBase>(2.0) / t1;
 		call_dd_sqrt (t3, t1);
 		call_dd_mul (t1, t5, t3);
 	}
@@ -824,16 +863,19 @@ static inline FloatNxN libDDFUN_besseljr(const FloatNxN& qq, const FloatNxN& rr)
 
 	/* continue */ JMP_120:
 
-	call_dd_eq (t3, ss);
+	ss = t3;
 
 	return ss;
 }
 
+/**
+ * @brief dd_besselknr
+ */
 template<
 	typename FloatNxN, typename FloatBase,
 	int max_iter
 >
-static inline FloatNxN libDDFUN_besselknr(const int nu, const FloatNxN& rr) {
+static inline FloatNxN libDDFUN_cyl_bessel_k_integer(const int nu, const FloatNxN& rr) {
 
 	//  This evaluates the modified Bessel function BesselK (NU,RR).
 	//  NU is an integer. The algorithm is DLMF formula 10.31.1 for modest RR,
@@ -848,8 +890,6 @@ static inline FloatNxN libDDFUN_besselknr(const int nu, const FloatNxN& rr) {
 	int ic1, k, nua, n1;
 	FloatBase d1;
 	constexpr FloatBase dfrac = static_cast<FloatBase>(1.5);
-	constexpr FloatBase egam = static_cast<FloatBase>(0.5772156649015328606);
-	constexpr FloatBase pi = static_cast<FloatBase>(3.1415926535897932385);
 	FloatNxN f1, f2, f3, f4, f5, sum1, sum2, sum3, td, tn, t1, t2, t3, t4, rra, tc1, tc2, tc3, target_epsilon;
 
 	constexpr int dd_nwx = LDF::LDF_Type_Info<FloatNxN>::FloatBase_Count;
@@ -857,7 +897,7 @@ static inline FloatNxN libDDFUN_besselknr(const int nu, const FloatNxN& rr) {
 	constexpr FloatBase dd_dpw = static_cast<FloatBase>(std::numeric_limits<FloatBase>::digits) * static_cast<FloatBase>(0.30102999566398119521373889472449);
 
 	// End of declaration
-	int dd_nw, dd_nw1, dd_nw2;
+	int dd_nw, dd_nw1;
 
 
 
@@ -884,7 +924,7 @@ static inline FloatNxN libDDFUN_besselknr(const int nu, const FloatNxN& rr) {
 
 	if (d1 < dfrac * dd_nw1 * dd_dpw) {
 		call_dd_mul (rra, rra, t2);
-		call_dd_muld (t2, static_cast<FloatBase>(0.25), t1);
+		t1 = mul_pwr2(t2, static_cast<FloatBase>(0.25));
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, f1);
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, f2);
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, f3);
@@ -910,14 +950,14 @@ static inline FloatNxN libDDFUN_besselknr(const int nu, const FloatNxN& rr) {
 			call_dd_eq (t3, sum1);
 		}
 
-		call_dd_muld (sum1, static_cast<FloatBase>(0.5), t2);
-		call_dd_muld (rra, static_cast<FloatBase>(0.5), t3);
+		t2 = mul_pwr2(sum1, static_cast<FloatBase>(0.5));
+		t3 = mul_pwr2(rra, static_cast<FloatBase>(0.5));
 		call_dd_npwr (t3, nua, t4);
 		call_dd_div (t2, t4, sum1);
 
-		call_dd_muld (rra, static_cast<FloatBase>(0.5), t2);
+		t2 = mul_pwr2(rra, static_cast<FloatBase>(0.5));
 		call_dd_log (t2, t3);
-		d1 = pown((-static_cast<FloatBase>(1.0)), (nua + 1));
+		d1 = pown((static_cast<FloatBase>(-1.0)), (nua + 1));
 		call_dd_muld (t3, d1, t2);
 		call_dd_besselinr (nua, rra, t3);
 		call_dd_mul (t2, t3, sum2);
@@ -967,7 +1007,9 @@ static inline FloatNxN libDDFUN_besselknr(const int nu, const FloatNxN& rr) {
 			call_dd_mul (target_epsilon, sum3, tc3);
 			call_dd_abs (tc3, tc2);
 			call_dd_cpr (tc1, tc2, ic1);
-			if (ic1 <= 0) goto JMP_100;
+			if (ic1 <= 0) {
+				goto JMP_100;
+			}
 		}
 
 		// write (ddldb, 5);
@@ -978,14 +1020,14 @@ static inline FloatNxN libDDFUN_besselknr(const int nu, const FloatNxN& rr) {
 
 	/* continue */ JMP_100:
 
-		call_dd_muld (rra, static_cast<FloatBase>(0.5), t2);
-		call_dd_npwr (t2, nua, t3);
-		d1 = pown((-static_cast<FloatBase>(1.0)), nua) * static_cast<FloatBase>(0.5);
-		call_dd_muld (t3, d1, t4);
-		call_dd_mul (t4, sum3, t2);
-		call_dd_eq (t2, sum3);
-		call_dd_add (sum1, sum2, t2);
-		call_dd_add (t2, sum3, t3);
+		t2 = mul_pwr2(rra, static_cast<FloatBase>(0.5));
+		call_dd_npwr(t2, nua, t3);
+		d1 = pown((static_cast<FloatBase>(-1.0)), nua) * static_cast<FloatBase>(0.5);
+		call_dd_muld(t3, d1, t4);
+		call_dd_mul(t4, sum3, t2);
+		call_dd_eq(t2, sum3);
+		call_dd_add(sum1, sum2, t2);
+		call_dd_add(t2, sum3, t3);
 	} else {
 	// sum1 = mpreal (static_cast<FloatBase>(1.0), mpnw);
 	// t1 = mpreal (static_cast<FloatBase>(4.0) * fortran_dble (nua)**2, mpnw);
@@ -993,7 +1035,7 @@ static inline FloatNxN libDDFUN_besselknr(const int nu, const FloatNxN& rr) {
 	// t3 = mpreal (static_cast<FloatBase>(1.0), mpnw);
 
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, sum1);
-		d1 = static_cast<FloatBase>(4.0) * square(fortran_dble (nua));
+		d1 = static_cast<FloatBase>(4 * (nua * nua));
 		call_dd_dmc (d1, 0, t1);
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, tn);
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, td);
@@ -1010,7 +1052,7 @@ static inline FloatNxN libDDFUN_besselknr(const int nu, const FloatNxN& rr) {
 			call_dd_sub (t1, t3, t2);
 			call_dd_mul (tn, t2, t3);
 			call_dd_eq (t3, tn);
-			call_dd_muld (rra, static_cast<FloatBase>(8.0) * k, t2);
+			call_dd_muld (rra, static_cast<FloatBase>(8.0) * static_cast<FloatBase>(k), t2);
 			call_dd_mul (td, t2, t3);
 			call_dd_eq (t3, td);
 			call_dd_div (tn, td, t4);
@@ -1023,7 +1065,9 @@ static inline FloatNxN libDDFUN_besselknr(const int nu, const FloatNxN& rr) {
 			call_dd_mul (target_epsilon, sum1, tc3);
 			call_dd_abs (tc3, tc2);
 			call_dd_cpr (tc1, tc2, ic1);
-			if (ic1 <= 0) goto JMP_110;
+			if (ic1 <= 0) {
+				goto JMP_110;
+			}
 		}
 
 		// write (ddldb, 6);
@@ -1038,7 +1082,7 @@ static inline FloatNxN libDDFUN_besselknr(const int nu, const FloatNxN& rr) {
 	//besseli = t1 * sum1
 
 		call_dd_exp (rra, t1);
-		call_dd_muld (rra, static_cast<FloatBase>(2.0), t2);
+		t2 = mul_pwr2(rra, static_cast<FloatBase>(2.0));
 		call_dd_div (LDF::const_pi<FloatNxN>(), t2, t3);
 		call_dd_sqrt (t3, t4);
 		call_dd_div (t4, t1, t2);
@@ -1055,12 +1099,15 @@ static inline FloatNxN libDDFUN_besselknr(const int nu, const FloatNxN& rr) {
 	return ss;
 }
 
+/**
+ * @brief dd_besselkr
+ */
 template<
 	typename FloatNxN, typename FloatBase,
 	int max_iter
 >
-static inline FloatNxN libDDFUN_besselkr(const FloatNxN& qq, const FloatNxN& rr) {
-
+static inline FloatNxN libDDFUN_cyl_bessel_k(const FloatNxN& qq, const FloatNxN& rr) {
+	
 	//  This evaluates the Bessel function BesselK (QQ,RR) for QQ and RR
 	//  both MPR. This uses DLMF formula 10.27.4.
 
@@ -1070,20 +1117,7 @@ static inline FloatNxN libDDFUN_besselkr(const FloatNxN& qq, const FloatNxN& rr)
 	FloatNxN ss;
 	int i1, i2, n1;
 	FloatBase d1;
-	FloatNxN t1, t2, t3, t4;
-
-	constexpr int dd_nwx = LDF::LDF_Type_Info<FloatNxN>::FloatBase_Count;
-	constexpr int dd_nbt = std::numeric_limits<FloatBase>::digits;
-	constexpr FloatBase dd_dpw = static_cast<FloatBase>(std::numeric_limits<FloatBase>::digits) * static_cast<FloatBase>(0.30102999566398119521373889472449);
-
-	// End of declaration
-	int dd_nw, dd_nw1, dd_nw2;
-
-
-
-	dd_nw = dd_nwx;
-
-	dd_nw1 = std::min(dd_nw + 1, dd_nwx);
+	FloatNxN t1, t2, t4;
 
 	//  If QQ is integer, call_mpbesselknr; if qq < 0 and rr <= 0, then error.
 
@@ -1093,7 +1127,10 @@ static inline FloatNxN libDDFUN_besselkr(const FloatNxN& qq, const FloatNxN& rr)
 	if (call_dd_sgn (t2) == 0) {
 		call_dd_mdc (qq, d1, n1);
 		d1 = ldexp(d1, n1);
-		n1 = fortran_nint (d1);
+
+		n1 = static_cast<int>(fortran_nint (d1));
+		assert(d1 <= static_cast<FloatBase>(std::numeric_limits<int>::max()));
+		
 		call_dd_besselknr (n1, rr, t1);
 		goto JMP_120;
 	} else if (i1 < 0 && i2 <= 0) {
@@ -1104,27 +1141,23 @@ static inline FloatNxN libDDFUN_besselkr(const FloatNxN& qq, const FloatNxN& rr)
 		return std::numeric_limits<FloatNxN>::quiet_NaN();
 	}
 
-	call_dd_neg (qq, t1);
-	call_dd_besselir (t1, rr, t2);
-	call_dd_besselir (qq, rr, t3);
-	call_dd_sub (t2, t3, t4);
-	call_dd_mul (qq, LDF::const_pi<FloatNxN>(), t1);
-	call_dd_cssnr (t1, t2, t3);
-	call_dd_div (t4, t3, t2);
-	call_dd_mul (LDF::const_pi<FloatNxN>(), t2, t3);
-	call_dd_muld (t3, static_cast<FloatBase>(0.5), t1);
+	t4 = cyl_bessel_i(-qq, rr) - cyl_bessel_i( qq, rr);
+	t1 = LDF ::const_pi2<FloatNxN>() * (t4 / sin(qq * LDF::const_pi<FloatNxN>()));
 
 	/* continue */ JMP_120:
 
-	call_dd_eq (t1, ss);
+	ss = t1;
 	return ss;
 }
 
+/**
+ * @brief dd_besselynr
+ */
 template<
 	typename FloatNxN, typename FloatBase,
 	int max_iter
 >
-static inline FloatNxN libDDFUN_besselynr(const int nu, const FloatNxN& rr) {
+static inline FloatNxN libDDFUN_cyl_bessel_y_integer(const int nu, const FloatNxN& rr) {
 
 	//  This evaluates the modified Bessel function BesselY (NU,RR).
 	//  NU is an integer. The algorithm is DLMF formula 10.8.1 for modest RR,
@@ -1137,8 +1170,6 @@ static inline FloatNxN libDDFUN_besselynr(const int nu, const FloatNxN& rr) {
 	// integer, parameter:: max_iter = 1000000
 	FloatNxN ss;
 	constexpr FloatBase dfrac = static_cast<FloatBase>(1.5);
-	constexpr FloatBase egam = static_cast<FloatBase>(0.5772156649015328606);
-	constexpr FloatBase pi = static_cast<FloatBase>(3.1415926535897932385);
 	int ic1, ic2, k, nua, n1;
 	FloatBase d1, d2;
 	FloatNxN f1, f2, f3, f4, f5, rra, rr2, sum1, sum2, sum3, td1, td2, tn1, tn2, t1, t2, t3, t4, t41, t42, t5, tc1, tc2, tc3, target_epsilon;
@@ -1148,7 +1179,7 @@ static inline FloatNxN libDDFUN_besselynr(const int nu, const FloatNxN& rr) {
 	constexpr FloatBase dd_dpw = static_cast<FloatBase>(std::numeric_limits<FloatBase>::digits) * static_cast<FloatBase>(0.30102999566398119521373889472449);
 
 	// End of declaration
-	int dd_nw, dd_nw1, dd_nw2;
+	int dd_nw, dd_nw1;
 
 
 
@@ -1172,10 +1203,14 @@ static inline FloatNxN libDDFUN_besselynr(const int nu, const FloatNxN& rr) {
 	d1 = fabs(ldexp(d1, n1));
 
 	if (d1 < dfrac * dd_nw1 * dd_dpw) {
-		dd_nw1 = std::min(dd_nw + fortran_nint (d1 / (dfrac * dd_dpw)), 2 * dd_nw + 1, dd_nwx);
+		dd_nw1 = std::min(
+			std::min(
+				dd_nw + static_cast<int>(fortran_nint (d1 / (dfrac * dd_dpw))), 2 * dd_nw + 1
+			), dd_nwx
+		);
 		call_dd_abs (rr, rra);
 		call_dd_mul (rra, rra, t2);
-		call_dd_muld (t2, static_cast<FloatBase>(0.25), t1);
+		t1 = mul_pwr2(t2, static_cast<FloatBase>(0.25));
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, f1);
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, f2);
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, f3);
@@ -1201,14 +1236,14 @@ static inline FloatNxN libDDFUN_besselynr(const int nu, const FloatNxN& rr) {
 			call_dd_eq (t3, sum1);
 		}
 
-		call_dd_muld (rra, static_cast<FloatBase>(0.5), t3);
+		t3 = mul_pwr2(rra, static_cast<FloatBase>(0.5));
 		call_dd_npwr (t3, nua, t4);
 		call_dd_div (sum1, t4, t3);
 		call_dd_neg (t3, sum1);
 
-		call_dd_muld (rra, static_cast<FloatBase>(0.5), t2);
+		t2 = mul_pwr2(rra, static_cast<FloatBase>(0.5));
 		call_dd_log (t2, t3);
-		call_dd_muld (t3, static_cast<FloatBase>(2.0), t2);
+		t2 = mul_pwr2(t3, static_cast<FloatBase>(2.0));
 		call_dd_besseljnr (nua, rra, t3);
 		call_dd_mul (t2, t3, sum2);
 
@@ -1257,7 +1292,9 @@ static inline FloatNxN libDDFUN_besselynr(const int nu, const FloatNxN& rr) {
 			call_dd_mul (target_epsilon, sum3, tc3);
 			call_dd_abs (tc3, tc2);
 			call_dd_cpr (tc1, tc2, ic1);
-			if (ic1 <= 0) goto JMP_100;
+			if (ic1 <= 0) {
+				goto JMP_100;
+			}
 		}
 
 		// write (ddldb, 6);
@@ -1269,7 +1306,7 @@ static inline FloatNxN libDDFUN_besselynr(const int nu, const FloatNxN& rr) {
 
 	/* continue */ JMP_100:
 
-		call_dd_muld (rra, static_cast<FloatBase>(0.5), t2);
+		t2 = mul_pwr2(rra, static_cast<FloatBase>(0.5));
 		call_dd_npwr (t2, nua, t3);
 		call_dd_mul (t3, sum3, t2);
 		call_dd_neg (t2, sum3);
@@ -1292,11 +1329,11 @@ static inline FloatNxN libDDFUN_besselynr(const int nu, const FloatNxN& rr) {
 		dd_nw1 = std::min(dd_nw + 1, dd_nwx);
 		call_dd_abs (rr, rra);
 		call_dd_mul (rra, rra, rr2);
-		d1 = static_cast<FloatBase>(4.0) * square(fortran_dble (nua));
+		d1 = static_cast<FloatBase>(4 * (nua * nua));
 		call_dd_dmc (d1, 0, t1);
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, tn1);
 		call_dd_sub (t1, tn1, t2);
-		call_dd_divd (t2, static_cast<FloatBase>(8.0), tn2);
+		tn2 = mul_pwr2(t2, static_cast<FloatBase>(0.125));
 		call_dd_dmc (static_cast<FloatBase>(1.0), 0, td1);
 		call_dd_eq (rra, td2);
 		call_dd_div (tn1, td1, sum1);
@@ -1305,8 +1342,8 @@ static inline FloatNxN libDDFUN_besselynr(const int nu, const FloatNxN& rr) {
 		for (k = 1; k <= max_iter; k++) {
 	//  tn1 = -tn1 * (t1 - (static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k - static_cast<FloatBase>(1.0)) - static_cast<FloatBase>(1.0))**2) * (t1 - (static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k) - static_cast<FloatBase>(1.0))**2);
 
-			d1 = square(static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k - static_cast<FloatBase>(1.0)) - static_cast<FloatBase>(1.0));
-			d2 = square(static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k) - static_cast<FloatBase>(1.0));
+			d1 = LDF::square<FloatBase, FloatBase>(static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k - static_cast<FloatBase>(1.0)) - static_cast<FloatBase>(1.0));
+			d2 = LDF::square<FloatBase, FloatBase>(static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k) - static_cast<FloatBase>(1.0));
 			call_dd_dmc (d1, 0, t2);
 			call_dd_sub (t1, t2, t3);
 			call_dd_dmc (d2, 0, t2);
@@ -1330,8 +1367,8 @@ static inline FloatNxN libDDFUN_besselynr(const int nu, const FloatNxN& rr) {
 
 	//  tn2 = -tn2 * (t1 - (static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k) - static_cast<FloatBase>(1.0))**2) * (t1 - (static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k + static_cast<FloatBase>(1.0)) - static_cast<FloatBase>(1.0))**2);
 
-			d1 = square(static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k) - static_cast<FloatBase>(1.0));
-			d2 = square(static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k + static_cast<FloatBase>(1.0)) - static_cast<FloatBase>(1.0));
+			d1 = LDF::square<FloatBase, FloatBase>(static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k) - static_cast<FloatBase>(1.0));
+			d2 = LDF::square<FloatBase, FloatBase>(static_cast<FloatBase>(2.0) * (static_cast<FloatBase>(2.0) * k + static_cast<FloatBase>(1.0)) - static_cast<FloatBase>(1.0));
 			call_dd_dmc (d1, 0, t2);
 			call_dd_sub (t1, t2, t3);
 			call_dd_dmc (d2, 0, t2);
@@ -1363,7 +1400,9 @@ static inline FloatNxN libDDFUN_besselynr(const int nu, const FloatNxN& rr) {
 			call_dd_mul (target_epsilon, sum2, tc3);
 			call_dd_abs (tc3, tc2);
 			call_dd_cpr (tc1, tc2, ic2);
-			if (ic1 <= 0 && ic2 <= 0) goto JMP_110;
+			if (ic1 <= 0 && ic2 <= 0) {
+				goto JMP_110;
+			}
 		}
 
 		// write (ddldb, 5);
@@ -1377,17 +1416,16 @@ static inline FloatNxN libDDFUN_besselynr(const int nu, const FloatNxN& rr) {
 	//t1 = xa - static_cast<FloatBase>(0.5) * nua * pi - static_cast<FloatBase>(0.25) * pi
 	//besselj = sqrt (static_cast<FloatBase>(2.0) / (pi * xa)) * (cos (t1) * sum1 - sin (t1) * sum2);
 
-		call_dd_muld (LDF::const_pi<FloatNxN>(), static_cast<FloatBase>(0.5) * nua, t1);
+		call_dd_muld (LDF::const_pi2<FloatNxN>(), static_cast<FloatBase>(nua), t1);
 		call_dd_sub (rra, t1, t2);
-		call_dd_muld (LDF::const_pi<FloatNxN>(), static_cast<FloatBase>(0.25), t1);
+		t1 = LDF ::const_pi4<FloatNxN>();
 		call_dd_sub (t2, t1, t3);
 		call_dd_cssnr (t3, t41, t42);
 		call_dd_mul (t42, sum1, t1);
 		call_dd_mul (t41, sum2, t2);
 		call_dd_add (t1, t2, t5);
 		call_dd_mul (LDF::const_pi<FloatNxN>(), rra, t1);
-		call_dd_dmc (static_cast<FloatBase>(2.0), 0, t2);
-		call_dd_div (t2, t1, t3);
+		t3 = static_cast<FloatBase>(2.0) / t1;
 		call_dd_sqrt (t3, t1);
 		call_dd_mul (t1, t5, t3);
 	}
@@ -1396,21 +1434,23 @@ static inline FloatNxN libDDFUN_besselynr(const int nu, const FloatNxN& rr) {
 	//  if (nu < 0 && x > static_cast<FloatBase>(0.0) || nu > 0 && x < static_cast<FloatBase>(0.0)) bessely = - bessely
 
 		ic1 = call_dd_sgn (rr);
-		if (nu < 0 && ic1 > 0 || nu > 0 && ic1 < 0) {
-			call_dd_neg (t3, t4);
-			call_dd_eq (t4, t3);
+		if ((nu < 0 && ic1 > 0) || (nu > 0 && ic1 < 0)) {
+			t3 = -t3;
 		}
 	}
 
-	call_dd_eq (t3, ss);
+	ss = t3;
 	return ss;
 }
 
+/**
+ * @brief dd_besselyr
+ */
 template<
 	typename FloatNxN, typename FloatBase,
 	int max_iter
 >
-static inline FloatNxN libDDFUN_besselyr(const FloatNxN& qq, const FloatNxN& rr) {
+static inline FloatNxN libDDFUN_cyl_bessel_y(const FloatNxN& qq, const FloatNxN& rr) {
 
 	//  This evaluates the modified Bessel function BesselY (QQ,RR).
 	//  NU is an integer. The algorithm is DLMF formula 10.2.2.
@@ -1423,19 +1463,6 @@ static inline FloatNxN libDDFUN_besselyr(const FloatNxN& qq, const FloatNxN& rr)
 	FloatBase d1;
 	FloatNxN t1, t2, t3, t4;
 
-	constexpr int dd_nwx = LDF::LDF_Type_Info<FloatNxN>::FloatBase_Count;
-	constexpr int dd_nbt = std::numeric_limits<FloatBase>::digits;
-	constexpr FloatBase dd_dpw = static_cast<FloatBase>(std::numeric_limits<FloatBase>::digits) * static_cast<FloatBase>(0.30102999566398119521373889472449);
-
-	// End of declaration
-	int dd_nw, dd_nw1, dd_nw2;
-
-
-
-	dd_nw = dd_nwx;
-
-	dd_nw1 = std::min(dd_nw + 1, dd_nwx);
-
 	//  If QQ is integer, call_mpbesselynr; if qq < 0 and rr <= 0, then error.
 
 	call_dd_infr (qq, t1, t2);
@@ -1444,7 +1471,10 @@ static inline FloatNxN libDDFUN_besselyr(const FloatNxN& qq, const FloatNxN& rr)
 	if (call_dd_sgn (t2) == 0) {
 		call_dd_mdc (qq, d1, n1);
 		d1 = ldexp(d1, n1);
-		n1 = fortran_nint (d1);
+
+		n1 = static_cast<int>(fortran_nint (d1));
+		assert(d1 <= static_cast<FloatBase>(std::numeric_limits<int>::max()));
+
 		call_dd_besselynr (n1, rr, t1);
 		goto JMP_120;
 	} else if (i1 < 0 && i2 <= 0) {
@@ -1467,7 +1497,7 @@ static inline FloatNxN libDDFUN_besselyr(const FloatNxN& qq, const FloatNxN& rr)
 
 	/* continue */ JMP_120:
 
-	call_dd_eq (t1, ss);
+	ss = t1;
 	return ss;
 }
 
