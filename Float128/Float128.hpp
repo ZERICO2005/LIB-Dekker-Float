@@ -8,9 +8,13 @@
 #ifndef FLOAT128_HPP
 #define FLOAT128_HPP
 
-#include "Float128_quadmath_overloads.hpp"
+#include "../LDF/LDF_float_types.h"
 
-typedef __float128 fp128;
+#if defined(__GNUC__) && !defined(__clang__)
+	#include "Float128_quadmath_overloads.hpp"
+#endif
+
+typedef LDF_Float128 fp128;
 
 #ifndef PRIFloat128
 	#define PRIFloat128 "Q"

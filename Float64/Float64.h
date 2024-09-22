@@ -12,11 +12,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef double fp64;
+#include "../LDF/LDF_float_types.h"
 
-#ifndef PRIFloat64
-	#define PRIFloat64 "l"
-#endif
+typedef LDF_Float64 fp64;
 
 #ifdef __cplusplus
 extern "C" {

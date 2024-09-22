@@ -12,6 +12,8 @@
  * @brief defines the Float64x2 struct
  */
 
+#include "../LDF/LDF_float_types.h"
+
 #include "../Float32/Float32.h"
 #include "../Float64/Float64.h"
 

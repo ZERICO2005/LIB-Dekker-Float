@@ -14,17 +14,11 @@
 #include <math.h>
 #include <cmath>
 
-#if defined(__GNUC__) && !defined(__clang__)
-	typedef __float80 fp80;
-	#ifndef PRIFloat80
-		#define PRIFloat80 "L"
-	#endif
-#else
-	typedef long double fp80;
-	#ifndef PRIFloat80
-		#define PRIFloat80 "L"
-	#endif
+#include "../LDF/LDF_float_types.h"
 
+typedef LDF_Float80 fp80;
+
+#if !(defined(__GNUC__) && !defined(__clang__))
 	static_assert(
 		LDBL_MANT_DIG > DBL_MANT_DIG && LDBL_EPSILON < DBL_EPSILON ,
 		"Enable_Float80 failed. long double is equivilent to double."

@@ -27,7 +27,11 @@ inline int64_t getNanoTime(void) {
 	return std::chrono::duration_cast<nanoseconds>(now.time_since_epoch()).count();
 }
 
-#define MPFR_WANT_FLOAT128
+#include "../../LDF/LDF_float_types.h"
+
+#ifdef LDF_ENABLE_FLOAT128
+	#define MPFR_WANT_FLOAT128
+#endif
 
 #include "../../Float80x2/Float80x2_def.h"
 
@@ -46,10 +50,10 @@ inline int64_t getNanoTime(void) {
 
 // #include "Float64x4/Float64x4.hpp"
 
-#ifdef Enable_Float80
+#ifdef LDF_ENABLE_FLOAT80
 	#include "../../Float80x2/Float80x2.hpp"
 #endif
-#ifdef Enable_Float128
+#ifdef LDF_ENABLE_FLOAT128
 	#include "../../Float128x2/Float128x2.hpp"
 #endif
 
@@ -206,7 +210,7 @@ void get_fact(void) {
 void generate_inverf(int Precision, int Maxiumum_Terms, int Digits = 0);
 void test_inverf(void);
 
-#if 1
+#if 0
 #include <quadmath.h>
 void aaa(void) {
 	#if 1

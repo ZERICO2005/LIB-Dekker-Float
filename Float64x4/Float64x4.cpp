@@ -923,7 +923,7 @@ Float64x4 expint(const Float64x4& x) {
 // Float64x4 riemann_zeta
 //------------------------------------------------------------------------------
 
-#include "../FLoatNxN/FloatNxN_riemann_zeta.hpp"
+#include "../FloatNxN/FloatNxN_riemann_zeta.hpp"
 
 Float64x4 riemann_zeta(const Float64x4& x) {
 	return libDDFUN_riemann_zeta<
@@ -936,7 +936,7 @@ Float64x4 riemann_zeta(const Float64x4& x) {
 // Float64x4 Bessel Functions
 //------------------------------------------------------------------------------
 
-#include "../FLoatNxN/FloatNxN_cyl_bessel.hpp"
+#include "../FloatNxN/FloatNxN_cyl_bessel.hpp"
 
 /** @brief regular modified cylindrical Bessel function */
 Float64x4 cyl_bessel_i(const Float64x4& nu, const Float64x4& x) {

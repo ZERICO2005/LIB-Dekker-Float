@@ -23,6 +23,7 @@
 #include <limits>
 #include <cmath>
 #include <cfenv>
+#include <type_traits>
 
 //------------------------------------------------------------------------------
 // Float64x2 LDF Type Information
