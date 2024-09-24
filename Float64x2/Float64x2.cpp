@@ -24,7 +24,6 @@
 **	LIB-Dekker-Float/libDDFUN/DISCLAIMER_and_Limited-BSD-License.txt
 */
 
-#include <Float80x2/Float80x2.hpp>
 #include <limits>
 #include <math.h>
 #include <cmath>
@@ -44,6 +43,8 @@
 #include "Float64x2_string.h"
 
 #include "../Float64x4/Float64x4.hpp"
+
+#include "Float64x2_input_limits.hpp"
 
 //------------------------------------------------------------------------------
 // Float64x2 math.h functions
@@ -247,12 +248,12 @@ static inline Float64x2 taylor_expm1(const Float64x2& x, fp64& m) {
 }
 
 Float64x2 exp(const Float64x2& x) {
-	if (x.hi <= static_cast<fp64>(-709.79)) {
+	if (x.hi <= LDF::LDF_Input_Limits::exp_min<Float64x2, fp64>()) {
 		// Gives a better approximation near extreme values
 		return exp(x.hi);
 	}
 	/* ln(2^1023 * (1 + (1 - 2^-52)))) = ~709.782712893 */
-	if (x.hi >= static_cast<fp64>(709.79)) {
+	if (x.hi >= LDF::LDF_Input_Limits::exp_max<Float64x2, fp64>()) {
 		return std::numeric_limits<Float64x2>::infinity();
 	}
 	if (isequal_zero(x)) {
@@ -272,10 +273,10 @@ Float64x2 exp(const Float64x2& x) {
 }
 
 Float64x2 expm1(const Float64x2& x) {
-	if (x.hi <= static_cast<fp64>(-709.79)) {
+	if (x.hi <= LDF::LDF_Input_Limits::expm1_min<Float64x2, fp64>()) {
 		return static_cast<Float64x2>(-1.0);
 	}
-	if (x.hi >= static_cast<fp64>(709.79)) {
+	if (x.hi >= LDF::LDF_Input_Limits::expm1_max<Float64x2, fp64>()) {
 		return std::numeric_limits<Float64x2>::infinity();
 	}
 	if (isequal_zero(x)) {
@@ -330,9 +331,11 @@ Float64x2 log(const Float64x2& x) {
 
 	if (islessequal_zero(x)) {
 		if (isequal_zero(x)) {
+			std::feraiseexcept(FE_DIVBYZERO);
 			return -std::numeric_limits<Float64x2>::infinity();
 		}
-		// Float64x2::error("(Float64x2::log): Non-positive argument.");
+		// Float64x2::error("(Float64x2::log): Non-positive argument.")
+		std::feraiseexcept(FE_INVALID);
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
 
@@ -351,9 +354,11 @@ Float64x2 log1p(const Float64x2& x) {
 	}
 	if (x <= static_cast<fp64>(-1.0)) {
 		if (x == static_cast<fp64>(-1.0)) {
+			std::feraiseexcept(FE_DIVBYZERO);
 			return -std::numeric_limits<Float64x2>::infinity();
 		}
 		// Float64x2::error("(Float64x2::log): Non-positive argument.");
+		std::feraiseexcept(FE_INVALID);
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
 	Float64x4 guess = log1p(x.hi);
@@ -834,6 +839,7 @@ Float64x2 atan2(const Float64x2& y, const Float64x2& x) {
 		if (isequal_zero(y)) {
 			// /* Both x and y is zero. */
 			// Float64x2::error("(Float64x2::atan2): Both arguments zero.");
+			std::feraiseexcept(FE_INVALID);
 			return std::numeric_limits<Float64x2>::quiet_NaN();
 		}
 
@@ -879,6 +885,7 @@ Float64x2 asin(const Float64x2& x) {
 
 	if (abs_x > static_cast<fp64>(1.0)) {
 		// Float64x2::error("(Float64x2::asin): Argument out of domain.");
+		std::feraiseexcept(FE_INVALID);
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
 
@@ -901,6 +908,7 @@ Float64x2 acos(const Float64x2& x) {
 
 	if (abs_x > static_cast<fp64>(1.0)) {
 		// Float64x2::error("(Float64x2::acos): Argument out of domain.");
+		std::feraiseexcept(FE_INVALID);
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
 
@@ -1022,6 +1030,7 @@ Float64x2 acosh(const Float64x2& x) {
 			return static_cast<fp64>(0.0);
 		}
 		// Float64x2::error("(Float64x2::acosh): Argument out of domain.");
+		std::feraiseexcept(FE_INVALID);
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
 
@@ -1097,7 +1106,11 @@ Float64x2 pown(const Float64x2& x, int n) {
 		return static_cast<fp64>(1.0);
 	}
 	if (isequal_zero(x)) {
-		return static_cast<fp64>(0.0);
+		if (n > 0) {
+			return static_cast<fp64>(0.0);
+		}
+		std::feraiseexcept(FE_INVALID);
+		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
 
 	Float64x2 r = x;
@@ -1142,7 +1155,6 @@ Float64x2 pown(const Float64x2& x, int n) {
  */
 
 Float64x2 erf(const Float64x2& x) {
-
 	return libDDFUN_erf<
 		Float64x2, fp64,
 		256
@@ -1150,6 +1162,10 @@ Float64x2 erf(const Float64x2& x) {
 }
 
 Float64x2 erfc(const Float64x2& x) {
+	if (x > LDF::LDF_Input_Limits::erfc_max<Float64x2, fp64>()) {
+		std::feraiseexcept(FE_UNDERFLOW);
+		return static_cast<fp64>(0.0);
+	}
 	return libDDFUN_erfc<
 		Float64x2, fp64,
 		256

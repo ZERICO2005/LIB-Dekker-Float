@@ -18,6 +18,7 @@
 #include "Float64x2_def.h"
 
 #include "../LDF/LDF_arithmetic.hpp"
+#include "Float64x2_input_limits.hpp"
 
 #include <cstdint>
 #include <limits>
@@ -924,20 +925,21 @@ namespace std {
 
 /* Comparison */
 
+	/** @brief Compares to Float64x2 values without raising exceptions */
 	inline constexpr bool isgreater(const Float64x2& x, const Float64x2& y) {
-		return (x > y);
+		return isunordered(x, y) ? false : (x > y);
 	}
 	inline constexpr bool isgreaterequal(const Float64x2& x, const Float64x2& y) {
-		return (x >= y);
+		return isunordered(x, y) ? false : (x >= y);
 	}
 	inline constexpr bool isless(const Float64x2& x, const Float64x2& y) {
-		return (x < y);
+		return isunordered(x, y) ? false : (x < y);
 	}
 	inline constexpr bool islessequal(const Float64x2& x, const Float64x2& y) {
-		return (x <= y);
+		return isunordered(x, y) ? false : (x <= y);
 	}
 	inline constexpr bool islessgreater(const Float64x2& x, const Float64x2& y) {
-		return (x < y) || (x > y);
+		return isunordered(x, y) ? false : (x < y) || (x > y);
 	}
 
 /* fmax and fmin */
@@ -997,6 +999,10 @@ namespace std {
 		) ? -x : x;
 	}
 	inline Float64x2 sqrt(const Float64x2& x) {
+		if (isless_zero(x)) {
+			std::feraiseexcept(FE_INVALID);
+			return std::numeric_limits<Float64x2>::quiet_NaN();
+		}
 		if (isequal_zero(x)) {
 			return x;
 		}
