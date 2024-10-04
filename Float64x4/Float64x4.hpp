@@ -1244,11 +1244,6 @@ namespace std {
 			isequal_zero(y) ? static_cast<Float64x4>(1.0) : static_cast<Float64x4>(0.0)
 		) : exp(y * log(x));
 	}
-	inline Float64x4 pow(const Float64x4& x, const Float64x2& y) {
-		return isequal_zero(x) ? (
-			isequal_zero(y) ? static_cast<Float64x4>(1.0) : static_cast<Float64x4>(0.0)
-		) : exp(y * log(x));
-	}
 	inline Float64x4 pow(const Float64x4& x, const fp64 y) {
 		return isequal_zero(x) ? (
 			(y == static_cast<fp64>(0.0)) ? static_cast<Float64x4>(1.0) : static_cast<Float64x4>(0.0)
