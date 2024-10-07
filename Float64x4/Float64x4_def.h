@@ -80,12 +80,12 @@ typedef struct Float64x4 {
 	constexpr inline operator fp64() const {
 		return static_cast<fp64>(this->val[0]);
 	}
-	#ifdef __float80
+	#ifdef Enable_Float80
 	constexpr inline operator __float80() const {
 		return static_cast<__float80>(this->val[0]) + static_cast<__float80>(this->val[1]);
 	}
 	#endif
-	#ifdef __float128
+	#ifdef Enable_Float128
 	constexpr inline operator __float128() const {
 		// Adds from smallest to largest
 		return static_cast<__float128>(this->val[0]) + (

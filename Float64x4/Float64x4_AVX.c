@@ -67,18 +67,6 @@ __m256dx4 _mm256x4_pow_pdx4(const __m256dx4 x, const __m256dx4 y) {
 	return _mm256x4_load_pdx4(x_val);
 }
 
-__m256dx4 _mm256x4_pow_pdx4_pdx2(const __m256dx4 x, const __m256dx2 y) {
-	Float64x4 x_val[4];
-	Float64x2 y_val[4];
-	_mm256x4_store_pdx4(x_val, x);
-	_mm256x2_store_pdx2(y_val, y);
-	x_val[0] = Float64x4_pow_dx4_dx2(x_val[0], y_val[0]);
-	x_val[1] = Float64x4_pow_dx4_dx2(x_val[1], y_val[1]);
-	x_val[2] = Float64x4_pow_dx4_dx2(x_val[2], y_val[2]);
-	x_val[3] = Float64x4_pow_dx4_dx2(x_val[3], y_val[3]);
-	return _mm256x4_load_pdx4(x_val);
-}
-
 __m256dx4 _mm256x4_pow_pdx4_pd(const __m256dx4 x, const __m256d y) {
 	Float64x4 x_val[4];
 	fp64 y_val[4];

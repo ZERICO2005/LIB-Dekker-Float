@@ -9,7 +9,9 @@
 #ifndef FLOAT32_H
 #define FLOAT32_H
 
-typedef float fp32;
+#include "../LDF/LDF_float_types.h"
+
+typedef LDF_Float32 fp32;
 
 #ifndef PRIFloat32
 	#define PRIFloat32 ""

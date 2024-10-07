@@ -9,6 +9,16 @@
 #ifndef LDF_CONSTANTS_HPP
 #define LDF_CONSTANTS_HPP
 
+#include "../LDF_config.h"
+
+#ifndef LDF_TOGGLE_CXX20_NUMBERS
+	#if __cplusplus >= 201907L
+		#define LDF_TOGGLE_CXX20_NUMBERS 1
+	#else
+		#define LDF_TOGGLE_CXX20_NUMBERS 0
+	#endif
+#endif
+
 /**
  * When generating constants for float, double, and long double:
  * Print ceil(mantissa-bits * log10(2)) + 1 decimal digits

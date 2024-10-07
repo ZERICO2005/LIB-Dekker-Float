@@ -9,6 +9,8 @@
 #ifndef LDF_RESTRICT_H
 #define LDF_RESTRICT_H
 
+#include "../LDF_config.h"
+
 /**
  * @brief Defines the C99 `restrict` keyword for C++ compilers. You may
  * override LDF_restrict by defining it prior to including this file.

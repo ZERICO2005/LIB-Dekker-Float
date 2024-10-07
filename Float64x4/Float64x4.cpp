@@ -918,6 +918,90 @@ Float64x4 expint(const Float64x4& x) {
 	>(x);
 }
 
+
+//------------------------------------------------------------------------------
+// Float64x4 riemann_zeta
+//------------------------------------------------------------------------------
+
+#include "../FloatNxN/FloatNxN_riemann_zeta.hpp"
+
+Float64x4 riemann_zeta(const Float64x4& x) {
+	return libDDFUN_riemann_zeta<
+		Float64x4, fp64,
+		1000000
+	>(x);
+}
+
+//------------------------------------------------------------------------------
+// Float64x4 Bessel Functions
+//------------------------------------------------------------------------------
+
+#include "../FloatNxN/FloatNxN_cyl_bessel.hpp"
+
+/** @brief regular modified cylindrical Bessel function */
+Float64x4 cyl_bessel_i(const Float64x4& nu, const Float64x4& x) {
+	return libDDFUN_cyl_bessel_i<
+		Float64x4, fp64,
+		1000000
+	>(nu, x);
+}
+
+/** @brief cylindrical Bessel functions (of the first kind) */
+Float64x4 cyl_bessel_j(const Float64x4& nu, const Float64x4& x) {
+	return libDDFUN_cyl_bessel_j<
+		Float64x4, fp64,
+		1000000
+	>(nu, x);
+}
+
+/** @brief irregular modified cylindrical Bessel functions  */
+Float64x4 cyl_bessel_k(const Float64x4& nu, const Float64x4& x) {
+	return libDDFUN_cyl_bessel_k<
+		Float64x4, fp64,
+		1000000
+	>(nu, x);
+}
+
+/** @brief Bessel function of the second kind. */
+Float64x4 cyl_neumann(const Float64x4& nu, const Float64x4& x) {
+	return libDDFUN_cyl_bessel_y<
+		Float64x4, fp64,
+		1000000
+	>(nu, x);
+}
+
+/** @brief regular modified cylindrical Bessel function */
+Float64x4 cyl_bessel_i(int nu, const Float64x4& x) {
+	return libDDFUN_cyl_bessel_i_integer<
+		Float64x4, fp64,
+		1000000
+	>(nu, x);
+}
+
+/** @brief cylindrical Bessel functions (of the first kind) */
+Float64x4 cyl_bessel_j(int nu, const Float64x4& x) {
+	return libDDFUN_cyl_bessel_j_integer<
+		Float64x4, fp64,
+		1000000
+	>(nu, x);
+}
+
+/** @brief irregular modified cylindrical Bessel functions  */
+Float64x4 cyl_bessel_k(int nu, const Float64x4& x) {
+	return libDDFUN_cyl_bessel_k_integer<
+		Float64x4, fp64,
+		1000000
+	>(nu, x);
+}
+
+/** @brief Bessel function of the second kind. */
+Float64x4 cyl_neumann(int nu, const Float64x4& x) {
+	return libDDFUN_cyl_bessel_y_integer<
+		Float64x4, fp64,
+		1000000
+	>(nu, x);
+}
+
 //------------------------------------------------------------------------------
 // Float64x4 math.h wrapper functions
 //------------------------------------------------------------------------------

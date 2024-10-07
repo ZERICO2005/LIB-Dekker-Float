@@ -41,6 +41,9 @@
 
 #define fortran_mod(x, y) x % y
 
+#define fortran_aint(x) trunc(x)
+#define fortran_nint(x) round(x)
+
 //------------------------------------------------------------------------------
 // libDDFUN Macros
 //------------------------------------------------------------------------------
@@ -73,6 +76,16 @@
 #define call_dd_power(x, y, ret) ret = pow(x, y)
 #define call_dd_gammar(x, ret) ret = tgamma(x)
 
+#define call_dd_besselinr(x, y, ret) ret = cyl_bessel_i(static_cast<FloatNxN>(x), y)
+#define call_dd_besseljnr(x, y, ret) ret = cyl_bessel_j(static_cast<FloatNxN>(x), y)
+#define call_dd_besselknr(x, y, ret) ret = cyl_bessel_k(static_cast<FloatNxN>(x), y)
+#define call_dd_besselynr(x, y, ret) ret = cyl_neumann(static_cast<FloatNxN>(x), y)
+
+#define call_dd_besselir(x, y, ret) ret = cyl_bessel_i(x, y)
+#define call_dd_besseljr(x, y, ret) ret = cyl_bessel_j(x, y)
+#define call_dd_besselkr(x, y, ret) ret = cyl_bessel_k(x, y)
+#define call_dd_besselyr(x, y, ret) ret = cyl_neumann(x, y)
+
 //------------------------------------------------------------------------------
 // libQDFUN Macros
 //------------------------------------------------------------------------------
@@ -104,6 +117,18 @@
 #define call_dq_npwr(x, n, ret) ret = pown(x, n)
 #define call_dq_power(x, y, ret) ret = pow(x, y)
 #define call_dq_gammar(x, ret) ret = tgamma(x)
+
+/* Bessel Functions */
+
+#define call_dq_besselinr(x, y, ret) ret = cyl_bessel_i(static_cast<FloatNxN>(x), y)
+#define call_dq_besseljnr(x, y, ret) ret = cyl_bessel_j(static_cast<FloatNxN>(x), y)
+#define call_dq_besselknr(x, y, ret) ret = cyl_bessel_k(static_cast<FloatNxN>(x), y)
+#define call_dq_besselynr(x, y, ret) ret = cyl_neumann(static_cast<FloatNxN>(x), y)
+
+#define call_dq_besselir(x, y, ret) ret = cyl_bessel_i(x, y)
+#define call_dq_besseljr(x, y, ret) ret = cyl_bessel_j(x, y)
+#define call_dq_besselkr(x, y, ret) ret = cyl_bessel_k(x, y)
+#define call_dq_besselyr(x, y, ret) ret = cyl_neumann(x, y)
 
 //------------------------------------------------------------------------------
 // Fortran Routines

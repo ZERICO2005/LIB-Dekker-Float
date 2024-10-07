@@ -24,6 +24,7 @@
 #include <limits>
 #include <cmath>
 #include <cfenv>
+#include <type_traits>
 
 //------------------------------------------------------------------------------
 // Float64x2 LDF Type Information
@@ -1370,13 +1371,9 @@ namespace std {
 	/** @brief Calls `-incgamma(0.0, -x)` */
 	Float64x2 expint(const Float64x2& x);
 
-#if 0
 	Float64x2 riemann_zeta(const Float64x2& x);
-#endif
 
 /* Bessel Functions */
-
-#if 0
 
 	/** @brief regular modified cylindrical Bessel function */
 	Float64x2 cyl_bessel_i(const Float64x2& nu, const Float64x2& x);
@@ -1387,23 +1384,28 @@ namespace std {
 	/** @brief irregular modified cylindrical Bessel functions  */
 	Float64x2 cyl_bessel_k(const Float64x2& nu, const Float64x2& x);
 
-	/**
-	 * @brief Bessel function of the second kind.
-	 * Calls `(cyl_bessel_j(nu, x) * cos(pi * nu) - cyl_bessel_j(-nu, x)) / sin(pi * nu)`
-	 * @note naive implementation of cyl_neumann(nu, x)
-	 */
-	inline Float64x2 cyl_neumann(const Float64x2& nu, const Float64x2& x) {
-		Float64x2 sin_val, cos_val;
-		sincos(LDF::const_pi<Float64x2>() * nu, sin_val, cos_val);
-		return (cyl_bessel_j(nu, x) * cos_val - cyl_bessel_j(-nu, x)) / sin_val;
-	}
+	/** @brief Bessel function of the second kind. */
+	Float64x2 cyl_neumann(const Float64x2& nu, const Float64x2& x);
+
+
+	/** @brief regular modified cylindrical Bessel function */
+	Float64x2 cyl_bessel_i(int nu, const Float64x2& x);
+
+	/** @brief cylindrical Bessel functions (of the first kind) */
+	Float64x2 cyl_bessel_j(int nu, const Float64x2& x);
+
+	/** @brief irregular modified cylindrical Bessel functions  */
+	Float64x2 cyl_bessel_k(int nu, const Float64x2& x);
+
+	/** @brief Bessel function of the second kind. */
+	Float64x2 cyl_neumann(int nu, const Float64x2& x);
 
 	/**
 	 * @brief spherical Bessel function of the first kind of n and x.
 	 * Calls `sqrt(pi / 2x) * cyl_bessel_j(n + 0.5, x)`
 	 * @note naive implementation of sph_bessel(n, x)
 	 */
-	inline Float64x2 sph_bessel(const unsigned int n, const Float64x2& x) {
+	inline Float64x2 sph_bessel(unsigned int n, const Float64x2& x) {
 		return sqrt(LDF::const_pi2<Float64x2>() / x) * cyl_bessel_j(
 			static_cast<Float64x2>(n) + static_cast<fp64>(0.5), x
 		);
@@ -1414,13 +1416,11 @@ namespace std {
 	 * Calls `sqrt(pi / 2x) * cyl_neumann(n + 0.5, x)`
 	 * @note naive implementation of sph_neumann(n, x)
 	 */
-	inline Float64x2 sph_neumann(const unsigned int n, const Float64x2& x) {
+	inline Float64x2 sph_neumann(unsigned int n, const Float64x2& x) {
 		return sqrt(LDF::const_pi2<Float64x2>() / x) * cyl_neumann(
 			static_cast<Float64x2>(n) + static_cast<fp64>(0.5), x
 		);
 	}
-
-#endif
 
 /* Additional Functions */
 

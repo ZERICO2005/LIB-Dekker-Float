@@ -10,7 +10,6 @@
 #define FLOAT128X2_DEF_H
 
 #include "../Float128/Float128.hpp"
-#include "Float128x2.hpp"
 
 /**
  * @brief defines the Float128x2 struct
@@ -40,19 +39,29 @@ typedef struct Float128x2 {
 	constexpr inline Float128x2(const fp128 (&values)[2]) :
 		hi(values[0]), lo(values[1]) {}
 
-	constexpr inline Float128x2(const fp32 value) :
-		hi(static_cast<fp128>(value)), lo(0.0Q) {}
-
-	constexpr inline Float128x2(const fp64 value) :
-		hi(static_cast<fp128>(value)), lo(0.0Q) {}
-
-	#ifdef __float80
-	constexpr inline Float128x2(const __float80 value) :
-		hi(static_cast<fp128>(value)), lo(0.0Q) {}
+	#ifdef __GNUC__
+		// Silence warnings about non-standard floating point suffixes
+		#pragma GCC diagnostic push
+		#pragma GCC diagnostic ignored "-Wpedantic"
 	#endif
 
-	constexpr inline Float128x2(const fp128 value) :
-		hi(value), lo(0.0Q) {}
+		constexpr inline Float128x2(const fp32 value) :
+			hi(static_cast<fp128>(value)), lo(0.0Q) {}
+
+		constexpr inline Float128x2(const fp64 value) :
+			hi(static_cast<fp128>(value)), lo(0.0Q) {}
+
+		#ifdef __float80
+		constexpr inline Float128x2(const __float80 value) :
+			hi(static_cast<fp128>(value)), lo(0.0Q) {}
+		#endif
+
+		constexpr inline Float128x2(const fp128 value) :
+			hi(value), lo(0.0Q) {}
+
+	#ifdef __GNUC__
+		#pragma GCC diagnostic pop
+	#endif
 
 	template<typename fpX>
 	constexpr inline Float128x2(const fpX& value) :
