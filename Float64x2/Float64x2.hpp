@@ -826,7 +826,10 @@ namespace std {
 		#if __cplusplus >= 201103L
 		inline static constexpr Float64x2 lowest() { return -max(); }
 		#endif
-		inline static constexpr Float64x2 epsilon() { return {static_cast<fp64>(0x1.0p-104), static_cast<fp64>(0.0)}; } // DBL_EPSILON seems to be 0x1.0p-52
+		/** @brief `2^-105 == 2^-52 * 2^-53` */
+		inline static constexpr Float64x2 epsilon() {
+			return {static_cast<fp64>(0x1.0p-105), static_cast<fp64>(0.0)};
+		}
 		inline static constexpr Float64x2 round_error() { return {static_cast<fp64>(0.5), static_cast<fp64>(0.0)}; }
 		inline static constexpr Float64x2 infinity() {
 			return {
@@ -1167,16 +1170,70 @@ namespace std {
 		return exp(x * LDF::const_ln10<Float64x2>());
 	}
 
-	inline Float64x2 pow(const Float64x2& x, const Float64x2& y) {
-		return isequal_zero(x) ? (
-			isequal_zero(y) ? static_cast<Float64x2>(1.0) : static_cast<Float64x2>(0.0)
-		) : exp(y * log(x));
-	}
+/* Power functions */
+
+	/**
+	 * @brief `x ^ y` Calculates `x` raised to the power of `y` handling
+	 * special values such as `zero ^ zero`, `zero ^ -inf`, `+1.0 ^ NaN`, and etc.
+	 */
+	Float64x2 pow(const Float64x2& x, const Float64x2& y);
+
+	/**
+	 * @brief `x ^ y` Calculates `x` raised to the power of `y` handling
+	 * special values such as `zero ^ zero`, `zero ^ -inf`, `+1.0 ^ NaN`, and etc.
+	 */
 	inline Float64x2 pow(const Float64x2& x, const fp64 y) {
-		return isequal_zero(x) ? (
-			(y == static_cast<fp64>(0.0)) ? static_cast<Float64x2>(1.0) : static_cast<Float64x2>(0.0)
-		) : exp(y * log(x));
+		return pow(x, static_cast<Float64x2>(y));
 	}
+
+	/**
+	 * @brief `x ^ y` Calculates `x` raised to the power of `y` handling
+	 * special values such as `zero ^ zero`, `zero ^ -inf`, `+1.0 ^ NaN`, and etc.
+	 */
+	inline Float64x2 pow(const fp64 x, const Float64x2& y) {
+		return pow(static_cast<Float64x2>(x), y);
+	}
+
+	/**
+	 * @brief `x ^ y` The ieee-754 2008 `powr` function is the same as `pow`
+	 * except it does not handle special values such as `zero ^ zero`,
+	 * `zero ^ -inf`, `+1.0 ^ NaN`, and etc.
+	 */
+	inline Float64x2 powr(const Float64x2& x, const Float64x2& y) {
+		return exp(y * log(x));
+	}
+
+	/**
+	 * @brief `x ^ y` The ieee-754 2008 `powr` function is the same as `pow`
+	 * except it does not handle special values such as `zero ^ zero`,
+	 * `zero ^ -inf`, `+1.0 ^ NaN`, and etc.
+	 */
+	inline Float64x2 powr(const Float64x2& x, const fp64 y) {
+		return exp(y * log(x));
+	}
+	
+	/**
+	 * @brief `x ^ y` The ieee-754 2008 `powr` function is the same as `pow`
+	 * except it does not handle special values such as `zero ^ zero`,
+	 * `zero ^ -inf`, `+1.0 ^ NaN`, and etc.
+	 */
+	inline Float64x2 powr(const fp64 x, const Float64x2& y) {
+		return exp(y * log(static_cast<Float64x2>(x)));
+	}
+	
+	/**
+	 * @brief `x ^ n` The ieee-754 2008 `pown` function raises `x` to the power
+	 * of an integer in `O(log(n))` time
+	 */
+	Float64x2 pown(const Float64x2& x, int n);
+
+	/**
+	 * @brief `x ^ 1/n` The ieee-754 2008 `rootn` function calculates 
+	 * the integer root of `x`
+	 * @note Naive implementation of `rootn(x, n)`, calculates
+	 * `pow(x, 1 / n)` when `|n| > 3` or `pow(x, +inf)` when `n == 0`
+	 */
+	Float64x2 rootn(const Float64x2& x, int n);
 	
 /* Rounding */
 

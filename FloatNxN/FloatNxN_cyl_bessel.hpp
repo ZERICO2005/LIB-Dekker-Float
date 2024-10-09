@@ -957,7 +957,7 @@ static inline FloatNxN libDDFUN_cyl_bessel_k_integer(const int nu, const FloatNx
 
 		t2 = mul_pwr2(rra, static_cast<FloatBase>(0.5));
 		call_dd_log (t2, t3);
-		d1 = pown((static_cast<FloatBase>(-1.0)), (nua + 1));
+		d1 = static_cast<FloatBase>(pown((static_cast<FloatNxN>(-1.0)), (nua + 1)));
 		call_dd_muld (t3, d1, t2);
 		call_dd_besselinr (nua, rra, t3);
 		call_dd_mul (t2, t3, sum2);
@@ -1022,7 +1022,7 @@ static inline FloatNxN libDDFUN_cyl_bessel_k_integer(const int nu, const FloatNx
 
 		t2 = mul_pwr2(rra, static_cast<FloatBase>(0.5));
 		call_dd_npwr(t2, nua, t3);
-		d1 = pown((static_cast<FloatBase>(-1.0)), nua) * static_cast<FloatBase>(0.5);
+		d1 = static_cast<FloatBase>(pown((static_cast<FloatNxN>(-1.0)), (nua + 1))) * static_cast<FloatBase>(0.5);
 		call_dd_muld(t3, d1, t4);
 		call_dd_mul(t4, sum3, t2);
 		call_dd_eq(t2, sum3);

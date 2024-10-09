@@ -185,6 +185,10 @@ static constexpr Float64x2 inv_fact_odd[] = {
 };
 static constexpr size_t n_inv_fact_odd = sizeof(inv_fact_odd) / sizeof(inv_fact_odd[0]);
 
+//------------------------------------------------------------------------------
+// Float64x2 Logarithms and Exponents
+//------------------------------------------------------------------------------
+
 /** 
  * @brief Exponential.  Computes exp(x) in double-double precision.
  *
@@ -366,6 +370,189 @@ Float64x2 log1p(const Float64x2& x) {
 	return guess.val[0] + static_cast<Float64x2>(x_plus1 * exp(-guess) - static_cast<fp64>(1.0));
 }
 
+//------------------------------------------------------------------------------
+// Float64x2 Power functions
+//------------------------------------------------------------------------------
+
+/**
+ * @remarks Based off of https://en.cppreference.com/w/cpp/numeric/math/pow
+ * Retrived 2024, October 9th
+ */
+Float64x2 pow(const Float64x2& base, const Float64x2& expon) {
+	const bool expon_is_integer = (isfinite(expon) && expon == trunc(expon));
+	const bool expon_is_even = (
+		expon_is_integer &&
+		trunc(mul_pwr2(expon, static_cast<fp64>(0.5))) == mul_pwr2(expon, static_cast<fp64>(0.5))
+	);
+
+	/* basic tests */
+
+	// pow(+1.0, expon) or pow(base, 0.0)
+	if (base == static_cast<fp64>(1.0) || isequal_zero(expon)) {
+		return static_cast<Float64x2>(1.0);
+	}
+	// NaN arguments
+	if (isunordered(base, expon)) {
+		return std::numeric_limits<Float64x2>::quiet_NaN();
+	}
+	// pow(negative, non_integer)
+	if (isfinite(base) && signbit(base) && !expon_is_integer) {
+		std::feraiseexcept(FE_INVALID);
+		return std::numeric_limits<Float64x2>::quiet_NaN();
+	}
+
+	/* expon is infinity */
+
+	// pow(base, inf)
+	if (isinf(expon)) {
+		// pow(-1.0, inf)
+		if (base == static_cast<fp64>(-1.0)) {
+			return static_cast<Float64x2>(1.0);
+		}
+		// pow(base, -inf)
+		if (signbit(expon)) {
+			if (isequal_zero(base)) {
+				std::feraiseexcept(FE_DIVBYZERO);
+				return std::numeric_limits<Float64x2>::infinity();
+			}
+			if (fabs(base) < static_cast<fp64>(1.0)) {
+				return std::numeric_limits<Float64x2>::infinity();
+			}
+			return static_cast<Float64x2>(0.0);
+		}
+		// pow(base, +inf)
+		if (fabs(base) < static_cast<fp64>(1.0)) {
+			return static_cast<Float64x2>(0.0);
+		}
+		return std::numeric_limits<Float64x2>::infinity();
+	}
+
+	/* base is infinity */
+
+	// pow(inf, expon)
+	if (isinf(base)) {
+		// pow(-inf, expon)
+		if (signbit(base)) {
+			// pow(-inf, integer)
+			if (expon_is_integer) {
+				// pow(-inf, negative_integer)
+				if (signbit(expon)) {
+					return expon_is_even ?
+						static_cast<Float64x2>(0.0) :
+						static_cast<Float64x2>(-0.0);
+				}
+				// pow(-inf, positive_integer)
+				return expon_is_even ?
+					std::numeric_limits<Float64x2>::infinity() :
+					-std::numeric_limits<Float64x2>::infinity();
+			}
+			// pow(-inf, non_integer)
+			return signbit(expon) ?
+				static_cast<Float64x2>(0.0) :
+				std::numeric_limits<Float64x2>::infinity();
+		}
+		// pow(+inf, positive)
+		return signbit(expon) ?
+			static_cast<Float64x2>(0.0) :
+			std::numeric_limits<Float64x2>::infinity();
+	}
+
+	/* base is zero */
+
+	// pow(0.0, expon)
+	if (isequal_zero(base)) {
+		if (signbit(expon)) {
+			// pow(-0.0, negative_odd_integer)
+			if (signbit(base) && !expon_is_even) {
+				std::feraiseexcept(FE_DIVBYZERO);
+				return -std::numeric_limits<Float64x2>::infinity();
+			}
+			// pow(0.0, negative)
+			std::feraiseexcept(FE_DIVBYZERO);
+			return std::numeric_limits<Float64x2>::infinity();
+		}
+
+		// pow(-0.0, positive_odd_integer)
+		if (signbit(base) && !expon_is_even) {
+			return static_cast<Float64x2>(-0.0);
+		}
+		// pow(0.0, positive)
+		return static_cast<Float64x2>(0.0);
+	}
+
+	/* calculate powr(base, expon) */
+
+	return powr(base, expon);
+}
+
+
+/** 
+ * @author Taken from libQD dd_real.cpp which can be found under a
+ * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
+ */
+Float64x2 pown(const Float64x2& x, int n) {
+	if (n == 0) {
+		return static_cast<fp64>(1.0);
+	}
+	if (isequal_zero(x)) {
+		if (n > 0) {
+			return static_cast<fp64>(0.0);
+		}
+		std::feraiseexcept(FE_INVALID);
+		return std::numeric_limits<Float64x2>::quiet_NaN();
+	}
+
+	Float64x2 r = x;
+	Float64x2 s = static_cast<fp64>(1.0);
+	// casts to unsigned int since abs(INT_MIN) < 0
+	unsigned int N = static_cast<unsigned int>((n < 0) ? -n : n);
+
+	if (N > 1) {
+		/* Use binary exponentiation */
+		while (N > 0) {
+			if (N % 2 == 1) {
+				s *= r;
+			}
+			N /= 2;
+			if (N > 0) {
+				r = square(r);
+			}
+		}
+	} else {
+		s = r;
+	}
+
+	/* Compute the reciprocal if n is negative. */
+	if (n < 0) {
+		return recip(s);
+	}
+	return s;
+}
+
+Float64x2 rootn(const Float64x2& x, int n) {
+	switch (n) {
+		case -3:
+			return recip(cbrt(x));
+		case -2:
+			return recip(sqrt(x));
+		case -1:
+			return recip(x);
+		case 1:
+			return x;
+		case 2:
+			return sqrt(x);
+		case 3:
+			return cbrt(x);
+		case 0: // reciprocal of +0.0 is +inf
+			return pow(x, std::numeric_limits<Float64x2>::infinity());
+		default:
+			return pow(x, recip(static_cast<Float64x2>(n)));
+	}
+}
+
+//------------------------------------------------------------------------------
+// Float64x2 Trigonometry
+//------------------------------------------------------------------------------
 
 /* Table of sin(k * pi/16) and cos(k * pi/16). */
 static constexpr Float64x2 sin_table [4] = {
@@ -1094,50 +1281,6 @@ Float64x2 fma(const Float64x2& x, const Float64x2& y, const Float64x2& z) {
 	Float64x4 ret = LDF::mul<Float64x4>(x, y);
 	ret += z;
 	return static_cast<Float64x2>(ret);
-}
-
-//------------------------------------------------------------------------------
-// Float64x2 pown
-//------------------------------------------------------------------------------
-
-Float64x2 pown(const Float64x2& x, int n) {
-	
-	if (n == 0) {
-		return static_cast<fp64>(1.0);
-	}
-	if (isequal_zero(x)) {
-		if (n > 0) {
-			return static_cast<fp64>(0.0);
-		}
-		std::feraiseexcept(FE_INVALID);
-		return std::numeric_limits<Float64x2>::quiet_NaN();
-	}
-
-	Float64x2 r = x;
-	Float64x2 s = static_cast<fp64>(1.0);
-	// casts to unsigned int since abs(INT_MIN) < 0
-	unsigned int N = static_cast<unsigned int>((n < 0) ? -n : n);
-
-	if (N > 1) {
-		/* Use binary exponentiation */
-		while (N > 0) {
-			if (N % 2 == 1) {
-				s *= r;
-			}
-			N /= 2;
-			if (N > 0) {
-				r = square(r);
-			}
-		}
-	} else {
-		s = r;
-	}
-
-	/* Compute the reciprocal if n is negative. */
-	if (n < 0) {
-		return recip(s);
-	}
-	return s;
 }
 
 //------------------------------------------------------------------------------

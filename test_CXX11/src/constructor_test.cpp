@@ -236,7 +236,11 @@ void constructor_test(void) {
 	// u128  = (__int128_t )value;
 	// i128  = (__int128_t )value;
 	printf("F\n");
+	// TEMP //
+	#if 0
+	// TEMP //
 	f32x2 = static_cast<FP32x2>(value);
+	#endif
 	printf("F\n");
 	// f64x2 = (Float64x2  )value;
 	// f80x2 = (Float80x2  )value;
