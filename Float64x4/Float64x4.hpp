@@ -91,44 +91,44 @@ inline constexpr bool operator!=(const Float64x4& x, const Float64x4& y) {
 	);
 }
 inline constexpr bool operator<(const Float64x4& x, const Float64x4& y) {
-	return
-		(x.val[0] == y.val[0]) ? (
-			(x.val[1] == y.val[1]) ? (
-				(x.val[2] == y.val[2]) ? (
+	return 
+		(x.val[0] < y.val[0] || (x.val[0] == y.val[0] &&
+			(x.val[1] < y.val[1] || (x.val[1] == y.val[1] &&
+				(x.val[2] < y.val[2] || (x.val[2] == y.val[2] &&
 					x.val[3] < y.val[3]
-				) : (x.val[2] < y.val[2])
-			) : (x.val[1] < y.val[1])
-		) : (x.val[0] < y.val[0]);
+				))
+			))
+		));
 }
 inline constexpr bool operator<=(const Float64x4& x, const Float64x4& y) {
-	return
-		(x.val[0] == y.val[0]) ? (
-			(x.val[1] == y.val[1]) ? (
-				(x.val[2] == y.val[2]) ? (
+	return 
+		(x.val[0] < y.val[0] || (x.val[0] == y.val[0] &&
+			(x.val[1] < y.val[1] || (x.val[1] == y.val[1] &&
+				(x.val[2] < y.val[2] || (x.val[2] == y.val[2] &&
 					x.val[3] <= y.val[3]
-				) : (x.val[2] < y.val[2])
-			) : (x.val[1] < y.val[1])
-		) : (x.val[0] < y.val[0]);
+				))
+			))
+		));
 }
 inline constexpr bool operator>(const Float64x4& x, const Float64x4& y) {
-	return
-		(x.val[0] == y.val[0]) ? (
-			(x.val[1] == y.val[1]) ? (
-				(x.val[2] == y.val[2]) ? (
+	return 
+		(x.val[0] > y.val[0] || (x.val[0] == y.val[0] &&
+			(x.val[1] > y.val[1] || (x.val[1] == y.val[1] &&
+				(x.val[2] > y.val[2] || (x.val[2] == y.val[2] &&
 					x.val[3] > y.val[3]
-				) : (x.val[2] > y.val[2])
-			) : (x.val[1] > y.val[1])
-		) : (x.val[0] > y.val[0]);
+				))
+			))
+		));
 }
 inline constexpr bool operator>=(const Float64x4& x, const Float64x4& y) {
-	return
-		(x.val[0] == y.val[0]) ? (
-			(x.val[1] == y.val[1]) ? (
-				(x.val[2] == y.val[2]) ? (
+	return 
+		(x.val[0] > y.val[0] || (x.val[0] == y.val[0] &&
+			(x.val[1] > y.val[1] || (x.val[1] == y.val[1] &&
+				(x.val[2] > y.val[2] || (x.val[2] == y.val[2] &&
 					x.val[3] >= y.val[3]
-				) : (x.val[2] > y.val[2])
-			) : (x.val[1] > y.val[1])
-		) : (x.val[0] > y.val[0]);
+				))
+			))
+		));
 }
 
 //------------------------------------------------------------------------------
@@ -1104,8 +1104,10 @@ namespace std {
 	/** @brief Returns true if x is normal */
 	inline constexpr bool isnormal(const Float64x4& x) {
 		return (
-			std::isnormal(x.val[0]) && std::isnormal(x.val[1]) &&
-			std::isnormal(x.val[2]) && std::isnormal(x.val[3])
+			std::isnormal(x.val[0]) &&
+			(std::isnormal(x.val[1]) || x.val[1] == static_cast<fp64>(0.0)) &&
+			(std::isnormal(x.val[2]) || x.val[2] == static_cast<fp64>(0.0)) &&
+			(std::isnormal(x.val[3]) || x.val[3] == static_cast<fp64>(0.0))
 		);
 	}
 
@@ -1123,6 +1125,55 @@ namespace std {
 			FP_SUBNORMAL;
 	}
 
+/* Comparison */
+
+	inline constexpr bool isless(const Float64x4& x, const Float64x4& y) {
+		return 
+			(std::isless(x.val[0], y.val[0]) || (x.val[0] == y.val[0] &&
+				(std::isless(x.val[1], y.val[1]) || (x.val[1] == y.val[1] &&
+					(std::isless(x.val[2], y.val[2]) || (x.val[2] == y.val[2] &&
+						std::isless(x.val[3], y.val[3])
+					))
+				))
+			));
+	}
+	inline constexpr bool islessequal(const Float64x4& x, const Float64x4& y) {
+		return 
+			(std::isless(x.val[0], y.val[0]) || (x.val[0] == y.val[0] &&
+				(std::isless(x.val[1], y.val[1]) || (x.val[1] == y.val[1] &&
+					(std::isless(x.val[2], y.val[2]) || (x.val[2] == y.val[2] &&
+						std::islessequal(x.val[3], y.val[3])
+					))
+				))
+			));
+	}
+	inline constexpr bool isgreater(const Float64x4& x, const Float64x4& y) {
+		return 
+			(std::isgreater(x.val[0], y.val[0]) || (x.val[0] == y.val[0] &&
+				(std::isgreater(x.val[1], y.val[1]) || (x.val[1] == y.val[1] &&
+					(std::isgreater(x.val[2], y.val[2]) || (x.val[2] == y.val[2] &&
+						std::isgreater(x.val[3], y.val[3])
+					))
+				))
+			));
+	}
+	inline constexpr bool isgreaterequal(const Float64x4& x, const Float64x4& y) {
+		return 
+			(std::isgreater(x.val[0], y.val[0]) || (x.val[0] == y.val[0] &&
+				(std::isgreater(x.val[1], y.val[1]) || (x.val[1] == y.val[1] &&
+					(std::isgreater(x.val[2], y.val[2]) || (x.val[2] == y.val[2] &&
+						std::isgreaterequal(x.val[3], y.val[3])
+					))
+				))
+			));
+	}
+	inline constexpr bool islessgreater(const Float64x4& x, const Float64x4& y) {
+		return (
+			std::islessgreater(x.val[0], y.val[0]) || std::islessgreater(x.val[1], y.val[1]) ||
+			std::islessgreater(x.val[2], y.val[2]) || std::islessgreater(x.val[3], y.val[3])
+		);
+	}
+
 /* fmax and fmin */
 
 	/**
@@ -1131,8 +1182,8 @@ namespace std {
 	 */
 	inline constexpr Float64x4 fmax(const Float64x4& x, const Float64x4& y) {
 		return
-			(x < y) ? y :
-			(y < x) ? x :
+			isless(x, y) ? y :
+			isless(y, x) ? x :
 			isnan(x) ? y :
 			isnan(y) ? x :
 			signbit(x) ? y : x;
@@ -1144,25 +1195,25 @@ namespace std {
 	 */
 	inline constexpr Float64x4 fmin(const Float64x4& x, const Float64x4& y) {
 		return
-			(x > y) ? y :
-			(y > x) ? x :
+			isgreater(x, y) ? y :
+			isgreater(y, x) ? x :
 			isnan(x) ? y :
 			isnan(y) ? x :
 			signbit(x) ? x : y;
 	}
-
-/* Arithmetic */
-
 	inline constexpr Float64x4 fmax(const Float64x4& x, const Float64x4& y, const Float64x4& z) {
 		return fmax(fmax(x, y), z);
 	}
 	inline constexpr Float64x4 fmin(const Float64x4& x, const Float64x4& y, const Float64x4& z) {
 		return fmin(fmin(x, y), z);
 	}
+
+/* Arithmetic */
+
 	inline constexpr Float64x4 fabs(const Float64x4& x) {
-		return (isless_zero(x)) ? -x : x;
+		return signbit(x) ? -x : x;
 	}
-	inline constexpr Float64x4 fdim(const Float64x4& x, const Float64x4& y) {
+	inline Float64x4 fdim(const Float64x4& x, const Float64x4& y) {
 		return (x > y) ? (x - y) : static_cast<Float64x4>(0.0);
 	}
 
@@ -1175,7 +1226,7 @@ namespace std {
 	Float64x4 fma(const Float64x4& x, const Float64x4& y, const Float64x4& z);
 
 	inline constexpr Float64x4 copysign(const Float64x4& x, const Float64x4& y) {
-		return (isless_zero(x)) != (isless_zero(y)) ? -x : x;
+		return (signbit(x) != signbit(y)) ? -x : x;
 	}
 	inline Float64x4 sqrt(const Float64x4& x) {
 		return Float64x4_sqrt(x);
@@ -1248,24 +1299,6 @@ namespace std {
 		return isequal_zero(x) ? (
 			(y == static_cast<fp64>(0.0)) ? static_cast<Float64x4>(1.0) : static_cast<Float64x4>(0.0)
 		) : exp(y * log(x));
-	}
-
-/* Comparison */
-
-	inline constexpr bool isgreater(const Float64x4& x, const Float64x4& y) {
-		return (x > y);
-	}
-	inline constexpr bool isgreaterequal(const Float64x4& x, const Float64x4& y) {
-		return (x >= y);
-	}
-	inline constexpr bool isless(const Float64x4& x, const Float64x4& y) {
-		return (x < y);
-	}
-	inline constexpr bool islessequal(const Float64x4& x, const Float64x4& y) {
-		return (x <= y);
-	}
-	inline constexpr bool islessgreater(const Float64x4& x, const Float64x4& y) {
-		return (x < y) || (x > y);
 	}
 
 /* Rounding */
