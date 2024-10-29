@@ -16,7 +16,6 @@
  * preprocessor isn't aware of function definitions
  */
 
-#include <emmintrin.h>
 #if (!defined(__AVX__) && defined(__GNUC__))
 	#error "__AVX__ is not enabled in your compiler. Try -mavx"
 #endif
@@ -190,7 +189,11 @@ static inline __m256d _mm256_extract_mantissa_pd(const __m256d x) {
 
 /** @brief Returns true if x is negative */
 static inline __m256d _mm256_signbit_pd(const __m256d x) {
-	return _mm256_cmp_pd(x, _mm256_setzero_pd(), _CMP_LT_OQ);
+	return _mm256_blendv_pd(
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xFFFFFFFFFFFFFFFF)),
+		_mm256_setzero_pd(),
+		x
+	);
 }
 
 /** @brief Returns true if x is finite */
@@ -289,14 +292,20 @@ static inline __m256d _mm256_fabs_pd(__m256d x) {
 #endif
 
 static inline __m256d _mm256_copysign_pd(__m256d x, __m256d y) {
-	__m256d negate_mask = _mm256_xor_pd(
-		_mm256_cmp_pd(x, _mm256_setzero_pd(), _CMP_LT_OQ),
-		_mm256_cmp_pd(y, _mm256_setzero_pd(), _CMP_LT_OQ)
+	ret.val = _mm256_xor_pd(x.val,
+		_mm256_and_pd(
+			_mm256_xor_pd(x.val, y.val),
+			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FFFFFFFFFFFFFFF))
+		), y.val
 	);
-	__m256d negate_mul = _mm256_blendv_pd(
-		_mm256_set1_pd(1.0), _mm256_set1_pd(-1.0), negate_mask
-	);
-	return _mm256_mul_pd(x, negate_mul);
+}
+
+static inline __m256d _mm256_fdim_pd(__m256d x, __m256d y) {
+	__m256d ret;
+	ret = _mm256_sub_pd(x, y);
+	__m256d cmp_gt = _mm256_cmp_pd(x, y, _CMP_GT_OS);
+	ret = _mm256_blendv_pd(ret, _mm256_setzero_pd(), cmp_gt);
+	return ret;
 }
 
 #ifndef _mm256_fmax_pd

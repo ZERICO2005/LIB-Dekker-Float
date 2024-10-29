@@ -263,8 +263,8 @@ int main(void) {
 	// generate_inverf(8192, 300);
 	// test_inverf();
 
-	// precision_test<Float80x2>();
-	graph_precision<Float64x2>(24000, 120.0L, 0.0L);
+	precision_test<float>();
+	// graph_precision<float>(24000, 120.0L, 0.0L);
 
 	// run_generate_constants();
 	
