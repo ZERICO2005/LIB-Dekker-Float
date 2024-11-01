@@ -16,11 +16,14 @@
  * preprocessor isn't aware of function definitions
  */
 
+#include <smmintrin.h>
 #if (!defined(__AVX__) && defined(__GNUC__))
 	#error "__AVX__ is not enabled in your compiler. Try -mavx"
 #endif
 
+#include <stdbool.h>
 #include <stdint.h>
+#include <math.h>
 #include <immintrin.h>
 
 #include "Float64_SSE2.h"
@@ -190,8 +193,8 @@ static inline __m256d _mm256_extract_mantissa_pd(const __m256d x) {
 /** @brief Returns true if x is negative */
 static inline __m256d _mm256_signbit_pd(const __m256d x) {
 	return _mm256_blendv_pd(
-		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xFFFFFFFFFFFFFFFF)),
 		_mm256_setzero_pd(),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xFFFFFFFFFFFFFFFF)),
 		x
 	);
 }
@@ -237,9 +240,150 @@ static inline __m256d _mm256_isnormal_pd(const __m256d x) {
 	);
 }
 
-/** @brief Returns true if x and y are unordered */
+/** @brief Returns true if x is denormal */
+static inline __m256d _mm256_isdenormal_pd(const __m256d x) {
+	// check that x is not equal to zero, and that the exponent is all zeros
+	__m256d x_exp = _mm256_extract_exponent_pd(x);
+	return _mm256_and_pd(
+		_mm256_cmp_pd(x, _mm256_setzero_pd(), _CMP_NEQ_UQ),
+		_mm256_cmp_pd(x_exp, _mm256_setzero_pd(), _CMP_EQ_UQ)
+	);
+}
+
+//------------------------------------------------------------------------------
+// __m256d comparison
+//------------------------------------------------------------------------------
+
+#ifndef _mm256_cmpunord_pd
+/** @brief Returns true if either x or y are NaN (Unordered) */
+static inline __m256d _mm256_cmpunord_pd(__m256d x, __m256d y) {
+	return _mm256_cmp_pd(x, y, _CMP_UNORD_Q);
+}
+#endif
+
+#ifndef _mm256_cmpord_pd
+/** @brief Returns true if both x and y are not NaN (Ordered) */
+static inline __m256d _mm256_cmpord_pd(__m256d x, __m256d y) {
+	return _mm256_cmp_pd(x, y, _CMP_ORD_Q);
+}
+#endif
+
+#ifndef _mm256_cmpeq_pd
+/** @brief `x == y` ordered equals */
+static inline __m256d _mm256_cmpeq_pd(__m256d x, __m256d y) {
+	return _mm256_cmp_pd(x, y, _CMP_EQ_OQ);
+}
+#endif
+
+#ifndef _mm256_cmpneq_pd
+/** @brief `x != y` ordered not-equals */
+static inline __m256d _mm256_cmpneq_pd(__m256d x, __m256d y) {
+	return _mm256_cmp_pd(x, y, _CMP_NEQ_OQ);
+}
+#endif
+
+#ifndef _mm256_cmplg_pd
+/** @brief `x <> y` unordered not-equals */
+static inline __m256d _mm256_cmplg_pd(__m256d x, __m256d y) {
+	return _mm256_cmp_pd(x, y, _CMP_NEQ_UQ);
+}
+#endif
+
+#ifndef _mm256_cmpnlg_pd
+/** @brief `x !<> y` unordered equals */
+static inline __m256d _mm256_cmpnlg_pd(__m256d x, __m256d y) {
+	return _mm256_cmp_pd(x, y, _CMP_EQ_UQ);
+}
+#endif
+
+#ifndef _mm256_cmplt_pd
+/** @brief `x < y` ordered less-than */
+static inline __m256d _mm256_cmplt_pd(__m256d x, __m256d y) {
+	return _mm256_cmp_pd(x, y, _CMP_LT_OQ);
+}
+#endif
+
+#ifndef _mm256_cmple_pd
+/** @brief `x <= y` ordered less-equal */
+static inline __m256d _mm256_cmple_pd(__m256d x, __m256d y) {
+	return _mm256_cmp_pd(x, y, _CMP_LE_OQ);
+}
+#endif
+
+#ifndef _mm256_cmpgt_pd
+/** @brief `x > y` ordered greater-than */
+static inline __m256d _mm256_cmpgt_pd(__m256d x, __m256d y) {
+	return _mm256_cmp_pd(x, y, _CMP_GT_OQ);
+}
+#endif
+
+#ifndef _mm256_cmpge_pd
+/** @brief `x >= y` ordered greater-equal */
+static inline __m256d _mm256_cmpge_pd(__m256d x, __m256d y) {
+	return _mm256_cmp_pd(x, y, _CMP_GE_OQ);
+}
+#endif
+
+#ifndef _mm256_cmpnlt_pd
+/** @brief `!(x < y)` unordered not-less-than */
+static inline __m256d _mm256_cmpnlt_pd(__m256d x, __m256d y) {
+	return _mm256_cmp_pd(x, y, _CMP_NLT_UQ);
+}
+#endif
+
+#ifndef _mm256_cmpnle_pd
+/** @brief `!(x <= y)` unordered not-less-equal */
+static inline __m256d _mm256_cmpnle_pd(__m256d x, __m256d y) {
+	return _mm256_cmp_pd(x, y, _CMP_NLE_UQ);
+}
+#endif
+
+#ifndef _mm256_cmpngt_pd
+/** @brief `!(x > y)` unordered not-greater-than */
+static inline __m256d _mm256_cmpngt_pd(__m256d x, __m256d y) {
+	return _mm256_cmp_pd(x, y, _CMP_NGT_UQ);
+}
+#endif
+
+#ifndef _mm256_cmpnge_pd
+/** @brief `!(x >= y)` unordered not-greater-equal */
+static inline __m256d _mm256_cmpnge_pd(__m256d x, __m256d y) {
+	return _mm256_cmp_pd(x, y, _CMP_NGE_UQ);
+}
+#endif
+
+//------------------------------------------------------------------------------
+// __m256d math.h comparison
+//------------------------------------------------------------------------------
+
+/** @brief Returns true if either x or y are NaN (Unordered) */
 static inline __m256d _mm256_isunordered_pd(__m256d x, __m256d y) {
 	return _mm256_cmp_pd(x, y, _CMP_UNORD_Q);
+}
+
+/** @brief `x <> y` unordered not-equals */
+static inline __m256d _mm256_islessgreater_pd(__m256d x, __m256d y) {
+	return _mm256_cmp_pd(x, y, _CMP_NEQ_UQ);
+}
+
+/** @brief `x < y` ordered less-than */
+static inline __m256d _mm256_isless_pd(__m256d x, __m256d y) {
+	return _mm256_cmp_pd(x, y, _CMP_LT_OQ);
+}
+
+/** @brief `x <= y` ordered less-equal */
+static inline __m256d _mm256_islessequal_pd(__m256d x, __m256d y) {
+	return _mm256_cmp_pd(x, y, _CMP_LE_OQ);
+}
+
+/** @brief `x > y` ordered greater-than */
+static inline __m256d _mm256_isgreater_pd(__m256d x, __m256d y) {
+	return _mm256_cmp_pd(x, y, _CMP_GT_OQ);
+}
+
+/** @brief `x >= y` ordered greater-equal */
+static inline __m256d _mm256_isgreaterequal_pd(__m256d x, __m256d y) {
+	return _mm256_cmp_pd(x, y, _CMP_GE_OQ);
 }
 
 //------------------------------------------------------------------------------
@@ -291,12 +435,21 @@ static inline __m256d _mm256_fabs_pd(__m256d x) {
 }
 #endif
 
+#ifndef _mm256_not_pd
+static inline __m256d _mm256_not_pd(__m256d x) {
+	return _mm256_xor_pd(
+		x,
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xFFFFFFFFFFFFFFFF))
+	);
+}
+#endif
+
 static inline __m256d _mm256_copysign_pd(__m256d x, __m256d y) {
-	ret.val = _mm256_xor_pd(x.val,
-		_mm256_and_pd(
-			_mm256_xor_pd(x.val, y.val),
+	return _mm256_xor_pd(
+		x, _mm256_and_pd(
+			_mm256_xor_pd(x, y),
 			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FFFFFFFFFFFFFFF))
-		), y.val
+		)
 	);
 }
 
@@ -376,7 +529,7 @@ static inline __m128i _internal_mm256_convert_epi64_epi32(const __m256i x) {
  * @brief Truncates __m256i int64_t to a __m128i int32_t using AVX instead
  * of AVX512F + AVX512VL
  * @author Taken from stackoverflow:
- * https://stackoverflow.com/a/69408295/19507346
+ * https://stackoverflow.com/a/69408295
  */
 static inline __m128i _internal_mm256_convert_epi64_epi32(const __m256i x) {
 	__m256 vf = _mm256_castsi256_ps(x);
@@ -393,6 +546,85 @@ static inline __m128i _internal_mm256_convert_epi64_epi32(const __m256i x) {
 //------------------------------------------------------------------------------
 
 #ifdef __AVX2__
+
+#if 1
+
+static inline __m256i _internal_mm256_ilogb_pd_epi64(__m256d x) {
+	const int64_t float64_bias = 1023;
+	#if 0
+		/* Ignores denormals and inf */
+		__m256i bin_x = _mm256_castpd_si256(x);
+		// clear the signbit
+		bin_x = _mm256_slli_epi64(bin_x, 1);
+		// shift the exponent down
+		bin_x = _mm256_slri_epi64(bin_x, 52 + 1);
+		bin_x = _mm256_add_epi64(bin_x, _mm256_set1_epi64x(float64_bias));
+		return bin_x;
+	#else
+
+		// 2 ^ +64
+		const __m256d mult_2_p64 = _mm256_set1_pd(1.8446744073709551616e+19);
+		
+		const __m256d x_isdenorm = _mm256_isdenormal_pd(x);
+		__m256i bin_x = _mm256_castpd_si256(_mm256_mul_pd(
+			x, _mm256_blendv_pd(_mm256_set1_pd(1.0), mult_2_p64, x_isdenorm)
+		));
+		
+		// clear the signbit
+		bin_x = _mm256_slli_epi64(bin_x, 1);
+		// shift the exponent down
+		bin_x = _mm256_srli_epi64(bin_x, 52 + 1);
+		bin_x = _mm256_add_epi64(bin_x, _mm256_set1_epi64x(float64_bias));
+		
+		// subtracts the exponent shift used for denormal numbers
+		bin_x = _mm256_sub_epi64(bin_x,
+			_mm256_and_si256(_mm256_set1_epi64x((int64_t)64), _mm256_castpd_si256(x_isdenorm))
+		);
+		return bin_x;
+
+	#endif
+}
+
+/**
+ * @brief Computes ilogb(x) using AVX2 integer operations
+ * @returns __m256i int64_t
+ */
+static inline __m256i _mm256_ilogb_pd_epi64(__m256d x) {
+	__m256d ret = _mm256_castsi256_pd(_internal_mm256_ilogb_pd_epi64(x));
+	// Sets ret to INT64_MIN if x is zero or NaN
+	ret = _mm256_blendv_pd(
+		ret, _mm256_castsi256_pd(_mm256_set1_epi64x(INT64_MIN)),
+		_mm256_or_pd(_mm256_isnan_pd(x), _mm256_cmp_pd(x, _mm256_setzero_pd(), _CMP_EQ_OQ))
+	);
+	// Sets ret to INT64_MAX if x is infinity
+	ret = _mm256_blendv_pd(
+		ret, _mm256_castsi256_pd(_mm256_set1_epi64x(INT64_MAX)),
+		_mm256_isinf_pd(x)
+	);
+	return _mm256_castpd_si256(ret);
+}
+
+/**
+ * @brief Computes ilogb(x) using AVX2 integer operations
+ * @returns __m128i int32_t
+ */
+static inline __m128i _mm256_ilogb_pd_epi32(__m256d x) {
+	__m256d ret = _mm256_castsi256_pd(_internal_mm256_ilogb_pd_epi64(x));
+	// Sets ret to INT32_MIN if x is zero or NaN
+	ret = _mm256_blendv_pd(
+		ret, _mm256_castsi256_pd(_mm256_set1_epi64x(INT32_MIN)),
+		_mm256_or_pd(_mm256_isnan_pd(x), _mm256_cmp_pd(x, _mm256_setzero_pd(), _CMP_EQ_OQ))
+	);
+	// Sets ret to INT32_MAX if x is infinity
+	ret = _mm256_blendv_pd(
+		ret, _mm256_castsi256_pd(_mm256_set1_epi64x(INT32_MAX)),
+		_mm256_isinf_pd(x)
+	);
+	return _internal_mm256_convert_epi64_epi32(_mm256_castpd_si256(ret));
+}
+
+#else
+/* Legacy Functions */
 
 	/**
 	 * @brief Computes ilogb(x) using AVX2 integer operations
@@ -414,34 +646,10 @@ static inline __m128i _internal_mm256_convert_epi64_epi32(const __m256i x) {
 		return _mm256_cvtepi32_epi64(_mm256_ilogb_pd_epi32(x));
 	}
 
-	/**
-	 * @brief Computes ilogb(x) using AVX2 integer operations
-	 * @returns zero extended __m256i uint64_t
-	 */
-	static inline __m256i _mm256_ilogb_pd_epu64(__m256d x) {
-		__m256i ret = _mm256_castpd_si256(_mm256_andnot_pd(
-			x, _mm256_get_sign_mask_pd()
-		));
-		return _mm256_srli_epi64(ret, 52);
-	}
-	
-	/**
-	 * @brief Computes ilogb(x) using AVX2 integer operations
-	 * @returns zero extended __m128i uint32_t
-	 */
-	static inline __m128i _mm256_ilogb_pd_epu32(__m256d x) {
-		return _internal_mm256_convert_epi64_epi32(_mm256_ilogb_pd_epu64(x));
-	}
-
-	/**
-	 * @brief Computes ilogb(x) using AVX2 integer operations
-	 * @returns __m256d doubles
-	 */
-	static inline __m256d _mm256_ilogb_pd_pd(__m256d x) {
-		return _mm256_cvtepi32_pd(_mm256_ilogb_pd_epi32(x));
-	}
+#endif
 
 #else
+/* Legacy Function */
 
 	/**
 	 * @brief Computes ilogb(x) using SSE2 integer operations
@@ -459,34 +667,6 @@ static inline __m128i _internal_mm256_convert_epi64_epi32(const __m256i x) {
 	 */
 	static inline __m128i _mm256_ilogb_pd_epi32(__m256d x) {
 		return _internal_mm256_convert_epi64_epi32(_mm256_ilogb_pd_epi64(x));
-	}
-
-	/**
-	 * @brief Computes ilogb(x) using SSE2 integer operations
-	 * @returns zero extended __m256i uint64_t
-	 */
-	static inline __m256i _mm256_ilogb_pd_epu64(__m256d x) {
-		__m128i part_0 = _mm_ilogb_pd_epu64(_mm256_extractf128_pd(x, 0));
-		__m128i part_1 = _mm_ilogb_pd_epu64(_mm256_extractf128_pd(x, 1));
-		return _mm256_set_m128i(part_0, part_1);
-	}
-	
-	/**
-	 * @brief Computes ilogb(x) using SSE2 integer operations
-	 * @returns zero extended __m128i uint32_t
-	 */
-	static inline __m128i _mm256_ilogb_pd_epu32(__m256d x) {
-		return _internal_mm256_convert_epi64_epi32(_mm256_ilogb_pd_epu64(x));
-	}
-
-	/**
-	 * @brief Computes ilogb(x) using SSE2 integer operations
-	 * @returns __m256d doubles
-	 */
-	static inline __m256d _mm256_ilogb_pd_pd(__m256d x) {
-		return _mm256_cvtepi32_pd(
-			_internal_mm256_convert_epi64_epi32(_mm256_ilogb_pd_epi64(x))
-		);
 	}
 
 #endif
@@ -582,6 +762,64 @@ static inline __m256d _internal_mm256_ldexp_pd(__m256d x, __m256d expon) {
 	return _mm256_blendv_pd(ret, err_ret, x_mult);
 }
 
+#ifdef __AVX2__
+
+/**
+ * @brief Computes ldexp(x, expon) with support for denormal numbers.
+ * @remarks Uses 5 fp64 multiplications, 4 blendv, 4 int64 comparisons,
+ * 5 int64 additions, and 1 int64_t left shfit
+ */
+static inline __m256d _mm256_ldexp_pd_epi64(__m256d x, __m256i expon) {
+
+	// Update this
+	const int64_t float64_bias = 1023;
+
+	// Arbritrary, but should be large and less than ~1024
+	const int64_t mult_2_power = 896;
+	// 2 ^ +896
+	const __m256d mult_2_p896 = _mm256_set1_pd(5.2829453113566524635233978491652e+269);
+	// 2 ^ -896
+	const __m256d mult_2_n896 = _mm256_set1_pd(1.8928834978668395375564025560288e-270);
+
+	{ /* multiplies by a large power of 2 */
+		__m256i test = _mm256_cmpgt_epi64(expon, _mm256_set1_epi64x(mult_2_power - 1));
+		x = _mm256_mul_pd(x, _mm256_blendv_pd(_mm256_set1_pd(1.0), mult_2_p896, _mm256_castsi256_pd(test)));
+		expon = _mm256_sub_epi64(expon, _mm256_set1_epi64x(mult_2_power));
+	}
+	{ /* multiplies by a large power of 2 */
+		__m256i test = _mm256_cmpgt_epi64(expon, _mm256_set1_epi64x(mult_2_power - 1));
+		x = _mm256_mul_pd(x, _mm256_blendv_pd(_mm256_set1_pd(1.0), mult_2_p896, _mm256_castsi256_pd(test)));
+		expon = _mm256_sub_epi64(expon, _mm256_set1_epi64x(mult_2_power));
+	}
+	{ /* divides by a large power of 2 */
+		__m256i test = _mm256_cmpgt_epi64(_mm256_set1_epi64x(-mult_2_power + 1), expon);
+		x = _mm256_mul_pd(x, _mm256_blendv_pd(mult_2_n896, _mm256_set1_pd(1.0), _mm256_castsi256_pd(test)));
+		expon = _mm256_add_epi64(expon, _mm256_set1_epi64x(mult_2_power));
+	}
+	{ /* divides by a large power of 2 */
+		__m256i test = _mm256_cmpgt_epi64(_mm256_set1_epi64x(-mult_2_power + 1), expon);
+		x = _mm256_mul_pd(x, _mm256_blendv_pd(mult_2_n896, _mm256_set1_pd(1.0), _mm256_castsi256_pd(test)));
+		expon = _mm256_add_epi64(expon, _mm256_set1_epi64x(mult_2_power));
+	}
+
+	/* multiplies by the remaining exponent */
+
+	// Creates a normalized number of the form 2^expon
+	__m256i bias_expon = _mm256_add_epi64(expon, _mm256_set1_epi64x(float64_bias));
+	// fabs clears the signbit
+	__m256d mult = _mm256_fabs_pd(_mm256_castsi256_pd(_mm256_slli_epi64(bias_expon, 52)));
+	
+	return _mm256_mul_pd(x, mult);
+}
+
+static inline __m256d _mm256_ldexp_pd_epi32(__m256d x, __m128i expon) {
+	return _mm256_ldexp_pd_epi64(x, _mm256_cvtepi32_epi64(expon));
+}
+
+#else
+
+/* Legacy functions */
+
 /**
  * @brief Computes ldexp(x, expon)
  * @note The result may be undefined if expon is >= 1024 or if expon <= -1024
@@ -606,12 +844,83 @@ static inline __m256d _mm256_ldexp_pd_pd(__m256d x, __m256d expon) {
 	return _internal_mm256_ldexp_pd(x, _mm256_ldexp1_pd_pd(expon));
 }
 
+#endif
+
+/**
+ * @brief Computes ldexp(x, expon) with support for denormal numbers.
+ */
+static inline __m256d _mm256_ldexp_pd_i32(__m256d x, int32_t expon) {
+
+	// Arbritrary, but should be large and less than ~1024
+	const int32_t mult_2_power = 896;
+	// 2 ^ +896
+	const __m256d mult_2_p896 = _mm256_set1_pd(5.2829453113566524635233978491652e+269);
+	// 2 ^ -896
+	const __m256d mult_2_n896 = _mm256_set1_pd(1.8928834978668395375564025560288e-270);
+	if (expon == 0) {
+		return x;
+	}
+
+	if (expon > mult_2_power - 1) {
+		x = _mm256_mul_pd(x, mult_2_p896);
+		expon -= mult_2_power;
+		if (expon > 2 * mult_2_power - 1) {
+			x = _mm256_mul_pd(x, mult_2_p896);
+			expon -= mult_2_power;
+		}
+
+	}
+	if (-mult_2_power + 1 > expon) {
+		x = _mm256_mul_pd(x, mult_2_n896);
+		expon += mult_2_power;
+		if (-2 * mult_2_power + 1 > expon) {
+			x = _mm256_mul_pd(x, mult_2_n896);
+			expon += mult_2_power;
+		}
+	}
+
+	x = _mm256_mul_pd(x, _mm256_set1_pd(ldexp(1.0, expon)));
+	return x;
+}
+
+static inline __m256d _mm256_ldexp_pd_i64(__m256d x, int64_t expon) {
+	return _mm256_ldexp_pd_i32(x, (int32_t)expon);
+}
+
 //------------------------------------------------------------------------------
 // __m256d frexp
 //------------------------------------------------------------------------------
 
 #ifdef __AVX2__
 
+#if 1
+
+static inline __m256d _mm256_frexp_pd_epi64(__m256d x, __m256i* const expon) {
+	*expon = _mm256_add_epi64(_mm256_ilogb_pd_epi64(x), _mm256_set1_epi64x((int64_t)1));
+	/**
+	 * Clears the exponent bits of x, then does a bitwise OR so that x will
+	 * be inside the range [0.5, 1.0)
+	 */
+	x = _mm256_andnot_pd(x, _mm256_get_exponent_mask_pd());
+	x = _mm256_or_pd(x, _mm256_set1_pd(0.5));
+	return x;
+}
+
+static inline __m256d _mm256_frexp_pd_epi32(__m256d x, __m128i* const expon) {
+	*expon = _mm_add_epi32(_mm256_ilogb_pd_epi32(x), _mm_set1_epi32((int32_t)1));
+	/**
+	 * Clears the exponent bits of x, then does a bitwise OR so that x will
+	 * be inside the range [0.5, 1.0)
+	 */
+	__m256d ret;
+	ret = _mm256_andnot_pd(x, _mm256_get_exponent_mask_pd());
+	ret = _mm256_or_pd(ret, _mm256_set1_pd(0.5));
+	// if x is NaN or inf, x is returned instead
+	return _mm256_blendv_pd(x, ret, _mm256_isfinite_pd(x));
+}
+
+#else
+/* Legacy Functions */
 static inline __m256d _mm256_frexp_pd_epi64(__m256d x, __m256i* const expon) {
 	__m256d ret;
 	__m256i binary_log = _mm256_add_epi64(_mm256_ilogb_pd_epi64(x), _mm256_set1_epi64x(1));
@@ -657,6 +966,7 @@ static inline __m256d _internal_mm256_frexp_pd_epi32(__m256d x, __m128i* const e
 	*logb_ret = binary_log;
 	return ret;
 }
+#endif
 
 #else
 
@@ -698,6 +1008,69 @@ static inline __m256d _internal_mm256_frexp_pd_epi64(__m256d x, __m256i* const e
 
 #endif
 
+#ifdef __AVX2__
+
+static inline __m256d _mm256_nextafter_pd(__m256d x, __m256d y) {
+
+	// x > y == -1, otherwise 1
+	__m256d increment_direction = _mm256_or_pd(
+		_mm256_xor_pd(
+			_mm256_isgreater_pd(x, y),
+			_mm256_signbit_pd(x)
+		),
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x1))
+	);
+	// Flip the sign bit instead of decrementing for signed zeros. Incrementing is unchanged
+	increment_direction = _mm256_blendv_pd(
+		increment_direction,
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x8000000000000000)),
+		_mm256_cmp_pd(x, _mm256_setzero_pd(), _CMP_EQ_OQ)
+	);
+	__m256d nextafter_ret = _mm256_castsi256_pd(
+		_mm256_add_epi64(
+			_mm256_castpd_si256(x),
+			_mm256_castpd_si256(increment_direction)
+		)
+	);
+	/**
+	 * if x is NaN, the arithmetic operations should keep it as NaN
+	 * if y is NaN, or if x == y, return y instead of nextafter_ret
+	 */
+	return _mm256_blendv_pd(
+		nextafter_ret, y,
+		_mm256_or_pd(_mm256_isnan_pd(y), _mm256_cmp_pd(x, y, _CMP_EQ_OQ))
+	);
+}
+
+static inline __m256d _mm256_nexttoward_pd(__m256d x, long double y) {
+	double double_y = (double)y;
+	long double rounded_y = (long double)double_y;
+	
+	const bool rounding_occured = islessgreater(rounded_y, y);
+	
+	__m256d input_y = _mm256_set1_pd(double_y);
+
+	__m256d cmp_eq = _mm256_cmp_pd(
+		x, input_y, _CMP_EQ_OQ
+	);
+	
+	if (rounding_occured) {
+		double nextafter_direction = isless(rounded_y, y) ?
+			(double)-INFINITY :
+			(double)INFINITY;
+		
+		input_y = _mm256_blendv_pd(
+			input_y,
+			_mm256_set1_pd(nextafter(double_y, nextafter_direction)),
+			cmp_eq
+		);
+	}
+	return _mm256_nextafter_pd(x, input_y);
+}
+
+#endif
+
+
 //------------------------------------------------------------------------------
 // __m256d SVML replacement functions
 //------------------------------------------------------------------------------
@@ -705,14 +1078,12 @@ static inline __m256d _internal_mm256_frexp_pd_epi64(__m256d x, __m256i* const e
 #if (FLOAT64_AVX_SVML_REPLACEMENTS != 0)
 
 #ifndef _mm256_trunc_pd
-
 /**
  * @brief _mm256_trunc_pd replacement function.
  */
 static inline __m256d _mm256_trunc_pd(__m256d x) {
 	return _mm256_round_pd(x, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
 }
-
 #endif
 
 /**

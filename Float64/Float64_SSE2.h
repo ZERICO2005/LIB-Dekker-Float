@@ -37,15 +37,5 @@ static inline __m128i _mm_ilogb_pd_epi64(__m128d x) {
 	return _mm_cvtepi32_epi64(packed);
 }
 #endif
-/**
- * @brief Computes ilogb(x) using SSE2 integer operations
- * @returns zero extended __m128i uint64_t
- */
-static inline __m128i _mm_ilogb_pd_epu64(__m128d x) {
-	__m128i ret = _mm_castpd_si128(_mm_andnot_pd(
-		x, _mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x8000000000000000))
-	));
-	return _mm_srli_epi64(ret, 52);
-}
 
 #endif /* FLOAT64_SSE2_H */

@@ -3787,7 +3787,7 @@ static inline __m256dx4 _mm256x4_fmod_pdx4(const __m256dx4 x, const __m256dx4 y)
 
 /**
  * @brief Computes ilogb(x) on a __m256dx4 value
- * @returns sign extended __m256i int64_t
+ * @returns __m256i int64_t
  */
 static inline __m256i _mm256x4_ilogb_pdx4_epi64(__m256dx4 x) {
 	return _mm256_ilogb_pd_epi64(x.val[0]);
@@ -3795,34 +3795,10 @@ static inline __m256i _mm256x4_ilogb_pdx4_epi64(__m256dx4 x) {
 
 /**
  * @brief Computes ilogb(x) on a __m256dx4 value
- * @returns sign extended __m128i int32_t
+ * @returns __m128i int32_t
  */
 static inline __m128i _mm256x4_ilogb_pdx4_epi32(__m256dx4 x) {
 	return _mm256_ilogb_pd_epi32(x.val[0]);
-}
-
-/**
- * @brief Computes ilogb(x) on a __m256dx4 value
- * @returns zero extended __m256i uint64_t
- */
-static inline __m256i _mm256x4_ilogb_pdx4_epu64(__m256dx4 x) {
-	return _mm256_ilogb_pd_epu64(x.val[0]);
-}
-	
-/**
- * @brief Computes ilogb(x) on a __m256dx4 value
- * @returns zero extended __m128i uint32_t
- */
-static inline __m128i _mm256x4_ilogb_pdx4_epu32(__m256dx4 x) {
-	return _mm256_ilogb_pd_epu32(x.val[0]);
-}
-
-/**
- * @brief Computes ilogb(x) on a __m256dx4 value
- * @returns __m256d double
- */
-static inline __m256d _mm256x4_ilogb_pdx4_pd(__m256dx4 x) {
-	return _mm256_ilogb_pd_pd(x.val[0]);
 }
 
 //------------------------------------------------------------------------------
@@ -3830,49 +3806,25 @@ static inline __m256d _mm256x4_ilogb_pdx4_pd(__m256dx4 x) {
 //------------------------------------------------------------------------------
 
 /**
- * @brief This is an internal funciton, do NOT call it directly.
- */
-static inline __m256dx4 _internal_mm256x4_ldexp_pdx4(__m256dx4 x, __m256d x_mult) {
-	__m256dx4 ret;
-	ret.val[0] = _internal_mm256_ldexp_pd(x.val[0], x_mult);
-	const __m256d ret_cmp = _mm256_isfinite_pd(ret.val[0]);
-	ret.val[1] = _mm256_blendv_pd(
-		_internal_mm256_ldexp_pd(x.val[1], x_mult), ret.val[0], ret_cmp
-	);
-	ret.val[2] = _mm256_blendv_pd(
-		_internal_mm256_ldexp_pd(x.val[2], x_mult), ret.val[0], ret_cmp
-	);
-	ret.val[3] = _mm256_blendv_pd(
-		_internal_mm256_ldexp_pd(x.val[3], x_mult), ret.val[0], ret_cmp
-	);
-	return ret;
-}
-
-/**
  * @brief Computes ldexp(x, expon)
- * @note The result may be undefined if expon is >= 1024 or if expon <= -1024
  */
 static inline __m256dx4 _mm256x4_ldexp_pdx4_epi64(__m256dx4 x, __m256i expon) {
-	__m256d x_mult = _mm256_ldexp1_pd_epi64(expon);
-	return _internal_mm256x4_ldexp_pdx4(x, x_mult);
+	x.val[0] = _mm256_ldexp_pd_epi64(x.val[0], expon);
+	x.val[1] = _mm256_ldexp_pd_epi64(x.val[1], expon);
+	x.val[2] = _mm256_ldexp_pd_epi64(x.val[2], expon);
+	x.val[3] = _mm256_ldexp_pd_epi64(x.val[3], expon);
+	return x;
 }
 
 /**
  * @brief Computes ldexp(x, expon)
- * @note The result may be undefined if expon is >= 1024 or if expon <= -1024
  */
 static inline __m256dx4 _mm256x4_ldexp_pdx4_epi32(__m256dx4 x, __m128i expon) {
-	__m256d x_mult = _mm256_ldexp1_pd_epi32(expon);
-	return _internal_mm256x4_ldexp_pdx4(x, x_mult);
-}
-
-/**
- * @brief Computes ldexp(x, expon) where expon is truncated to an integer
- * @note The result may be undefined if expon is >= 1024 or if expon <= -1024
- */
-static inline __m256dx4 _mm256x4_ldexp_pdx4_pd(__m256dx4 x, __m256d expon) {
-	__m256d x_mult = _mm256_ldexp1_pd_pd(expon);
-	return _internal_mm256x4_ldexp_pdx4(x, x_mult);
+	x.val[0] = _mm256_ldexp_pd_epi32(x.val[0], expon);
+	x.val[1] = _mm256_ldexp_pd_epi32(x.val[1], expon);
+	x.val[2] = _mm256_ldexp_pd_epi32(x.val[2], expon);
+	x.val[3] = _mm256_ldexp_pd_epi32(x.val[3], expon);
+	return x;
 }
 
 //------------------------------------------------------------------------------
@@ -3881,30 +3833,28 @@ static inline __m256dx4 _mm256x4_ldexp_pdx4_pd(__m256dx4 x, __m256d expon) {
 
 /**
  * @brief Computes frexp(x, expon) on a __m256dx4 value
- * @returns sign extended __m256i int64_t
+ * @returns __m256i int64_t
  */
 static inline __m256dx4 _mm256x4_frexp_pdx4_epi64(__m256dx4 x, __m256i* const expon) {
-	__m256dx4 ret;
-	__m256i neg_logb;
-	ret.val[0] = _internal_mm256_frexp_pd_epi64(x.val[0], expon, &neg_logb);
-	ret.val[1] = _mm256_ldexp_pd_epi64(x.val[1], neg_logb);
-	ret.val[2] = _mm256_ldexp_pd_epi64(x.val[2], neg_logb);
-	ret.val[3] = _mm256_ldexp_pd_epi64(x.val[3], neg_logb);
-	return ret;
+	x.val[0] = _mm256_frexp_pd_epi64(x.val[0], expon);
+	const __m256i ldexp_value = _mm256_sub_epi64(_mm256_set1_epi64x((int64_t)1), *expon);
+	x.val[1] = _mm256_ldexp_pd_epi64(x.val[1], ldexp_value);
+	x.val[2] = _mm256_ldexp_pd_epi64(x.val[2], ldexp_value);
+	x.val[3] = _mm256_ldexp_pd_epi64(x.val[3], ldexp_value);
+	return x;
 }
 
 /**
  * @brief Computes frexp(x, expon) on a __m256dx4 value
- * @returns sign extended __m128i int32_t
+ * @returns __m128i int32_t
  */
 static inline __m256dx4 _mm256x4_frexp_pdx4_epi32(__m256dx4 x, __m128i* const expon) {
-	__m256dx4 ret;
-	__m128i neg_logb;
-	ret.val[0] = _internal_mm256_frexp_pd_epi32(x.val[0], expon, &neg_logb);
-	ret.val[1] = _mm256_ldexp_pd_epi32(x.val[1], neg_logb);
-	ret.val[2] = _mm256_ldexp_pd_epi32(x.val[2], neg_logb);
-	ret.val[3] = _mm256_ldexp_pd_epi32(x.val[3], neg_logb);
-	return ret;
+	x.val[0] = _mm256_frexp_pd_epi32(x.val[0], expon);
+	const __m128i ldexp_value = _mm_sub_epi32(_mm_set1_epi32((int32_t)1), *expon);
+	x.val[1] = _mm256_ldexp_pd_epi32(x.val[1], ldexp_value);
+	x.val[2] = _mm256_ldexp_pd_epi32(x.val[2], ldexp_value);
+	x.val[3] = _mm256_ldexp_pd_epi32(x.val[3], ldexp_value);
+	return x;
 }
 
 //------------------------------------------------------------------------------

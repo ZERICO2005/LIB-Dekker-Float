@@ -11,6 +11,9 @@
 
 #include <immintrin.h>
 
+#if defined(__AVX2__) && false
+/* This will have to become static inline in a header file */
+
 static inline __m256dx2 _mm256x2_taylor_expm1_pdx2(
 	const __m256dx2 x, __m128i* m_bin
 ) {
@@ -108,6 +111,30 @@ __m256dx2 _mm256x2_expm1_pdx2(const __m256dx2 x) {
 	ret.lo = _mm256_blendv_pd(ret.lo, ret_expm1.lo, ret_cmp);
 	return ret;
 }
+
+#else
+
+__m256dx2 _mm256x2_exp_pdx2(const __m256dx2 x) {
+	Float64x2 val[4];
+	_mm256x2_store_pdx2(val, x);
+	val[0] = Float64x2_exp(val[0]);
+	val[1] = Float64x2_exp(val[1]);
+	val[2] = Float64x2_exp(val[2]);
+	val[3] = Float64x2_exp(val[3]);
+	return _mm256x2_load_pdx2(val);
+}
+
+__m256dx2 _mm256x2_expm1_pdx2(const __m256dx2 x) {
+	Float64x2 val[4];
+	_mm256x2_store_pdx2(val, x);
+	val[0] = Float64x2_expm1(val[0]);
+	val[1] = Float64x2_expm1(val[1]);
+	val[2] = Float64x2_expm1(val[2]);
+	val[3] = Float64x2_expm1(val[3]);
+	return _mm256x2_load_pdx2(val);
+}
+
+#endif
 
 //------------------------------------------------------------------------------
 // __m256dx2 exponents and logarithms

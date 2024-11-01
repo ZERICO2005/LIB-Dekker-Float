@@ -48,6 +48,9 @@ inline int64_t getNanoTime(void) {
 
 #include "../../Float64x2/Float64x2.h"
 
+#include "../../Float64/Float64_AVX.hpp"
+#include "../../Float64/Float64_AVX.h"
+
 // #include "Float64x4/Float64x4.hpp"
 
 #ifdef LDF_ENABLE_FLOAT80

@@ -921,6 +921,13 @@ namespace std {
 		return std::isunordered(x.hi, y.hi);
 	}
 
+	/** @brief Returns true if x and y are unordered */
+	inline constexpr bool isunordered(
+		const Float64x2& x, const Float64x2& y, const Float64x2& z
+	) {
+		return std::isunordered(std::isunordered(x.hi, y.hi), z.hi);
+	}
+
 	inline constexpr int fpclassify(const Float64x2& x) {
 		return
 			isinf(x)             ? FP_INFINITE :
@@ -1023,6 +1030,25 @@ namespace std {
 			(static_cast<fp64>(2.0) * guess) + (x / LDF::square<Float64x2>(guess))
 		) / static_cast<fp64>(3.0);
 	}
+
+	#if 1
+	
+	/**
+	 * @brief Calculates sqrt(x^2 + y^2) without overflows/underflows.
+	 * The lower part of the Float64x2 may be rounded to zero when handling the
+	 * overflow case.
+	 */
+	Float64x2 hypot(const Float64x2& x, const Float64x2& y);
+
+	/**
+	 * @brief Calculates sqrt(x^2 + y^2 + z^2) without overflows/underflows.
+	 * The lower part of the Float64x2 may be rounded to zero when handling the
+	 * overflow case.
+	 */
+	Float64x2 hypot(const Float64x2& x, const Float64x2& y, const Float64x2& z);
+	
+	#else
+
 	/** @note Naive implementation of hypot, may overflow for large inputs */
 	inline Float64x2 hypot(const Float64x2& x, const Float64x2& y) {
 		return sqrt(
@@ -1035,7 +1061,7 @@ namespace std {
 			square(x) + square(y) + square(z)
 		);
 	}
-
+	#endif
 
 	/**
 	 * @brief Returns the next representable value after `x` in the direction
@@ -1045,8 +1071,11 @@ namespace std {
 		if (x == y) {
 			return x;
 		}
+		if (isunordered(x, y)) {
+			return isnan(x) ? x : y;
+		}
 		Float64x2 ret = x;
-		if (x < y) {
+		if (isless(x, y)) {
 			ret.lo = nextafter(x.lo, std::numeric_limits<fp64>::infinity());
 		} else {
 			ret.lo = nextafter(x.lo, -std::numeric_limits<fp64>::infinity());
@@ -1066,8 +1095,14 @@ namespace std {
 		if (x == static_cast<Float64x2>(y) && static_cast<long double>(x) == y) {
 			return x;
 		}
+		if (isnan(x)) {
+			return x;
+		}
+		if (isnan(y)) {
+			return std::numeric_limits<Float64x2>::quiet_NaN();
+		}
 		Float64x2 ret = x;
-		if (x <= static_cast<Float64x2>(y)) {
+		if (x < static_cast<Float64x2>(y) || static_cast<long double>(x) < y) {
 			ret.lo = nextafter(x.lo, std::numeric_limits<fp64>::infinity());
 		} else {
 			ret.lo = nextafter(x.lo, -std::numeric_limits<fp64>::infinity());

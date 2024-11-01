@@ -9,12 +9,14 @@
 #ifndef FLOAT64_AVX_HPP
 #define FLOAT64_AVX_HPP
 
+#include <smmintrin.h>
 #if (!defined(__AVX__) && defined(__GNUC__))
 	#error "__AVX__ is not enabled in your compiler. Try -mavx"
 #endif
 
 #include <stdint.h>
 #include <immintrin.h>
+#include <limits>
 
 #include "Float64_AVX.h"
 
@@ -125,19 +127,19 @@ namespace std {
 		inline static Float64_AVX epsilon() {
 			return Float64_AVX(_mm256_set1_pd(std::numeric_limits<double>::epsilon()));
 		}
-		inline static constexpr Float64_AVX round_error() {
+		inline static Float64_AVX round_error() {
 			return Float64_AVX(_mm256_set1_pd(std::numeric_limits<double>::round_error()));
 		}
-		inline static constexpr Float64_AVX infinity() {
+		inline static Float64_AVX infinity() {
 			return Float64_AVX(_mm256_set1_pd(std::numeric_limits<double>::infinity()));
 		}
-		inline static constexpr Float64_AVX quiet_NaN() {
+		inline static Float64_AVX quiet_NaN() {
 			return Float64_AVX(_mm256_set1_pd(std::numeric_limits<double>::quiet_NaN()));
 		}
-		inline static constexpr Float64_AVX signaling_NaN() {
+		inline static Float64_AVX signaling_NaN() {
 			return Float64_AVX(_mm256_set1_pd(std::numeric_limits<double>::signaling_NaN()));
 		}
-		inline static constexpr Float64_AVX denorm_min() {
+		inline static Float64_AVX denorm_min() {
 			return Float64_AVX(_mm256_set1_pd(std::numeric_limits<double>::denorm_min()));
 		}
 	};
@@ -193,14 +195,7 @@ static inline Float64_AVX fabs(Float64_AVX x) {
 }
 
 static inline Float64_AVX copysign(Float64_AVX x, Float64_AVX y) {
-	Float64_AVX ret;
-	ret.val = _mm256_xor_pd(x.val,
-		_mm256_and_pd(
-			_mm256_xor_pd(x.val, y.val),
-			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FFFFFFFFFFFFFFF))
-		), y.val
-	);
-	return ret;
+	return Float64_AVX(_mm256_copysign_pd(x.val, y.val));
 }
 
 //------------------------------------------------------------------------------
@@ -338,10 +333,16 @@ static inline Float64_AVX& operator^=(Float64_AVX& x, T y) {
 // Float64_AVX Logical
 //------------------------------------------------------------------------------
 
+/**
+ * @brief Performs a boolean NOT. Equivalent to ~signbit(x), returning either
+ * all ones or all zeros
+ * @note Use ~x for a bitwise NOT
+ */
 static inline Float64_AVX operator!(Float64_AVX x) {
-	return Float64_AVX(_mm256_xor_pd(
-		x.val,
-		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xFFFFFFFFFFFFFFFF))
+	return Float64_AVX(_mm256_blendv_pd(
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xFFFFFFFFFFFFFFFF)),
+		_mm256_setzero_pd(),
+		x.val
 	));
 }
 
@@ -839,27 +840,29 @@ static inline Float64_AVX fdim(T x, Float64_AVX y) {
 //------------------------------------------------------------------------------
 
 static inline Float64_AVX trunc(Float64_AVX x) {
-	return Float64_AVX(_mm256_round_pd(x, _MM_FROUND_TO_ZERO));
+	return Float64_AVX(_mm256_round_pd(x.val, _MM_FROUND_TO_ZERO));
 }
 
 static inline Float64_AVX floor(Float64_AVX x) {
-	return Float64_AVX(_mm256_round_pd(x, _MM_FROUND_TO_NEG_INF));
+	// return Float64_AVX(_mm256_round_pd(x, _MM_FROUND_TO_NEG_INF));
+	return Float64_AVX(_mm256_floor_pd(x.val));
 }
 
 static inline Float64_AVX ceil(Float64_AVX x) {
-	return Float64_AVX(_mm256_round_pd(x, _MM_FROUND_TO_POS_INF));
+	// return Float64_AVX(_mm256_round_pd(x, _MM_FROUND_TO_POS_INF));
+	return Float64_AVX(_mm256_ceil_pd(x.val));
 }
 
 static inline Float64_AVX round(Float64_AVX x) {
-	return Float64_AVX(_mm256_round_pd(x, _MM_FROUND_TO_NEAREST_INT));
+	return Float64_AVX(_mm256_round_pd(x.val, _MM_FROUND_TO_NEAREST_INT));
 }
 
 static inline Float64_AVX rint(Float64_AVX x) {
-	return Float64_AVX(_mm256_round_pd(x, _MM_FROUND_CUR_DIRECTION));
+	return Float64_AVX(_mm256_round_pd(x.val, _MM_FROUND_CUR_DIRECTION));
 }
 
 static inline Float64_AVX nearbyint(Float64_AVX x) {
-	return Float64_AVX(_mm256_round_pd(x, _MM_FROUND_CUR_DIRECTION | _MM_FROUND_NO_EXC));
+	return Float64_AVX(_mm256_round_pd(x.val, _MM_FROUND_CUR_DIRECTION | _MM_FROUND_NO_EXC));
 }
 
 //------------------------------------------------------------------------------
@@ -874,52 +877,226 @@ static inline Float64_AVX sqrt(Float64_AVX x) {
 // Float64_AVX math.h functions
 //------------------------------------------------------------------------------
 
-#if 0
-static inline Float64_AVX nextafter(Float64_AVX x, Float64_AVX y) {
-	
+#ifdef __FMA__
+
+/* fma */
+
+static inline Float64_AVX fma(Float64_AVX x, Float64_AVX y, Float64_AVX z) {
+	return Float64_AVX(_mm256_fmadd_pd(x.val, y.val, z.val));
 }
+
+#endif
+
+#ifdef __AVX2__
+
+static inline Float64_AVX nextafter(Float64_AVX x, Float64_AVX y) {
+	return Float64_AVX(_mm256_nextafter_pd(x.val, y.val));
+}
+
+template<typename T>
+static inline Float64_AVX nextafter(Float64_AVX x, T y) {
+	return Float64_AVX(_mm256_nextafter_pd(x.val, Float64_AVX(y).val));
+}
+
+template<typename T>
+static inline Float64_AVX nextafter(T x, Float64_AVX y) {
+	return Float64_AVX(_mm256_nextafter_pd(Float64_AVX(x).val, y.val));
+}
+
+static inline Float64_AVX nexttoward(Float64_AVX x, long double y) {
+	return Float64_AVX(_mm256_nexttoward_pd(x.val, y));
+}
+
+#endif
+
+#if 0
+
+/* Won't compile */
 
 template<typename Return_Type>
-static inline ilogb(Float64_AVX x);
+static inline Return_Type ilogb(Float64_AVX x);
 
 template <>
-static inline __m256i ilogb(Float64_AVX x) {
-
+static inline __m256i ilogb<__m256i>(Float64_AVX x) {
+	return _mm256_ilogb_pd_epi64(x.val);
 }
 
 template <>
-static inline __m128i ilogb(Float64_AVX x) {
+static inline __m128i ilogb<__m128i>(Float64_AVX x) {
+	return _mm256_ilogb_pd_epi32(x.val);
+}
 
+#endif
+
+#if 0
+
+/** @note untested */
+static inline Float64_AVX ldexp(const Float64_AVX x_tmp, __m256i expon) {
+	const __m256d x = x_tmp.val;
+	
+	/* Test for denormal values */
+	
+	const __m256i denormal_test = _mm256_and_si256(
+		// Extracts the mantissa bits
+		_mm256_castpd_si256(
+			_mm256_and_pd(x, _mm256_get_mantissa_mask_pd())
+		),
+		// Checks that the exponent is zero
+		_mm256_cmpeq_epi64(
+			_mm256_castpd_si256(
+				_mm256_and_pd(x, _mm256_get_exponent_mask_pd())
+			), _mm256_setzero_si256()
+		)
+	);
+
+	__m256i denormal_shift = _mm256_setzero_si256();
+	/**
+	 * Checks if any numbers are denormal and non-zero. If this returns true,
+	 * we can skip this code, otherwise we have to extract the highest set bit
+	 * the long way.
+	 */
+	if (_mm256_movemask_pd(_mm256_castsi256_pd(
+		_mm256_cmpeq_epi64(denormal_test, _mm256_setzero_si256())
+	)) == 0) {
+		// Finds the index of the highest set bit
+		denormal_shift = _mm256_add(denormal_shift, _mm256_andnot_si256(
+			_mm256_set1_epi64x((int64_t)32)
+			_mm256_cmpeq_epi64(_mm256_and_si256(denormal_test,
+				_mm256_set1_epi64x((int64_t)0xFFFFFFFF00000000)
+			), _mm256_setzero_si256())
+		));
+		denormal_shift = _mm256_add(denormal_shift, _mm256_andnot_si256(
+			_mm256_set1_epi64x((int64_t)16)
+			_mm256_cmpeq_epi64(_mm256_and_si256(denormal_test,
+				_mm256_set1_epi64x((int64_t)0xFFFF0000FFFF0000)
+			), _mm256_setzero_si256())
+		));
+		denormal_shift = _mm256_add(denormal_shift, _mm256_andnot_si256(
+			_mm256_set1_epi64x((int64_t)8)
+			_mm256_cmpeq_epi64(_mm256_and_si256(denormal_test,
+				_mm256_set1_epi64x((int64_t)0xFF00FF00FF00FF00)
+			), _mm256_setzero_si256())
+		));
+		denormal_shift = _mm256_add(denormal_shift, _mm256_andnot_si256(
+			_mm256_set1_epi64x((int64_t)4)
+			_mm256_cmpeq_epi64(_mm256_and_si256(denormal_test,
+				_mm256_set1_epi64x((int64_t)0xF0F0F0F0F0F0F0F0)
+			), _mm256_setzero_si256())
+		));
+		denormal_shift = _mm256_add(denormal_shift, _mm256_andnot_si256(
+			_mm256_set1_epi64x((int64_t)2)
+			_mm256_cmpeq_epi64(_mm256_and_si256(denormal_test,
+				_mm256_set1_epi64x((int64_t)0xCCCCCCCCCCCCCCCC)
+			), _mm256_setzero_si256())
+		));
+		denormal_shift = _mm256_add(denormal_shift, _mm256_andnot_si256(
+			_mm256_set1_epi64x((int64_t)1)
+			_mm256_cmpeq_epi64(_mm256_and_si256(denormal_test,
+				_mm256_set1_epi64x((int64_t)0xAAAAAAAAAAAAAAAA)
+			), _mm256_setzero_si256())
+		));
+	}
+
+	/* Add the exponents */
+
+	const __m256d ret_original = _mm256_or_pd(
+		_mm256_or_pd(_mm256_isinf_pd(x), _mm256_isnan_pd(x)),
+		_mm256_cmp_pd(x, _mm256_setzero_pd(), _CMP_EQ_OS)
+	);
+
+	// Extract the exponent
+	__m256i x_expon = _mm256_castpd_si256(
+		_mm256_andnot_pd(x.val, _mm256_get_exponent_mask_pd())
+	);
+
+
+	// Align both exponents to the 16bit boundry
+	x_expon = _mm256_srli_epi64(x_expon, 4);
+	expon = _mm256_slli_epi64(expon, 48);
+	/**
+	 * Add the exponents for ldexp via saturation. Any 16bit word that isn't
+	 * part of the exponent should be zero.
+	 */
+	__m256i expon_sum = _mm256_adds_epi16(_mm256_subs_epi16(x_expon, denormal_shift), expon);
+	
+	// Greater than the largest finite exponent
+	const __m256d ret_isinf = _mm256_castsi256_pd(
+		_mm256_cmpgt_epi64(expon_sum, _mm256_set1_epi64x((int64_t)0x7FE << (int64_t)48))
+	);
+	// Greater than the smallest normal exponent
+	const __m256d ret_isnormal = _mm256_castsi256_pd(
+		_mm256_cmpgt_epi64(expon_sum, _mm256_set1_epi64x((int64_t)0x000 << (int64_t)48))
+	);
+
+	const __m256d x_mant = _mm256_and_pd(x, _mm256_get_mantissa_mask_pd());
+
+	// Calculates the subnormal result (This is still wrong)
+	__m256i ret_subnormal = _mm256_srli_epi64(_mm256_abs_epi16(expon_sum), 48);
+	ret_subnormal = _mm256_srlv_epi64(
+		_mm256_slli_epi64(_mm256_castpd_si256(x_mant), 1), ret_subnormal
+	);
+
+	// Reset exponent
+	expon_sum = _mm256_slli_epi64(x_expon, 4);
+	__m256d final_expon = _mm256_or_pd(_mm256_castsi256_pd(expon_sum), x_mant);
+
+	// Sets ret to expon_sum. May overwrite ret with infinity
+	__m256d ret = _mm256_blendv_pd(final_expon, _mm256_get_infinity_pd(), ret_isinf);
+	// May overwrite ret with subnormal
+	ret = _mm256_blendv_pd(ret_subnormal, ret, ret_isnormal);
+	// May overwrite ret with original
+	ret = _mm256_blendv_pd(ret_subnormal, ret, ret_original);
+	return _mm256_copysign_pd(ret, x);
+}
+
+#endif
+
+#ifdef __AVX2__
+
+static inline Float64_AVX ldexp(const Float64_AVX x, __m256i expon) {
+	return Float64_AVX(_mm256_ldexp_pd_epi64(x.val, expon));
+}
+
+static inline Float64_AVX ldexp(Float64_AVX x, __m128i expon) {
+	return Float64_AVX(_mm256_ldexp_pd_epi64(x.val, _mm256_cvtepi32_epi64(expon)));
 }
 
 static inline Float64_AVX ldexp(Float64_AVX x, int32_t expon) {
-	
-}
-static inline Float64_AVX ldexp(Float64_AVX x, __m128i expon) {
-	
-}
-static inline Float64_AVX ldexp(Float64_AVX x, __m256i expon) {
-	
+	return Float64_AVX(_mm256_ldexp_pd_i32(x.val, expon));
 }
 
+static inline Float64_AVX ldexp(Float64_AVX x, int64_t expon) {
+	return Float64_AVX(_mm256_ldexp_pd_i32(x.val, (int32_t)expon));
+}
+
+/** @brief wraps ldexp(Float64_AVX x, int64_t expon) */
+static inline Float64_AVX scalbn(Float64_AVX x, int64_t expon) {
+	return ldexp(x, expon);
+}
+
+/** @brief wraps ldexp(Float64_AVX x, __m128i expon) */
+static inline Float64_AVX scalbn(Float64_AVX x, __m128i expon) {
+	return ldexp(x, expon);
+}
+/** @brief wraps ldexp(Float64_AVX x, __m256i expon) */
+static inline Float64_AVX scalbn(Float64_AVX x, __m256i expon) {
+	return ldexp(x, expon);
+}
+
+#endif
+
+#ifdef __AVX2__
+
 static inline Float64_AVX frexp(Float64_AVX x, __m128i* expon) {
-	
+	return Float64_AVX(_mm256_frexp_pd_epi32(x.val, expon));
 }
 static inline Float64_AVX frexp(Float64_AVX x, __m256i* expon) {
-	
+	return Float64_AVX(_mm256_frexp_pd_epi64(x.val, expon));
 }
 
 /** @brief wraps ldexp(Float64_AVX x, int32_t expon) */
 static inline Float64_AVX scalbn(Float64_AVX x, int32_t expon) {
-	return ldexp(Float64_AVX, expon);
-}
-/** @brief wraps ldexp(Float64_AVX x, __m128i expon) */
-static inline Float64_AVX scalbn(Float64_AVX x, __m128i expon) {
-	return ldexp(Float64_AVX, expon);
-}
-/** @brief wraps ldexp(Float64_AVX x, __m256i expon) */
-static inline Float64_AVX scalbn(Float64_AVX x, __m256i expon) {
-	return ldexp(Float64_AVX, expon);
+	return ldexp(x, expon);
 }
 
 #endif

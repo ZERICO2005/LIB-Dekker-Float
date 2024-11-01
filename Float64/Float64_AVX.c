@@ -15,7 +15,7 @@
 __m256d _mm256_cbrt_pd(const __m256d x) {
 	// 2^floor(ilogb(fabs(x)) / 3)
 	__m256d guess = _mm256_ldexp1_pd_pd(_mm256_div_pd(
-		_mm256_ilogb_pd_pd(x), _mm256_set1_pd(3.0)
+		_mm256_cvtepi32_pd(_mm256_ilogb_pd_epi32(x)), _mm256_set1_pd(3.0)
 	));
 
 	/**
@@ -158,7 +158,7 @@ __m256d _mm256_expm1_pd(const __m256d x) {
 __m256d _mm256_log_pd(const __m256d x) {
 	// extract the exponent, and multiply by ln(2)
 	__m256d guess = _mm256_mul_pd(
-		_mm256_ilogb_pd_pd(x), _mm256_const_ln2_pd()
+		_mm256_cvtepi32_pd(_mm256_ilogb_pd_epi32(x)), _mm256_const_ln2_pd()
 	);
 	// 6 iterations should yield the full precision of ieee doubles
 	for (int i = 0; i < 6; i++) {

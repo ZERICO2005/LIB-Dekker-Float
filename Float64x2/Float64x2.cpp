@@ -1284,6 +1284,92 @@ Float64x2 fma(const Float64x2& x, const Float64x2& y, const Float64x2& z) {
 }
 
 //------------------------------------------------------------------------------
+// Float64x2 hypot
+//------------------------------------------------------------------------------
+
+Float64x2 hypot(const Float64x2& x, const Float64x2& y) {
+	if (isunordered(x, y)) {
+		return isnan(x) ? x : y;
+	}
+	if (isinf(x) || isinf(y)) {
+		return std::numeric_limits<Float64x2>::infinity();
+	}
+	if (isequal_zero(x)) {
+		return y;
+	}
+	if (isequal_zero(y)) {
+		return x;
+	}
+	if (x == y) {
+		return x * LDF::const_sqrt2<Float64x2>() ;
+	}
+	
+	// 2 ^ +509
+	constexpr fp64 sqrt_max = 1.6759759912428246374467531247757e+153;
+	// 2 ^ -509
+	constexpr fp64 sqrt_min = 5.9666725849601653946327722523703e-154;
+
+	const Float64x2 max_value = fmax(fabs(x), fabs(y));
+	// Prevents overflow
+	if (max_value >= sqrt_max) {
+		return ldexp(sqrt(
+			square(ldexp(x, -512)) + square(ldexp(y, -512))
+		), 256);
+	}
+	// Prevents underflow
+	if (max_value <= sqrt_min) {
+		return ldexp(sqrt(
+			square(ldexp(x, 512)) + square(ldexp(y, 512))
+		), -256);
+	}
+	// Trival case
+	return sqrt(square(x) + square(y));
+}
+
+Float64x2 hypot(const Float64x2& x, const Float64x2& y, const Float64x2& z) {
+	if (isunordered(x, y, z)) {
+		return isnan(x) ? x : isnan(y) ? y : z;
+	}
+	if (isinf(x) || isinf(y) || isinf(z)) {
+		return std::numeric_limits<Float64x2>::infinity();
+	}
+	if (isequal_zero(x)) {
+		return hypot(y, z);
+	}
+	if (isequal_zero(y)) {
+		return hypot(x, z);
+	}
+	if (isequal_zero(z)) {
+		return hypot(x, y);
+	}
+	if (x == y && x == z) {
+		return x * LDF::const_sqrt3<Float64x2>();
+	}
+
+	// 2 ^ +509
+	constexpr fp64 sqrt_max = 1.6759759912428246374467531247757e+153;
+	// 2 ^ -509
+	constexpr fp64 sqrt_min = 5.9666725849601653946327722523703e-154;
+
+	const Float64x2 max_value = fmax(fabs(x), fabs(y), fabs(z));
+	// Prevents overflow
+	if (max_value >= sqrt_max) {
+		return ldexp(sqrt(
+			square(ldexp(x, -512)) + square(ldexp(y, -512)) + square(ldexp(z, -512))
+		), 256);
+	}
+	// Prevents underflow
+	if (max_value <= sqrt_min) {
+		return ldexp(sqrt(
+			square(ldexp(x, 512)) + square(ldexp(y, 512)) + square(ldexp(z, 512))
+		), -256);
+	}
+	// Trival case
+	return sqrt(square(x) + square(y) + square(z));
+}
+ 
+ 
+//------------------------------------------------------------------------------
 // Float64x2 erf and erfc
 //------------------------------------------------------------------------------
 
