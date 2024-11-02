@@ -16,7 +16,6 @@
  * preprocessor isn't aware of function definitions
  */
 
-#include <smmintrin.h>
 #if (!defined(__AVX__) && defined(__GNUC__))
 	#error "__AVX__ is not enabled in your compiler. Try -mavx"
 #endif
@@ -547,8 +546,6 @@ static inline __m128i _internal_mm256_convert_epi64_epi32(const __m256i x) {
 
 #ifdef __AVX2__
 
-#if 1
-
 static inline __m256i _internal_mm256_ilogb_pd_epi64(__m256d x) {
 	const int64_t float64_bias = 1023;
 	#if 0
@@ -589,7 +586,7 @@ static inline __m256i _internal_mm256_ilogb_pd_epi64(__m256d x) {
  * @brief Computes ilogb(x) using AVX2 integer operations
  * @returns __m256i int64_t
  */
-static inline __m256i _mm256_ilogb_pd_epi64(__m256d x) {
+inline __m256i _mm256_ilogb_pd_epi64(__m256d x) {
 	__m256d ret = _mm256_castsi256_pd(_internal_mm256_ilogb_pd_epi64(x));
 	// Sets ret to INT64_MIN if x is zero or NaN
 	ret = _mm256_blendv_pd(
@@ -624,36 +621,10 @@ static inline __m128i _mm256_ilogb_pd_epi32(__m256d x) {
 }
 
 #else
-/* Legacy Functions */
-
-	/**
-	 * @brief Computes ilogb(x) using AVX2 integer operations
-	 * @returns sign extended __m128i int32_t
-	 */
-	static inline __m128i _mm256_ilogb_pd_epi32(__m256d x) {
-		// shifts the exponent into the lower half of the int64_t
-		__m256i mask = _mm256_srli_epi64(_mm256_castpd_si256(x), 31);
-		__m128i packed = _internal_mm256_convert_epi64_epi32(mask);
-		// sign extends
-		return _mm_srai_epi32(packed, 21);
-	}
-
-	/**
-	 * @brief Computes ilogb(x) using AVX2 integer operations
-	 * @returns sign extended __m256i int64_t
-	 */
-	static inline __m256i _mm256_ilogb_pd_epi64(const __m256d x) {
-		return _mm256_cvtepi32_epi64(_mm256_ilogb_pd_epi32(x));
-	}
-
-#endif
-
-#else
-/* Legacy Function */
 
 	/**
 	 * @brief Computes ilogb(x) using SSE2 integer operations
-	 * @returns sign extended __m256i int64_t
+	 * @returns __m256i int64_t
 	 */
 	static inline __m256i _mm256_ilogb_pd_epi64(__m256d x) {
 		__m128i part_0 = _mm_ilogb_pd_epi64(_mm256_extractf128_pd(x, 0));
@@ -663,7 +634,7 @@ static inline __m128i _mm256_ilogb_pd_epi32(__m256d x) {
 
 	/**
 	 * @brief Computes ilogb(x) using SSE2 integer operations
-	 * @returns sign extended __m128i int32_t
+	 * @returns __m128i int32_t
 	 */
 	static inline __m128i _mm256_ilogb_pd_epi32(__m256d x) {
 		return _internal_mm256_convert_epi64_epi32(_mm256_ilogb_pd_epi64(x));
@@ -674,93 +645,6 @@ static inline __m128i _mm256_ilogb_pd_epi32(__m256d x) {
 //------------------------------------------------------------------------------
 // __m256d ldexp
 //------------------------------------------------------------------------------
-
-#ifdef __AVX2__
-
-	/**
-	 * @brief Computes ldexp(1.0, expon) using AVX2 integer operations
-	 */
-	static inline __m256d _mm256_ldexp1_pd_epi64(__m256i expon) {
-		// Adds to the exponent bits of an ieee double
-		return _mm256_castsi256_pd(_mm256_add_epi64(
-			_mm256_castpd_si256(_mm256_set1_pd(1.0)), _mm256_slli_epi64(expon, 52)
-		));
-	}
-
-	/**
-	 * @brief Computes ldexp(1.0, expon) using AVX2 integer operations
-	 */
-	static inline __m256d _mm256_ldexp1_pd_epi32(__m128i expon) {
-		return _mm256_ldexp1_pd_epi64(_mm256_cvtepi32_epi64(expon));
-	}
-
-	/**
-	 * @brief Computes ldexp(1.0, expon) using AVX2 integer operations
-	 */
-	static inline __m256d _mm256_ldexp1_pd_pd(__m256d expon) {
-		return _mm256_ldexp1_pd_epi64(
-			_mm256_cvtepi32_epi64(_mm256_cvttpd_epi32(expon))
-		);
-	}
-
-#else
-
-	/**
-	 * @brief Computes ldexp(1.0, expon) using SSE2 integer operations
-	 */
-	static inline __m256d _mm256_ldexp1_pd_epi64(__m256i expon) {
-		__m128d part_0 = _mm_ldexp1_pd_epi64(_mm256_extractf128_si256(expon, 0));
-		__m128d part_1 = _mm_ldexp1_pd_epi64(_mm256_extractf128_si256(expon, 1));
-		return _mm256_set_m128d(part_0, part_1);
-	}
-
-	/**
-	 * @brief Computes ldexp(1.0, expon) using SSE2 integer operations
-	 */
-	static inline __m256d _mm256_ldexp1_pd_epi32(__m128i expon) {
-		// Turns ABCD---- into -A-B-C-D
-		__m256i extend = _mm256_set_m128i(
-			_mm_castps_si128(_mm_permute_ps(_mm_castsi128_ps(expon), 0x50)),
-			_mm_castps_si128(_mm_permute_ps(_mm_castsi128_ps(expon), 0xFA))
-		);
-		extend = _mm256_castps_si256(_mm256_and_ps(
-			_mm256_castsi256_ps(extend), _mm256_castsi256_ps(_mm256_set1_epi32(0x0000FFFF))
-		));
-		
-		return _mm256_ldexp1_pd_epi64(extend);
-	}
-	
-	/**
-	 * @brief Computes ldexp(1.0, expon) using SSE2 integer operations
-	 */
-	static inline __m256d _mm256_ldexp1_pd_pd(__m256d expon) {
-		return _mm256_ldexp1_pd_epi32(_mm256_cvttpd_epi32(expon));
-	}
-
-#endif
-
-/**
- * @brief This is an internal funciton, do NOT call it directly.
- */
-static inline __m256d _internal_mm256_ldexp_pd(__m256d x, __m256d expon) {
-	__m256d x_mult = _mm256_and_pd(
-		expon,
-		// sign bit and exponent mask
-		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xFFF0000000000000))
-	);
-	__m256d ret = _mm256_mul_pd(x, x_mult);
-	__m256d err_cmp = _mm256_cmp_pd(
-		_mm256_fabs_pd(x_mult),
-		_mm256_fabs_pd(ret),
-		_CMP_GT_OQ
-	);
-	
-	__m256d err_ret = _mm256_blendv_pd(
-		_mm256_setzero_pd(), _mm256_get_infinity_pd(),
-	err_cmp);
-	// blendv checks the most significant bit
-	return _mm256_blendv_pd(ret, err_ret, x_mult);
-}
 
 #ifdef __AVX2__
 
@@ -818,30 +702,26 @@ static inline __m256d _mm256_ldexp_pd_epi32(__m256d x, __m128i expon) {
 
 #else
 
-/* Legacy functions */
-
 /**
- * @brief Computes ldexp(x, expon)
- * @note The result may be undefined if expon is >= 1024 or if expon <= -1024
+ * @brief Computes ldexp(1.0, expon) using SSE4 integer operations
  */
 static inline __m256d _mm256_ldexp_pd_epi64(__m256d x, __m256i expon) {
-	return _internal_mm256_ldexp_pd(x, _mm256_ldexp1_pd_epi64(expon));
+	__m128d part_0 = _mm_ldexp_pd_epi64(_mm256_extractf128_pd(x, 0), _mm256_extractf128_si256(expon, 0));
+	__m128d part_1 = _mm_ldexp_pd_epi64(_mm256_extractf128_pd(x, 1), _mm256_extractf128_si256(expon, 1));
+	return _mm256_set_m128d(part_0, part_1);
 }
 
 /**
- * @brief Computes ldexp(x, expon)
- * @note The result may be undefined if expon is >= 1024 or if expon <= -1024
+ * @brief Computes ldexp(1.0, expon) using SSE4 integer operations
  */
 static inline __m256d _mm256_ldexp_pd_epi32(__m256d x, __m128i expon) {
-	return _internal_mm256_ldexp_pd(x, _mm256_ldexp1_pd_epi32(expon));
-}
-
-/**
- * @brief Computes ldexp(x, expon)
- * @note The result may be undefined if expon is >= 1024 or if expon <= -1024
- */
-static inline __m256d _mm256_ldexp_pd_pd(__m256d x, __m256d expon) {
-	return _internal_mm256_ldexp_pd(x, _mm256_ldexp1_pd_pd(expon));
+	// Loads the lower half, extending each from int32_t to int64_t
+	__m128d part_0 = _mm_ldexp_pd_epi64(_mm256_extractf128_pd(x, 0), _mm_cvtepi32_epi64(expon));
+	// Copy the upper half to the lower half
+	expon = _mm_move_epi64(expon);
+	// Loads the upper half, extending each from int32_t to int64_t
+	__m128d part_1 = _mm_ldexp_pd_epi64(_mm256_extractf128_pd(x, 1), _mm_cvtepi32_epi64(expon));
+	return _mm256_set_m128d(part_0, part_1);
 }
 
 #endif
@@ -893,8 +773,6 @@ static inline __m256d _mm256_ldexp_pd_i64(__m256d x, int64_t expon) {
 
 #ifdef __AVX2__
 
-#if 1
-
 static inline __m256d _mm256_frexp_pd_epi64(__m256d x, __m256i* const expon) {
 	*expon = _mm256_add_epi64(_mm256_ilogb_pd_epi64(x), _mm256_set1_epi64x((int64_t)1));
 	/**
@@ -905,6 +783,18 @@ static inline __m256d _mm256_frexp_pd_epi64(__m256d x, __m256i* const expon) {
 	x = _mm256_or_pd(x, _mm256_set1_pd(0.5));
 	return x;
 }
+
+#else
+
+static inline __m256d _mm256_frexp_pd_epi64(__m256d x, __m256i* const expon) {
+	__m128i expon_0, expon_1;
+	__m128d part_0 = _mm_frexp_pd_epi64(_mm256_extractf128_pd(x, 0), &expon_0);
+	__m128d part_1 = _mm_frexp_pd_epi64(_mm256_extractf128_pd(x, 1), &expon_1);
+	*expon = _mm256_set_m128i(expon_0, expon_1);
+	return _mm256_set_m128d(part_0, part_1);
+}
+
+#endif
 
 static inline __m256d _mm256_frexp_pd_epi32(__m256d x, __m128i* const expon) {
 	*expon = _mm_add_epi32(_mm256_ilogb_pd_epi32(x), _mm_set1_epi32((int32_t)1));
@@ -918,95 +808,6 @@ static inline __m256d _mm256_frexp_pd_epi32(__m256d x, __m128i* const expon) {
 	// if x is NaN or inf, x is returned instead
 	return _mm256_blendv_pd(x, ret, _mm256_isfinite_pd(x));
 }
-
-#else
-/* Legacy Functions */
-static inline __m256d _mm256_frexp_pd_epi64(__m256d x, __m256i* const expon) {
-	__m256d ret;
-	__m256i binary_log = _mm256_add_epi64(_mm256_ilogb_pd_epi64(x), _mm256_set1_epi64x(1));
-	*expon = binary_log;
-	// negates
-	_mm256_sub_epi64(_mm256_ilogb_pd_epi64(x), _mm256_set1_epi64x(2));
-	_mm256_andnot_si256(binary_log, _mm256_setzero_si256());
-	ret = _mm256_ldexp_pd_epi64(x, binary_log);
-	return ret;
-}
-
-static inline __m256d _mm256_frexp_pd_epi32(__m256d x, __m128i* const expon) {
-	__m256d ret;
-	__m128i binary_log = _mm_add_epi32(_mm256_ilogb_pd_epi32(x), _mm_set1_epi32(1));
-	*expon = binary_log;
-	// negates
-	_mm_sub_epi32(_mm256_ilogb_pd_epi32(x), _mm_set1_epi32(2));
-	_mm_andnot_si128(binary_log, _mm_setzero_si128());
-	ret = _mm256_ldexp_pd_epi32(x, binary_log);
-	return ret;
-}
-
-static inline __m256d _internal_mm256_frexp_pd_epi64(__m256d x, __m256i* const expon, __m256i* const logb_ret) {
-	__m256d ret;
-	__m256i binary_log = _mm256_add_epi64(_mm256_ilogb_pd_epi64(x), _mm256_set1_epi64x(1));
-	*expon = binary_log;
-	// negates
-	_mm256_sub_epi64(_mm256_ilogb_pd_epi64(x), _mm256_set1_epi64x(2));
-	_mm256_andnot_si256(binary_log, _mm256_setzero_si256());
-	ret = _mm256_ldexp_pd_epi64(x, binary_log);
-	*logb_ret = binary_log;
-	return ret;
-}
-
-static inline __m256d _internal_mm256_frexp_pd_epi32(__m256d x, __m128i* const expon, __m128i* const logb_ret) {
-	__m256d ret;
-	__m128i binary_log = _mm_add_epi32(_mm256_ilogb_pd_epi32(x), _mm_set1_epi32(1));
-	*expon = binary_log;
-	// negates
-	_mm_sub_epi32(_mm256_ilogb_pd_epi32(x), _mm_set1_epi32(2));
-	_mm_andnot_si128(binary_log, _mm_setzero_si128());
-	ret = _mm256_ldexp_pd_epi32(x, binary_log);
-	*logb_ret = binary_log;
-	return ret;
-}
-#endif
-
-#else
-
-static inline __m256d _mm256_frexp_pd_epi32(__m256d x, __m128i* const expon) {
-	__m256d ret;
-	__m128 binary_log = _mm_add_ps(_mm_cvtepi32_ps(_mm256_ilogb_pd_epi32(x)), _mm_set1_ps(1.0f));
-	if (expon != NULL) { *expon = _mm_cvtps_epi32(binary_log); }
-	// negates
-	binary_log = _mm_mul_ps(binary_log, _mm_set1_ps(-1.0f));
-	ret = _mm256_ldexp_pd_epi32(x, _mm_cvtps_epi32(binary_log));
-	return ret;
-}
-
-static inline __m256d _mm256_frexp_pd_epi64(__m256d x, __m256i* const expon) {
-	__m128i temp_expon;
-	__m256d ret = _mm256_frexp_pd_epi32(x, &temp_expon);
-	if (expon != NULL) { *expon = _mm256_cvtepi32_epi64(temp_expon); }
-	return ret;
-}
-
-static inline __m256d _internal_mm256_frexp_pd_epi32(__m256d x, __m128i* const expon, __m128i* const logb_ret) {
-	__m256d ret;
-	__m128 binary_log = _mm_add_ps(_mm_cvtepi32_ps(_mm256_ilogb_pd_epi32(x)), _mm_set1_ps(1.0f));
-	*expon = _mm_cvtps_epi32(binary_log);
-	// negates
-	binary_log = _mm_mul_ps(binary_log, _mm_set1_ps(-1.0f));
-	*logb_ret = _mm_cvtps_epi32(binary_log);
-	ret = _mm256_ldexp_pd_epi32(x, *logb_ret);
-	return ret;
-}
-
-static inline __m256d _internal_mm256_frexp_pd_epi64(__m256d x, __m256i* const expon, __m256i* const logb_ret) {
-	__m128i temp_expon, temp_logb_ret;
-	__m256d ret = _internal_mm256_frexp_pd_epi32(x, &temp_expon, &temp_logb_ret);
-	*expon = _mm256_cvtepi32_epi64(temp_expon);
-	*logb_ret = _mm256_cvtepi32_epi64(temp_logb_ret);
-	return ret;
-}
-
-#endif
 
 #ifdef __AVX2__
 

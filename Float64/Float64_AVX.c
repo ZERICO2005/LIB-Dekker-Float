@@ -12,6 +12,9 @@
 
 #if (FLOAT64_AVX_SVML_REPLACEMENTS != 0)
 
+#if 0
+/* Legacy Functions */
+
 __m256d _mm256_cbrt_pd(const __m256d x) {
 	// 2^floor(ilogb(fabs(x)) / 3)
 	__m256d guess = _mm256_ldexp1_pd_pd(_mm256_div_pd(
@@ -37,6 +40,20 @@ __m256d _mm256_cbrt_pd(const __m256d x) {
 		_mm256_cmp_pd(x, _mm256_setzero_pd(), _CMP_NEQ_UQ)
 	);
 }
+
+#else
+
+__m256d _mm256_cbrt_pd(const __m256d x) {
+	double x_val[4];
+	_mm256_store_pd(x_val, x);
+	x_val[0] = cbrt(x_val[0]);
+	x_val[1] = cbrt(x_val[1]);
+	x_val[2] = cbrt(x_val[2]);
+	x_val[3] = cbrt(x_val[3]);
+	return _mm256_load_pd(x_val);
+}
+
+#endif
 
 __m256d _mm256_hypot_pd(const __m256d x, const __m256d y) {
 	double x_val[4];

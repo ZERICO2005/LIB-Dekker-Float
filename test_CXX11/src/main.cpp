@@ -265,7 +265,11 @@ int main(void) {
 
 	// generate_inverf(8192, 300);
 	// test_inverf();
-
+	__m256d aaa = _mm256_set1_pd(12.32);
+	__m256i bbb = _mm256_ilogb_pd_epi64(aaa);
+	if (_mm256_movemask_pd(_mm256_castsi256_pd(bbb))) {
+		printf("d");
+	}
 	precision_test<float>();
 	// graph_precision<float>(24000, 120.0L, 0.0L);
 
