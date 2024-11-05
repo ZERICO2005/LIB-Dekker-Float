@@ -17,6 +17,7 @@
 #include <stdint.h>
 #include <immintrin.h>
 #include <limits>
+#include <algorithm>
 
 #include "Float64_AVX.h"
 
@@ -1100,5 +1101,17 @@ static inline Float64_AVX scalbn(Float64_AVX x, int32_t expon) {
 }
 
 #endif
+
+//------------------------------------------------------------------------------
+// Float64_AVX pseudo std::algorithm (Returns a value instead of a reference)
+//------------------------------------------------------------------------------
+
+static inline Float64_AVX min(Float64_AVX x, Float64_AVX y) {
+	return Float64_AVX(_mm256_min_pd(x.val, y.val));
+}
+
+static inline Float64_AVX max(Float64_AVX x, Float64_AVX y) {
+	return Float64_AVX(_mm256_max_pd(x.val, y.val));
+}
 
 #endif /* FLOAT64_AVX_HPP */

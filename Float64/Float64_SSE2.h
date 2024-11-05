@@ -9,14 +9,19 @@
 #ifndef FLOAT64_SSE2_H
 #define FLOAT64_SSE2_H
 
+#include <stdbool.h>
 #include <stdint.h>
+#include <math.h>
 #include <emmintrin.h>
 
 #ifdef __SSE4_1__
-#include <smmintrin.h>
+	#include <smmintrin.h>
 #endif
 #ifdef __SSE4_2__
-#include <nmmintrin.h>
+	#include <nmmintrin.h>
+#endif
+#ifdef __AVX__
+	#include <immintrin.h>
 #endif
 
 #if (!defined(__SSE2__) && defined(__GNUC__))
@@ -390,17 +395,15 @@ static inline __m128d _mm_copysign_pd(__m128d x, __m128d y) {
 	);
 }
 
-#ifdef __SSE4_1__
-
 static inline __m128d _mm_fdim_pd(__m128d x, __m128d y) {
 	__m128d ret;
 	ret = _mm_sub_pd(x, y);
-	__m128d cmp_gt = _mm_cmp_pd(x, y, _CMP_GT_OS);
-	ret = _mm_blendv_pd(ret, _mm_setzero_pd(), cmp_gt);
+	// returns true when ret > 0.0 or ret is NaN
+	__m128d cmp_nle = _mm_cmpnle_pd(ret, _mm_setzero_pd());
+	// NaN remains NaN, and -0.0 becomes +0.0
+	ret = _mm_and_pd(ret, cmp_nle);
 	return ret;
 }
-
-#endif
 
 #ifdef __SSE4_1__
 
@@ -592,30 +595,67 @@ static inline __m128d _mm_frexp_pd_epi64(__m128d x, __m128i* const expon) {
 
 #endif
 
-#if 0
-/* Legacy Code */
+//------------------------------------------------------------------------------
+// __m128d nextafter and nexttoward
+//------------------------------------------------------------------------------
 
-static inline __m128d _mm_ldexp1_pd_epi64(__m128i exp) {
-	// Adds to the exponent bits of an ieee double
-	return _mm_castsi128_pd(_mm_add_epi64(
-		_mm_castpd_si128(_mm_set1_pd(1.0)), _mm_slli_epi64(exp, 52)
-	));
+#if true || defined(__SSE4_1__) && defined(__SSE4_2__)
+
+static inline __m128d _mm_nextafter_pd(__m128d x, __m128d y) {
+
+	// x > y == -1, otherwise 1
+	__m128d increment_direction = _mm_or_pd(
+		_mm_xor_pd(
+			_mm_isgreater_pd(x, y),
+			_mm_signbit_pd(x)
+		),
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x1))
+	);
+	// Flip the sign bit instead of decrementing for signed zeros. Incrementing is unchanged
+	increment_direction = _mm_blendv_pd(
+		increment_direction,
+		_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x8000000000000000)),
+		_mm_cmpeq_pd(x, _mm_setzero_pd())
+	);
+	__m128d nextafter_ret = _mm_castsi128_pd(
+		_mm_add_epi64(
+			_mm_castpd_si128(x),
+			_mm_castpd_si128(increment_direction)
+		)
+	);
+	/**
+	 * if x is NaN, the arithmetic operations should keep it as NaN
+	 * if y is NaN, or if x == y, return y instead of nextafter_ret
+	 */
+	return _mm_blendv_pd(
+		nextafter_ret, y,
+		_mm_or_pd(_mm_isnan_pd(y), _mm_cmpeq_pd(x, y))
+	);
 }
 
-#ifdef __SSE4_1__
-/**
- * @brief Computes ilogb(x) using SSE2 integer operations
- * @returns sign extended __m128i int32_t
- */
-static inline __m128i _mm_ilogb_pd_epi64(__m128d x) {
-	// shifts the exponent into the lower half of the int64_t
-	__m128i mask = _mm_srli_epi64(_mm_castpd_si128(x), 31);
-	// sign extends
-	mask = _mm_srai_epi32(mask, 21);
-	__m128i packed = _mm_shuffle_epi32(mask, _MM_SHUFFLE(2, 0, 2, 0));
-	return _mm_cvtepi32_epi64(packed);
+static inline __m128d _mm_nexttoward_pd(__m128d x, long double y) {
+	double double_y = (double)y;
+	long double rounded_y = (long double)double_y;
+	
+	const bool rounding_occured = islessgreater(rounded_y, y);
+	
+	__m128d input_y = _mm_set1_pd(double_y);
+
+	__m128d cmp_eq = _mm_cmpeq_pd(x, input_y);
+	
+	if (rounding_occured) {
+		double nextafter_direction = isless(rounded_y, y) ?
+			(double)-INFINITY :
+			(double)INFINITY;
+		
+		input_y = _mm_blendv_pd(
+			input_y,
+			_mm_set1_pd(nextafter(double_y, nextafter_direction)),
+			cmp_eq
+		);
+	}
+	return _mm_nextafter_pd(x, input_y);
 }
-#endif
 
 #endif
 

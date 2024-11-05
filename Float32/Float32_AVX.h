@@ -216,9 +216,150 @@ static inline __m256 _mm256_isnormal_ps(const __m256 x) {
 	);
 }
 
-/** @brief Returns true if x and y are unordered */
+/** @brief Returns true if x is denormal */
+static inline __m256 _mm256_isdenormal_ps(const __m256 x) {
+	// check that x is not equal to zero, and that the exponent is all zeros
+	__m256 x_exp = _mm256_extract_exponent_pd(x);
+	return _mm256_and_ps(
+		_mm256_cmp_ps(x, _mm256_setzero_ps(), _CMP_NEQ_UQ),
+		_mm256_cmp_ps(x_exp, _mm256_setzero_ps(), _CMP_EQ_UQ)
+	);
+}
+
+//------------------------------------------------------------------------------
+// __m256 comparison
+//------------------------------------------------------------------------------
+
+#ifndef _mm256_cmpunord_ps
+/** @brief Returns true if either x or y are NaN (Unordered) */
+static inline __m256 _mm256_cmpunord_ps(__m256 x, __m256 y) {
+	return _mm256_cmp_ps(x, y, _CMP_UNORD_Q);
+}
+#endif
+
+#ifndef _mm256_cmpord_ps
+/** @brief Returns true if both x and y are not NaN (Ordered) */
+static inline __m256 _mm256_cmpord_ps(__m256 x, __m256 y) {
+	return _mm256_cmp_ps(x, y, _CMP_ORD_Q);
+}
+#endif
+
+#ifndef _mm256_cmpeq_ps
+/** @brief `x == y` ordered equals */
+static inline __m256 _mm256_cmpeq_ps(__m256 x, __m256 y) {
+	return _mm256_cmp_ps(x, y, _CMP_EQ_OQ);
+}
+#endif
+
+#ifndef _mm256_cmpneq_ps
+/** @brief `x != y` ordered not-equals */
+static inline __m256 _mm256_cmpneq_ps(__m256 x, __m256 y) {
+	return _mm256_cmp_ps(x, y, _CMP_NEQ_OQ);
+}
+#endif
+
+#ifndef _mm256_cmplg_ps
+/** @brief `x <> y` unordered not-equals */
+static inline __m256 _mm256_cmplg_ps(__m256 x, __m256 y) {
+	return _mm256_cmp_ps(x, y, _CMP_NEQ_UQ);
+}
+#endif
+
+#ifndef _mm256_cmpnlg_ps
+/** @brief `x !<> y` unordered equals */
+static inline __m256 _mm256_cmpnlg_ps(__m256 x, __m256 y) {
+	return _mm256_cmp_ps(x, y, _CMP_EQ_UQ);
+}
+#endif
+
+#ifndef _mm256_cmplt_ps
+/** @brief `x < y` ordered less-than */
+static inline __m256 _mm256_cmplt_ps(__m256 x, __m256 y) {
+	return _mm256_cmp_ps(x, y, _CMP_LT_OQ);
+}
+#endif
+
+#ifndef _mm256_cmple_ps
+/** @brief `x <= y` ordered less-equal */
+static inline __m256 _mm256_cmple_ps(__m256 x, __m256 y) {
+	return _mm256_cmp_ps(x, y, _CMP_LE_OQ);
+}
+#endif
+
+#ifndef _mm256_cmpgt_ps
+/** @brief `x > y` ordered greater-than */
+static inline __m256 _mm256_cmpgt_ps(__m256 x, __m256 y) {
+	return _mm256_cmp_ps(x, y, _CMP_GT_OQ);
+}
+#endif
+
+#ifndef _mm256_cmpge_ps
+/** @brief `x >= y` ordered greater-equal */
+static inline __m256 _mm256_cmpge_ps(__m256 x, __m256 y) {
+	return _mm256_cmp_ps(x, y, _CMP_GE_OQ);
+}
+#endif
+
+#ifndef _mm256_cmpnlt_ps
+/** @brief `!(x < y)` unordered not-less-than */
+static inline __m256 _mm256_cmpnlt_ps(__m256 x, __m256 y) {
+	return _mm256_cmp_ps(x, y, _CMP_NLT_UQ);
+}
+#endif
+
+#ifndef _mm256_cmpnle_ps
+/** @brief `!(x <= y)` unordered not-less-equal */
+static inline __m256 _mm256_cmpnle_ps(__m256 x, __m256 y) {
+	return _mm256_cmp_ps(x, y, _CMP_NLE_UQ);
+}
+#endif
+
+#ifndef _mm256_cmpngt_ps
+/** @brief `!(x > y)` unordered not-greater-than */
+static inline __m256 _mm256_cmpngt_ps(__m256 x, __m256 y) {
+	return _mm256_cmp_ps(x, y, _CMP_NGT_UQ);
+}
+#endif
+
+#ifndef _mm256_cmpnge_ps
+/** @brief `!(x >= y)` unordered not-greater-equal */
+static inline __m256 _mm256_cmpnge_ps(__m256 x, __m256 y) {
+	return _mm256_cmp_ps(x, y, _CMP_NGE_UQ);
+}
+#endif
+
+//------------------------------------------------------------------------------
+// __m256 math.h comparison
+//------------------------------------------------------------------------------
+
+/** @brief Returns true if either x or y are NaN (Unordered) */
 static inline __m256 _mm256_isunordered_ps(__m256 x, __m256 y) {
 	return _mm256_cmp_ps(x, y, _CMP_UNORD_Q);
+}
+
+/** @brief `x <> y` unordered not-equals */
+static inline __m256 _mm256_islessgreater_ps(__m256 x, __m256 y) {
+	return _mm256_cmp_ps(x, y, _CMP_NEQ_UQ);
+}
+
+/** @brief `x < y` ordered less-than */
+static inline __m256 _mm256_isless_ps(__m256 x, __m256 y) {
+	return _mm256_cmp_ps(x, y, _CMP_LT_OQ);
+}
+
+/** @brief `x <= y` ordered less-equal */
+static inline __m256 _mm256_islessequal_ps(__m256 x, __m256 y) {
+	return _mm256_cmp_ps(x, y, _CMP_LE_OQ);
+}
+
+/** @brief `x > y` ordered greater-than */
+static inline __m256 _mm256_isgreater_ps(__m256 x, __m256 y) {
+	return _mm256_cmp_ps(x, y, _CMP_GT_OQ);
+}
+
+/** @brief `x >= y` ordered greater-equal */
+static inline __m256 _mm256_isgreaterequal_ps(__m256 x, __m256 y) {
+	return _mm256_cmp_ps(x, y, _CMP_GE_OQ);
 }
 
 //------------------------------------------------------------------------------
@@ -270,6 +411,15 @@ static inline __m256 _mm256_fabs_ps(__m256 x) {
 }
 #endif
 
+#ifndef _mm256_not_ps
+static inline __m256 _mm256_not_ps(__m256 x) {
+	return _mm256_xor_ps(
+		x,
+		_mm256_castsi256_ps(_mm256_set1_epi32((int32_t)0xFFFFFFFF))
+	);
+}
+#endif
+
 static inline __m256 _mm256_copysign_ps(__m256 x, __m256 y) {
 	__m256 negate_mask = _mm256_xor_ps(
 		_mm256_cmp_ps(x, _mm256_setzero_ps(), _CMP_LT_OQ),
@@ -279,6 +429,16 @@ static inline __m256 _mm256_copysign_ps(__m256 x, __m256 y) {
 		_mm256_set1_ps(1.0f), _mm256_set1_ps(-1.0f), negate_mask
 	);
 	return _mm256_mul_ps(x, negate_mul);
+}
+
+static inline __m256 _mm_fdim_ps(__m256 x, __m256 y) {
+	__m256 ret;
+	ret = _mm256_sub_ps(x, y);
+	// returns true when ret > 0.0 or ret is NaN
+	__m256 cmp_nle = _mm256_cmp_ps(ret, _mm256_setzero_ps(), _CMP_NLE_UQ);
+	// NaN remains NaN, and -0.0 becomes +0.0
+	ret = _mm256_and_ps(ret, cmp_nle);
+	return ret;
 }
 
 #ifndef _mm256_fmax_ps

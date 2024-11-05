@@ -16,6 +16,7 @@
  * preprocessor isn't aware of function definitions
  */
 
+#include <smmintrin.h>
 #if (!defined(__AVX__) && defined(__GNUC__))
 	#error "__AVX__ is not enabled in your compiler. Try -mavx"
 #endif
@@ -455,8 +456,10 @@ static inline __m256d _mm256_copysign_pd(__m256d x, __m256d y) {
 static inline __m256d _mm256_fdim_pd(__m256d x, __m256d y) {
 	__m256d ret;
 	ret = _mm256_sub_pd(x, y);
-	__m256d cmp_gt = _mm256_cmp_pd(x, y, _CMP_GT_OS);
-	ret = _mm256_blendv_pd(ret, _mm256_setzero_pd(), cmp_gt);
+	// returns true when ret > 0.0 or ret is NaN
+	__m256d cmp_nle = _mm256_cmp_pd(ret, _mm256_setzero_pd(), _CMP_NLE_UQ);
+	// NaN remains NaN, and -0.0 becomes +0.0
+	ret = _mm256_and_pd(ret, cmp_nle);
 	return ret;
 }
 
@@ -809,6 +812,10 @@ static inline __m256d _mm256_frexp_pd_epi32(__m256d x, __m128i* const expon) {
 	return _mm256_blendv_pd(x, ret, _mm256_isfinite_pd(x));
 }
 
+//------------------------------------------------------------------------------
+// __m256d nextafter and nexttoward
+//------------------------------------------------------------------------------
+
 #ifdef __AVX2__
 
 static inline __m256d _mm256_nextafter_pd(__m256d x, __m256d y) {
@@ -843,6 +850,16 @@ static inline __m256d _mm256_nextafter_pd(__m256d x, __m256d y) {
 	);
 }
 
+#else
+
+static inline __m256d _mm256_nextafter_pd(__m256d x, __m256d y) {
+	__m128d part_0 = _mm_nextafter_pd(_mm256_extractf128_pd(x, 0), _mm256_extractf128_pd(y, 0));
+	__m128d part_1 = _mm_nextafter_pd(_mm256_extractf128_pd(x, 1), _mm256_extractf128_pd(y, 1));
+	return _mm256_set_m128d(part_0, part_1);
+}
+
+#endif
+
 static inline __m256d _mm256_nexttoward_pd(__m256d x, long double y) {
 	double double_y = (double)y;
 	long double rounded_y = (long double)double_y;
@@ -851,9 +868,7 @@ static inline __m256d _mm256_nexttoward_pd(__m256d x, long double y) {
 	
 	__m256d input_y = _mm256_set1_pd(double_y);
 
-	__m256d cmp_eq = _mm256_cmp_pd(
-		x, input_y, _CMP_EQ_OQ
-	);
+	__m256d cmp_eq = _mm256_cmp_pd(x, input_y, _CMP_EQ_OQ);
 	
 	if (rounding_occured) {
 		double nextafter_direction = isless(rounded_y, y) ?
@@ -868,9 +883,6 @@ static inline __m256d _mm256_nexttoward_pd(__m256d x, long double y) {
 	}
 	return _mm256_nextafter_pd(x, input_y);
 }
-
-#endif
-
 
 //------------------------------------------------------------------------------
 // __m256d SVML replacement functions
@@ -1045,15 +1057,15 @@ __m256d _mm256_erf_pd(__m256d x);
 /** @note This function doesn't use AVX for calculations */
 __m256d _mm256_erfc_pd(__m256d x);
 
-/** @note This function doesn't use AVX for calculations */
-static inline __m256d _mm256_erfinv_pd(__m256d x) {
-	return _mm256_recip_pd(_mm256_erf_pd(x));
-}
+#if 0
 
 /** @note This function doesn't use AVX for calculations */
-static inline __m256d _mm256_erfcinv_pd(__m256d x) {
-	return _mm256_recip_pd(_mm256_erfc_pd(x));
-}
+static inline __m256d _mm256_erfinv_pd(__m256d x);
+
+/** @note This function doesn't use AVX for calculations */
+static inline __m256d _mm256_erfcinv_pd(__m256d x);
+
+#endif
 
 /** @note This function doesn't use AVX for calculations */
 static inline __m256d _mm256_cdfnorm_pd(__m256d x) {
@@ -1074,6 +1086,60 @@ static inline __m256d _mm256_cdfnorm_pd(__m256d x) {
 }
 
 #endif 
+
+//------------------------------------------------------------------------------
+// __m256d other functions
+//------------------------------------------------------------------------------
+
+static inline __m256d _mm256_clamp_pd(__m256d x, __m256d min_val, __m256d max_val) {
+	x = _mm256_max_pd(x, min_val);
+	x = _mm256_min_pd(x, max_val);
+	return x;
+}
+
+#ifndef __FMA__
+/**
+ * @brief Naive implementation of lerp (using FMA)
+ */
+static inline __m256d _mm256_lerp_pd(__m256d a, __m256d b, __m256d t) {
+	// a + t * (b - a) == a + t * b - t * a
+	__m256d ret = _mm256_fmadd_pd(t, _mm256_sub_pd(b, a), a);
+	ret = _mm256_blendv_pd(ret, a, _mm256_cmp_pd(t, _mm256_setzero_pd(), _CMP_LE_OQ));
+	ret = _mm256_blendv_pd(ret, b, _mm256_cmp_pd(t, _mm256_set1_pd(1.0), _CMP_GE_OQ));
+	return ret;
+}
+#else
+/**
+ * @brief Naive implementation of lerp (without FMA)
+ */
+static inline __m256d _mm256_lerp_pd(__m256d a, __m256d b, __m256d t) {
+	// a + t * (b - a) == a + t * b - t * a
+	__m256d ret = _mm256_add_pd(_mm256_mul_pd(t, _mm256_sub_pd(b, a)), a);
+	ret = _mm256_blendv_pd(ret, a, _mm256_cmp_pd(t, _mm256_setzero_pd(), _CMP_LE_OQ));
+	ret = _mm256_blendv_pd(ret, b, _mm256_cmp_pd(t, _mm256_set1_pd(1.0), _CMP_GE_OQ));
+	return ret;
+}
+#endif
+
+#ifdef __AVX2__
+/**
+ * @brief reverses the elements inside a __m256d
+ * @author https://stackoverflow.com/questions/13422747/
+ */
+static inline __m256d _mm256_reverse_pd(__m256d x) {
+	return _mm256_permute4x64_pd(x, _MM_SHUFFLE(0, 1, 2, 3));
+}
+#else
+/**
+ * @brief reverses the elements inside a __m256d
+ * @author https://stackoverflow.com/questions/13422747/
+ */
+static inline __m256d _mm256_reverse_pd(__m256d x) {
+	x = _mm256_permute2f128_pd(x, x, 1);
+    x = _mm256_permute_pd(x, 5);
+    return x;
+}
+#endif
 
 #ifdef __cplusplus
 	}
