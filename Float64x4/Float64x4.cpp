@@ -175,12 +175,27 @@ Float64x4 log(const Float64x4& x) {
 	return guess;
 }
 
-/**
- * @remarks using similar methods to log(x)
- */
 Float64x4 log1p(const Float64x4& x) {
-	if (isequal_zero(x)) {
-		return static_cast<fp64>(0.0);
+	if (fabs(x) < static_cast<fp64>(0x1.0p-256)) {
+		return x;
+	}
+	if (fabs(x) < static_cast<fp64>(0x1.0p-110)) {
+		return x - mul_pwr2(square(x), static_cast<fp64>(0.5));
+	}
+	if (fabs(x) < static_cast<fp64>(0x1.0p-12 - 0x1.0p-14)) {
+		Float64x4 x_mult = square(x);
+		fp64 x_div = 2.0;
+		Float64x4 ret = x - mul_pwr2(square(x), static_cast<fp64>(0.5));
+		
+		for (int i = 0; i < 14; i += 2) {
+			x_mult *= x;
+			x_div++;
+			ret += x_mult / x_div;
+			x_mult *= x;
+			x_div++;
+			ret -= x_mult / x_div;
+		}
+		return ret;
 	}
 	if (x == static_cast<fp64>(-1.0)) {
 		return -std::numeric_limits<Float64x4>::infinity();
@@ -189,12 +204,7 @@ Float64x4 log1p(const Float64x4& x) {
 		// qd_real::error("(qd_real::log): Non-positive argument.");
 		return std::numeric_limits<Float64x4>::quiet_NaN();
 	}
-	const Float64x4 x_plus1 = x + static_cast<fp64>(1.0);
-	Float64x4 guess = log1p(x.val[0]);
-	guess = guess.val[0] + x_plus1 * exp(-guess) - static_cast<fp64>(1.0);
-	guess = guess + x_plus1 * exp(-guess) - static_cast<fp64>(1.0);
-	guess = guess + x_plus1 * exp(-guess) - static_cast<fp64>(1.0);
-	return guess;
+	return log(x + static_cast<fp64>(1.0));
 }
 
 //------------------------------------------------------------------------------

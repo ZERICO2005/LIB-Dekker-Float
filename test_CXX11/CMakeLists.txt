@@ -33,7 +33,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./bin")
 
 # Compiler Flags
 	set(OPT_FLAG -O3 -g)
-	set(MARCH_FLAGS -msse2 -mavx)
+	set(MARCH_FLAGS -msse2 -mavx2)
 
 # Source Files
 	file(GLOB_RECURSE SRC_FILES

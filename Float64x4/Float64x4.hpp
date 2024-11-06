@@ -1273,7 +1273,15 @@ namespace std {
 /* Logarithms and Exponents */
 
 	Float64x4 log(const Float64x4& x);
+
+	/**
+	 * @brief Calculates `log(x + 1.0)` without losing precision when x is
+	 * close to zero.
+	 * @note Accurate to at least 199bits for all inputs. Uses log(x + 1.0) when
+	 * |x| > ~0.000305 (5.0 * 2^-14)
+	 */
 	Float64x4 log1p(const Float64x4& x);
+	
 	inline Float64x4 log2(const Float64x4& x) {
 		return log(x) * LDF::const_log2e<Float64x4>();
 	}

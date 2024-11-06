@@ -1163,8 +1163,8 @@ namespace std {
 	/**
 	 * @brief Calculates `log(x + 1.0)` without losing precision when x is
 	 * close to zero.
-	 * @note Uses Float64x4 for calculations, which may cause this function to
-	 * run slowly.
+	 * @note Accurate to at least 94bits for all inputs. Uses log(x + 1.0) when
+	 * |x| > 2^-10
 	 */
 	Float64x2 log1p(const Float64x2& x);
 

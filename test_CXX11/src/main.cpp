@@ -48,8 +48,13 @@ inline int64_t getNanoTime(void) {
 
 #include "../../Float64x2/Float64x2.h"
 
-#include "../../Float64/Float64_AVX.hpp"
+#ifdef __AVX__
 #include "../../Float64/Float64_AVX.h"
+#include "../../Float64/Float64_AVX.hpp"
+#include "../../Float64x4/Float64x4_AVX.h"
+#include "../../Float64x2/Float64x2_AVX.h"
+#endif
+
 
 // #include "Float64x4/Float64x4.hpp"
 
@@ -67,9 +72,6 @@ inline int64_t getNanoTime(void) {
 
 // Deprecated since it runs slower than mpfr_t. It could be faster than the overhead from C++ wrappers for mpfr_t
 // #include "Float80x4/Float80x4.h"
-
-#include "../../Float64x4/Float64x4_AVX.h"
-#include "../../Float64x2/Float64x2_AVX.h"
 
 #include "../../util_mpfr/auto_include_FloatX_mpfr.h"
 
@@ -265,13 +267,9 @@ int main(void) {
 
 	// generate_inverf(8192, 300);
 	// test_inverf();
-	__m256d aaa = _mm256_set1_pd(12.32);
-	__m256i bbb = _mm256_ilogb_pd_epi64(aaa);
-	if (_mm256_movemask_pd(_mm256_castsi256_pd(bbb))) {
-		printf("d");
-	}
-	precision_test<float>();
-	// graph_precision<float>(24000, 120.0L, 0.0L);
+
+	precision_test<Float64x4>();
+	// graph_precision<Float64x2>(24000, 0x1.0p-14L, 0.0L);
 
 	// run_generate_constants();
 	

@@ -347,14 +347,29 @@ Float64x2 log(const Float64x2& x) {
 	return guess.hi + x * exp(-guess) - static_cast<fp64>(1.0);
 }
 
-/**
- * @remarks using similar methods to log(x). Haven't figured out how to
- * properly implement log1p without resorting to Float64x4.
- * Wikipedia suggests this identity `log(1 + x) = 2 arctanh(x / (2 + x))`
- */
 Float64x2 log1p(const Float64x2& x) {
-	if (isequal_zero(x)) {
+	if (fabs(x) < static_cast<fp64>(0x1.0p-128)) {
 		return x;
+	}
+	if (fabs(x) < static_cast<fp64>(0x1.0p-66)) {
+		return x - mul_pwr2(square(x), static_cast<fp64>(0.5));
+	}
+	// Use 24 iterations and fabs(x) < 0.0626 for 100bits of precision
+	// Use 8 iterations and fabs(x) < 0x1.0p-10 for 94bits of precision
+	if (fabs(x) < static_cast<fp64>(0x1.0p-10)) {
+		Float64x2 x_mult = square(x);
+		fp64 x_div = 2.0;
+		Float64x2 ret = x - mul_pwr2(square(x), static_cast<fp64>(0.5));
+		
+		for (int i = 0; i < 8; i += 2) {
+			x_mult *= x;
+			x_div++;
+			ret += x_mult / x_div;
+			x_mult *= x;
+			x_div++;
+			ret -= x_mult / x_div;
+		}
+		return ret;
 	}
 	if (x <= static_cast<fp64>(-1.0)) {
 		if (x == static_cast<fp64>(-1.0)) {
@@ -365,9 +380,8 @@ Float64x2 log1p(const Float64x2& x) {
 		std::feraiseexcept(FE_INVALID);
 		return std::numeric_limits<Float64x2>::quiet_NaN();
 	}
-	Float64x4 guess = log1p(x.hi);
-	Float64x4 x_plus1 = LDF::add<Float64x4>(x, static_cast<fp64>(1.0)); 
-	return guess.val[0] + static_cast<Float64x2>(x_plus1 * exp(-guess) - static_cast<fp64>(1.0));
+
+	return log(x + static_cast<fp64>(1.0));
 }
 
 //------------------------------------------------------------------------------
