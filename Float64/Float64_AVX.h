@@ -16,7 +16,6 @@
  * preprocessor isn't aware of function definitions
  */
 
-#include <smmintrin.h>
 #if (!defined(__AVX__) && defined(__GNUC__))
 	#error "__AVX__ is not enabled in your compiler. Try -mavx"
 #endif
@@ -240,7 +239,7 @@ static inline __m256d _mm256_isnormal_pd(const __m256d x) {
 	);
 }
 
-/** @brief Returns true if x is denormal */
+/** @brief Returns true if x is denormal and non-zero */
 static inline __m256d _mm256_isdenormal_pd(const __m256d x) {
 	// check that x is not equal to zero, and that the exponent is all zeros
 	__m256d x_exp = _mm256_extract_exponent_pd(x);

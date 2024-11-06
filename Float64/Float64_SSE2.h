@@ -461,7 +461,7 @@ static inline __m128d _mm_fmin_pd(__m128d x, __m128d y) {
 // __m128d ilogb
 //------------------------------------------------------------------------------
 
-#if true || defined(__SSE4_1__) && defined(__SSE4_2__)
+#if defined(__SSE4_1__) && defined(__SSE4_2__)
 
 static inline __m128i _internal_mm_ilogb_pd_epi64(__m128d x) {
 	const int64_t float64_bias = 1023;
@@ -524,7 +524,7 @@ static inline __m128i _mm_ilogb_pd_epi64(__m128d x) {
 // __m128d ldexp
 //------------------------------------------------------------------------------
 
-#if true || defined(__SSE4_1__) && defined(__SSE4_2__)
+#if defined(__SSE4_1__) && defined(__SSE4_2__)
 
 /**
  * @brief Computes ldexp(x, expon) with support for denormal numbers.
@@ -580,7 +580,7 @@ static inline __m128d _mm_ldexp_pd_epi64(__m128d x, __m128i expon) {
 // __m128d frexp
 //------------------------------------------------------------------------------
 
-#if true || defined(__SSE4_1__) && defined(__SSE4_2__)
+#if defined(__SSE4_1__) && defined(__SSE4_2__)
 
 static inline __m128d _mm_frexp_pd_epi64(__m128d x, __m128i* const expon) {
 	*expon = _mm_add_epi64(_mm_ilogb_pd_epi64(x), _mm_set1_epi64x((int64_t)1));
@@ -599,7 +599,7 @@ static inline __m128d _mm_frexp_pd_epi64(__m128d x, __m128i* const expon) {
 // __m128d nextafter and nexttoward
 //------------------------------------------------------------------------------
 
-#if true || defined(__SSE4_1__) && defined(__SSE4_2__)
+#if defined(__SSE4_1__) && defined(__SSE4_2__)
 
 static inline __m128d _mm_nextafter_pd(__m128d x, __m128d y) {
 
