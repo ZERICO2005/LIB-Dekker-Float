@@ -588,7 +588,7 @@ static inline __m256i _internal_mm256_ilogb_pd_epi64(__m256d x) {
  * @brief Computes ilogb(x) using AVX2 integer operations
  * @returns __m256i int64_t
  */
-inline __m256i _mm256_ilogb_pd_epi64(__m256d x) {
+static inline __m256i _mm256_ilogb_pd_epi64(__m256d x) {
 	__m256d ret = _mm256_castsi256_pd(_internal_mm256_ilogb_pd_epi64(x));
 	// Sets ret to INT64_MIN if x is zero or NaN
 	ret = _mm256_blendv_pd(
