@@ -435,80 +435,104 @@ static inline __m256dx2 _mm256x2_cmp_extend_pd(__m256d cmp) {
 	 * @brief _CMP_LT_OQ
 	 */
 	static inline __m256d _mm256_cmplt_pdx2(__m256dx2 x, __m256dx2 y) {
-		__m256d cmp_eq = _mm256_cmp_pd(x.hi, y.hi, _CMP_EQ_OQ);
-		__m256d cmp_hi = _mm256_cmp_pd(x.hi, y.hi, _CMP_LT_OQ);
-		__m256d cmp_lo = _mm256_cmp_pd(x.lo, y.lo, _CMP_LT_OQ);
-		return _mm256_blendv_pd(cmp_hi, cmp_lo, cmp_eq);
+		return _mm256_or_pd(
+			_mm256_cmp_pd(x.hi, y.hi, _CMP_LT_OQ),
+			_mm256_and_pd(
+				_mm256_cmp_pd(x.hi, y.hi, _CMP_EQ_OQ),
+				_mm256_cmp_pd(x.lo, y.lo, _CMP_LT_OQ)
+			)
+		);
 	}
 
 	/**
 	 * @brief _CMP_LE_OQ
 	 */
 	static inline __m256d _mm256_cmple_pdx2(__m256dx2 x, __m256dx2 y) {
-		__m256d cmp_eq = _mm256_cmp_pd(x.hi, y.hi, _CMP_EQ_OQ);
-		__m256d cmp_hi = _mm256_cmp_pd(x.hi, y.hi, _CMP_LE_OQ);
-		__m256d cmp_lo = _mm256_cmp_pd(x.lo, y.lo, _CMP_LE_OQ);
-		return _mm256_blendv_pd(cmp_hi, cmp_lo, cmp_eq);
+		return _mm256_or_pd(
+			_mm256_cmp_pd(x.hi, y.hi, _CMP_LT_OQ),
+			_mm256_and_pd(
+				_mm256_cmp_pd(x.hi, y.hi, _CMP_EQ_OQ),
+				_mm256_cmp_pd(x.lo, y.lo, _CMP_LE_OQ)
+			)
+		);
 	}
 
 	/**
 	 * @brief _CMP_GT_OQ
 	 */
 	static inline __m256d _mm256_cmpgt_pdx2(__m256dx2 x, __m256dx2 y) {
-		__m256d cmp_eq = _mm256_cmp_pd(x.hi, y.hi, _CMP_EQ_OQ);
-		__m256d cmp_hi = _mm256_cmp_pd(x.hi, y.hi, _CMP_GT_OQ);
-		__m256d cmp_lo = _mm256_cmp_pd(x.lo, y.lo, _CMP_GT_OQ);
-		return _mm256_blendv_pd(cmp_hi, cmp_lo, cmp_eq);
+		return _mm256_or_pd(
+			_mm256_cmp_pd(x.hi, y.hi, _CMP_GT_OQ),
+			_mm256_and_pd(
+				_mm256_cmp_pd(x.hi, y.hi, _CMP_EQ_OQ),
+				_mm256_cmp_pd(x.lo, y.lo, _CMP_GT_OQ)
+			)
+		);
 	}
 
 	/**
 	 * @brief _CMP_GE_OQ
 	 */
 	static inline __m256d _mm256_cmpge_pdx2(__m256dx2 x, __m256dx2 y) {
-		__m256d cmp_eq = _mm256_cmp_pd(x.hi, y.hi, _CMP_EQ_OQ);
-		__m256d cmp_hi = _mm256_cmp_pd(x.hi, y.hi, _CMP_GE_OQ);
-		__m256d cmp_lo = _mm256_cmp_pd(x.lo, y.lo, _CMP_GE_OQ);
-		return _mm256_blendv_pd(cmp_hi, cmp_lo, cmp_eq);
+		return _mm256_or_pd(
+			_mm256_cmp_pd(x.hi, y.hi, _CMP_GT_OQ),
+			_mm256_and_pd(
+				_mm256_cmp_pd(x.hi, y.hi, _CMP_EQ_OQ),
+				_mm256_cmp_pd(x.lo, y.lo, _CMP_GE_OQ)
+			)
+		);
 	}
 
 	/**
 	 * @brief _CMP_NLT_UQ
 	 */
 	static inline __m256d _mm256_cmpnlt_pdx2(__m256dx2 x, __m256dx2 y) {
-		__m256d cmp_eq = _mm256_cmp_pd(x.hi, y.hi, _CMP_NEQ_UQ);
-		__m256d cmp_hi = _mm256_cmp_pd(x.hi, y.hi, _CMP_NLT_UQ);
-		__m256d cmp_lo = _mm256_cmp_pd(x.lo, y.lo, _CMP_NLT_UQ);
-		return _mm256_blendv_pd(cmp_hi, cmp_lo, cmp_eq);
+		return _mm256_or_pd(
+			_mm256_cmp_pd(x.hi, y.hi, _CMP_NLT_UQ),
+			_mm256_and_pd(
+				_mm256_cmp_pd(x.hi, y.hi, _CMP_NEQ_UQ),
+				_mm256_cmp_pd(x.lo, y.lo, _CMP_NLT_UQ)
+			)
+		);
 	}
 
 	/**
 	 * @brief _CMP_NLE_UQ
 	 */
 	static inline __m256d _mm256_cmpnle_pdx2(__m256dx2 x, __m256dx2 y) {
-		__m256d cmp_eq = _mm256_cmp_pd(x.hi, y.hi, _CMP_NEQ_UQ);
-		__m256d cmp_hi = _mm256_cmp_pd(x.hi, y.hi, _CMP_NLT_UQ);
-		__m256d cmp_lo = _mm256_cmp_pd(x.lo, y.lo, _CMP_NLE_UQ);
-		return _mm256_blendv_pd(cmp_hi, cmp_lo, cmp_eq);
+		return _mm256_and_pd(
+			_mm256_cmp_pd(x.hi, y.hi, _CMP_NLT_UQ),
+			_mm256_or_pd(
+				_mm256_cmp_pd(x.hi, y.hi, _CMP_NEQ_UQ),
+				_mm256_cmp_pd(x.lo, y.lo, _CMP_NLE_UQ)
+			)
+		);
 	}
 
 	/**
 	 * @brief _CMP_NGT_UQ
 	 */
 	static inline __m256d _mm256_cmpngt_pdx2(__m256dx2 x, __m256dx2 y) {
-		__m256d cmp_eq = _mm256_cmp_pd(x.hi, y.hi, _CMP_NEQ_UQ);
-		__m256d cmp_hi = _mm256_cmp_pd(x.hi, y.hi, _CMP_NGT_UQ);
-		__m256d cmp_lo = _mm256_cmp_pd(x.lo, y.lo, _CMP_NGT_UQ);
-		return _mm256_blendv_pd(cmp_hi, cmp_lo, cmp_eq);
+		return _mm256_and_pd(
+			_mm256_cmp_pd(x.hi, y.hi, _CMP_NGT_UQ),
+			_mm256_or_pd(
+				_mm256_cmp_pd(x.hi, y.hi, _CMP_NEQ_UQ),
+				_mm256_cmp_pd(x.lo, y.lo, _CMP_NGT_UQ)
+			)
+		);
 	}
 
 	/**
 	 * @brief _CMP_NGE_UQ
 	 */
 	static inline __m256d _mm256_cmpnge_pdx2(__m256dx2 x, __m256dx2 y) {
-		__m256d cmp_eq = _mm256_cmp_pd(x.hi, y.hi, _CMP_NEQ_UQ);
-		__m256d cmp_hi = _mm256_cmp_pd(x.hi, y.hi, _CMP_NGT_UQ);
-		__m256d cmp_lo = _mm256_cmp_pd(x.lo, y.lo, _CMP_NGE_UQ);
-		return _mm256_blendv_pd(cmp_hi, cmp_lo, cmp_eq);
+		return _mm256_and_pd(
+			_mm256_cmp_pd(x.hi, y.hi, _CMP_NGT_UQ),
+			_mm256_or_pd(
+				_mm256_cmp_pd(x.hi, y.hi, _CMP_NEQ_UQ),
+				_mm256_cmp_pd(x.lo, y.lo, _CMP_NGE_UQ)
+			)
+		);
 	}
 
 /* __m256dx2 compare __m256d */
@@ -531,7 +555,7 @@ static inline __m256dx2 _mm256x2_cmp_extend_pd(__m256d cmp) {
 	 * @brief _CMP_EQ_OQ
 	 */
 	static inline __m256d _mm256_cmpeq_pdx2_pd(__m256dx2 x, __m256d y) {
-		__m256d cmp_hi = _mm256_cmp_pd(x.hi,                   y, _CMP_EQ_OQ);
+		__m256d cmp_hi = _mm256_cmp_pd(x.hi, y, _CMP_EQ_OQ);
 		__m256d cmp_lo = _mm256_cmp_pd(x.lo, _mm256_setzero_pd(), _CMP_EQ_OQ);
 		return _mm256_and_pd(cmp_hi, cmp_lo);
 	}
@@ -563,84 +587,108 @@ static inline __m256dx2 _mm256x2_cmp_extend_pd(__m256d cmp) {
 		return _mm256_and_pd(cmp_hi, cmp_lo);
 	}
 
-	/**
+		/**
 	 * @brief _CMP_LT_OQ
 	 */
 	static inline __m256d _mm256_cmplt_pdx2_pd(__m256dx2 x, __m256d y) {
-		__m256d cmp_eq = _mm256_cmp_pd(x.hi, y, _CMP_EQ_OQ);
-		__m256d cmp_hi = _mm256_cmp_pd(x.hi, y, _CMP_LT_OQ);
-		__m256d cmp_lo = _mm256_cmp_pd(x.lo, _mm256_setzero_pd(), _CMP_LT_OQ);
-		return _mm256_blendv_pd(cmp_hi, cmp_lo, cmp_eq);
+		return _mm256_or_pd(
+			_mm256_cmp_pd(x.hi, y, _CMP_LT_OQ),
+			_mm256_and_pd(
+				_mm256_cmp_pd(x.hi, y, _CMP_EQ_OQ),
+				_mm256_cmp_pd(x.lo, _mm256_setzero_pd(), _CMP_LT_OQ)
+			)
+		);
 	}
 
 	/**
 	 * @brief _CMP_LE_OQ
 	 */
 	static inline __m256d _mm256_cmple_pdx2_pd(__m256dx2 x, __m256d y) {
-		__m256d cmp_eq = _mm256_cmp_pd(x.hi, y, _CMP_EQ_OQ);
-		__m256d cmp_hi = _mm256_cmp_pd(x.hi, y, _CMP_LE_OQ);
-		__m256d cmp_lo = _mm256_cmp_pd(x.lo, _mm256_setzero_pd(), _CMP_LE_OQ);
-		return _mm256_blendv_pd(cmp_hi, cmp_lo, cmp_eq);
+		return _mm256_or_pd(
+			_mm256_cmp_pd(x.hi, y, _CMP_LT_OQ),
+			_mm256_and_pd(
+				_mm256_cmp_pd(x.hi, y, _CMP_EQ_OQ),
+				_mm256_cmp_pd(x.lo, _mm256_setzero_pd(), _CMP_LE_OQ)
+			)
+		);
 	}
 
 	/**
 	 * @brief _CMP_GT_OQ
 	 */
 	static inline __m256d _mm256_cmpgt_pdx2_pd(__m256dx2 x, __m256d y) {
-		__m256d cmp_eq = _mm256_cmp_pd(x.hi, y, _CMP_EQ_OQ);
-		__m256d cmp_hi = _mm256_cmp_pd(x.hi, y, _CMP_GT_OQ);
-		__m256d cmp_lo = _mm256_cmp_pd(x.lo, _mm256_setzero_pd(), _CMP_GT_OQ);
-		return _mm256_blendv_pd(cmp_hi, cmp_lo, cmp_eq);
+		return _mm256_or_pd(
+			_mm256_cmp_pd(x.hi, y, _CMP_GT_OQ),
+			_mm256_and_pd(
+				_mm256_cmp_pd(x.hi, y, _CMP_EQ_OQ),
+				_mm256_cmp_pd(x.lo, _mm256_setzero_pd(), _CMP_GT_OQ)
+			)
+		);
 	}
 
 	/**
 	 * @brief _CMP_GE_OQ
 	 */
 	static inline __m256d _mm256_cmpge_pdx2_pd(__m256dx2 x, __m256d y) {
-		__m256d cmp_eq = _mm256_cmp_pd(x.hi, y, _CMP_EQ_OQ);
-		__m256d cmp_hi = _mm256_cmp_pd(x.hi, y, _CMP_GE_OQ);
-		__m256d cmp_lo = _mm256_cmp_pd(x.lo, _mm256_setzero_pd(), _CMP_GE_OQ);
-		return _mm256_blendv_pd(cmp_hi, cmp_lo, cmp_eq);
+		return _mm256_or_pd(
+			_mm256_cmp_pd(x.hi, y, _CMP_GT_OQ),
+			_mm256_and_pd(
+				_mm256_cmp_pd(x.hi, y, _CMP_EQ_OQ),
+				_mm256_cmp_pd(x.lo, _mm256_setzero_pd(), _CMP_GE_OQ)
+			)
+		);
 	}
 
 	/**
 	 * @brief _CMP_NLT_UQ
 	 */
 	static inline __m256d _mm256_cmpnlt_pdx2_pd(__m256dx2 x, __m256d y) {
-		__m256d cmp_eq = _mm256_cmp_pd(x.hi, y, _CMP_NEQ_UQ);
-		__m256d cmp_hi = _mm256_cmp_pd(x.hi, y, _CMP_NLT_UQ);
-		__m256d cmp_lo = _mm256_cmp_pd(x.lo, _mm256_setzero_pd(), _CMP_NLT_UQ);
-		return _mm256_blendv_pd(cmp_hi, cmp_lo, cmp_eq);
+		return _mm256_or_pd(
+			_mm256_cmp_pd(x.hi, y, _CMP_NLT_UQ),
+			_mm256_and_pd(
+				_mm256_cmp_pd(x.hi, y, _CMP_NEQ_UQ),
+				_mm256_cmp_pd(x.lo, _mm256_setzero_pd(), _CMP_NLT_UQ)
+			)
+		);
 	}
 
 	/**
 	 * @brief _CMP_NLE_UQ
 	 */
 	static inline __m256d _mm256_cmpnle_pdx2_pd(__m256dx2 x, __m256d y) {
-		__m256d cmp_eq = _mm256_cmp_pd(x.hi, y, _CMP_NEQ_UQ);
-		__m256d cmp_hi = _mm256_cmp_pd(x.hi, y, _CMP_NLT_UQ);
-		__m256d cmp_lo = _mm256_cmp_pd(x.lo, _mm256_setzero_pd(), _CMP_NLE_UQ);
-		return _mm256_blendv_pd(cmp_hi, cmp_lo, cmp_eq);
+		return _mm256_and_pd(
+			_mm256_cmp_pd(x.hi, y, _CMP_NLT_UQ),
+			_mm256_or_pd(
+				_mm256_cmp_pd(x.hi, y, _CMP_NEQ_UQ),
+				_mm256_cmp_pd(x.lo, _mm256_setzero_pd(), _CMP_NLE_UQ)
+			)
+		);
 	}
 
 	/**
 	 * @brief _CMP_NGT_UQ
 	 */
 	static inline __m256d _mm256_cmpngt_pdx2_pd(__m256dx2 x, __m256d y) {
-		__m256d cmp_eq = _mm256_cmp_pd(x.hi, y, _CMP_NEQ_UQ);
-		__m256d cmp_hi = _mm256_cmp_pd(x.hi, y, _CMP_NGT_UQ);
-		__m256d cmp_lo = _mm256_cmp_pd(x.lo, _mm256_setzero_pd(), _CMP_NGT_UQ);
-		return _mm256_blendv_pd(cmp_hi, cmp_lo, cmp_eq);
+		return _mm256_and_pd(
+			_mm256_cmp_pd(x.hi, y, _CMP_NGT_UQ),
+			_mm256_or_pd(
+				_mm256_cmp_pd(x.hi, y, _CMP_NEQ_UQ),
+				_mm256_cmp_pd(x.lo, _mm256_setzero_pd(), _CMP_NGT_UQ)
+			)
+		);
 	}
 
 	/**
 	 * @brief _CMP_NGE_UQ
 	 */
 	static inline __m256d _mm256_cmpnge_pdx2_pd(__m256dx2 x, __m256d y) {
-		__m256d cmp_eq = _mm256_cmp_pd(x.hi, y, _CMP_NEQ_UQ);
-		__m256d cmp_hi = _mm256_cmp_pd(x.hi, y, _CMP_NGT_UQ);
-		__m256d cmp_lo = _mm256_cmp_pd(x.lo, _mm256_setzero_pd(), _CMP_NGE_UQ);
-		return _mm256_blendv_pd(cmp_hi, cmp_lo, cmp_eq);
+		return _mm256_and_pd(
+			_mm256_cmp_pd(x.hi, y, _CMP_NGT_UQ),
+			_mm256_or_pd(
+				_mm256_cmp_pd(x.hi, y, _CMP_NEQ_UQ),
+				_mm256_cmp_pd(x.lo, _mm256_setzero_pd(), _CMP_NGE_UQ)
+			)
+		);
 	}
 
 /* __m256d compare __m256dx2 */
@@ -695,84 +743,108 @@ static inline __m256dx2 _mm256x2_cmp_extend_pd(__m256d cmp) {
 		return _mm256_and_pd(cmp_hi, cmp_lo);
 	}
 
-	/**
+		/**
 	 * @brief _CMP_LT_OQ
 	 */
 	static inline __m256d _mm256_cmplt_pd_pdx2(__m256d x, __m256dx2 y) {
-		__m256d cmp_eq = _mm256_cmp_pd(x, y.hi, _CMP_EQ_OQ);
-		__m256d cmp_hi = _mm256_cmp_pd(x, y.hi, _CMP_LT_OQ);
-		__m256d cmp_lo = _mm256_cmp_pd(_mm256_setzero_pd(), y.lo, _CMP_LT_OQ);
-		return _mm256_blendv_pd(cmp_hi, cmp_lo, cmp_eq);
+		return _mm256_or_pd(
+			_mm256_cmp_pd(x, y.hi, _CMP_LT_OQ),
+			_mm256_and_pd(
+				_mm256_cmp_pd(x, y.hi, _CMP_EQ_OQ),
+				_mm256_cmp_pd(_mm256_setzero_pd(), y.lo, _CMP_LT_OQ)
+			)
+		);
 	}
 
 	/**
 	 * @brief _CMP_LE_OQ
 	 */
 	static inline __m256d _mm256_cmple_pd_pdx2(__m256d x, __m256dx2 y) {
-		__m256d cmp_eq = _mm256_cmp_pd(x, y.hi, _CMP_EQ_OQ);
-		__m256d cmp_hi = _mm256_cmp_pd(x, y.hi, _CMP_LE_OQ);
-		__m256d cmp_lo = _mm256_cmp_pd(_mm256_setzero_pd(), y.lo, _CMP_LE_OQ);
-		return _mm256_blendv_pd(cmp_hi, cmp_lo, cmp_eq);
+		return _mm256_or_pd(
+			_mm256_cmp_pd(x, y.hi, _CMP_LT_OQ),
+			_mm256_and_pd(
+				_mm256_cmp_pd(x, y.hi, _CMP_EQ_OQ),
+				_mm256_cmp_pd(_mm256_setzero_pd(), y.lo, _CMP_LE_OQ)
+			)
+		);
 	}
 
 	/**
 	 * @brief _CMP_GT_OQ
 	 */
 	static inline __m256d _mm256_cmpgt_pd_pdx2(__m256d x, __m256dx2 y) {
-		__m256d cmp_eq = _mm256_cmp_pd(x, y.hi, _CMP_EQ_OQ);
-		__m256d cmp_hi = _mm256_cmp_pd(x, y.hi, _CMP_GT_OQ);
-		__m256d cmp_lo = _mm256_cmp_pd(_mm256_setzero_pd(), y.lo, _CMP_GT_OQ);
-		return _mm256_blendv_pd(cmp_hi, cmp_lo, cmp_eq);
+		return _mm256_or_pd(
+			_mm256_cmp_pd(x, y.hi, _CMP_GT_OQ),
+			_mm256_and_pd(
+				_mm256_cmp_pd(x, y.hi, _CMP_EQ_OQ),
+				_mm256_cmp_pd(_mm256_setzero_pd(), y.lo, _CMP_GT_OQ)
+			)
+		);
 	}
 
 	/**
 	 * @brief _CMP_GE_OQ
 	 */
 	static inline __m256d _mm256_cmpge_pd_pdx2(__m256d x, __m256dx2 y) {
-		__m256d cmp_eq = _mm256_cmp_pd(x, y.hi, _CMP_EQ_OQ);
-		__m256d cmp_hi = _mm256_cmp_pd(x, y.hi, _CMP_GE_OQ);
-		__m256d cmp_lo = _mm256_cmp_pd(_mm256_setzero_pd(), y.lo, _CMP_GE_OQ);
-		return _mm256_blendv_pd(cmp_hi, cmp_lo, cmp_eq);
+		return _mm256_or_pd(
+			_mm256_cmp_pd(x, y.hi, _CMP_GT_OQ),
+			_mm256_and_pd(
+				_mm256_cmp_pd(x, y.hi, _CMP_EQ_OQ),
+				_mm256_cmp_pd(_mm256_setzero_pd(), y.lo, _CMP_GE_OQ)
+			)
+		);
 	}
 
 	/**
 	 * @brief _CMP_NLT_UQ
 	 */
 	static inline __m256d _mm256_cmpnlt_pd_pdx2(__m256d x, __m256dx2 y) {
-		__m256d cmp_eq = _mm256_cmp_pd(x, y.hi, _CMP_NEQ_UQ);
-		__m256d cmp_hi = _mm256_cmp_pd(x, y.hi, _CMP_NLT_UQ);
-		__m256d cmp_lo = _mm256_cmp_pd(_mm256_setzero_pd(), y.lo, _CMP_NLT_UQ);
-		return _mm256_blendv_pd(cmp_hi, cmp_lo, cmp_eq);
+		return _mm256_or_pd(
+			_mm256_cmp_pd(x, y.hi, _CMP_NLT_UQ),
+			_mm256_and_pd(
+				_mm256_cmp_pd(x, y.hi, _CMP_NEQ_UQ),
+				_mm256_cmp_pd(_mm256_setzero_pd(), y.lo, _CMP_NLT_UQ)
+			)
+		);
 	}
 
 	/**
 	 * @brief _CMP_NLE_UQ
 	 */
 	static inline __m256d _mm256_cmpnle_pd_pdx2(__m256d x, __m256dx2 y) {
-		__m256d cmp_eq = _mm256_cmp_pd(x, y.hi, _CMP_NEQ_UQ);
-		__m256d cmp_hi = _mm256_cmp_pd(x, y.hi, _CMP_NLT_UQ);
-		__m256d cmp_lo = _mm256_cmp_pd(_mm256_setzero_pd(), y.lo, _CMP_NLE_UQ);
-		return _mm256_blendv_pd(cmp_hi, cmp_lo, cmp_eq);
+		return _mm256_and_pd(
+			_mm256_cmp_pd(x, y.hi, _CMP_NLT_UQ),
+			_mm256_or_pd(
+				_mm256_cmp_pd(x, y.hi, _CMP_NEQ_UQ),
+				_mm256_cmp_pd(_mm256_setzero_pd(), y.lo, _CMP_NLE_UQ)
+			)
+		);
 	}
 
 	/**
 	 * @brief _CMP_NGT_UQ
 	 */
 	static inline __m256d _mm256_cmpngt_pd_pdx2(__m256d x, __m256dx2 y) {
-		__m256d cmp_eq = _mm256_cmp_pd(x, y.hi, _CMP_NEQ_UQ);
-		__m256d cmp_hi = _mm256_cmp_pd(x, y.hi, _CMP_NGT_UQ);
-		__m256d cmp_lo = _mm256_cmp_pd(_mm256_setzero_pd(), y.lo, _CMP_NGT_UQ);
-		return _mm256_blendv_pd(cmp_hi, cmp_lo, cmp_eq);
+		return _mm256_and_pd(
+			_mm256_cmp_pd(x, y.hi, _CMP_NGT_UQ),
+			_mm256_or_pd(
+				_mm256_cmp_pd(x, y.hi, _CMP_NEQ_UQ),
+				_mm256_cmp_pd(_mm256_setzero_pd(), y.lo, _CMP_NGT_UQ)
+			)
+		);
 	}
 
 	/**
 	 * @brief _CMP_NGE_UQ
 	 */
 	static inline __m256d _mm256_cmpnge_pd_pdx2(__m256d x, __m256dx2 y) {
-		__m256d cmp_eq = _mm256_cmp_pd(x, y.hi, _CMP_NEQ_UQ);
-		__m256d cmp_hi = _mm256_cmp_pd(x, y.hi, _CMP_NGT_UQ);
-		__m256d cmp_lo = _mm256_cmp_pd(_mm256_setzero_pd(), y.lo, _CMP_NGE_UQ);
-		return _mm256_blendv_pd(cmp_hi, cmp_lo, cmp_eq);
+		return _mm256_and_pd(
+			_mm256_cmp_pd(x, y.hi, _CMP_NGT_UQ),
+			_mm256_or_pd(
+				_mm256_cmp_pd(x, y.hi, _CMP_NEQ_UQ),
+				_mm256_cmp_pd(_mm256_setzero_pd(), y.lo, _CMP_NGE_UQ)
+			)
+		);
 	}
 
 //------------------------------------------------------------------------------
@@ -1904,7 +1976,7 @@ static inline __m256dx2 _mm256x2_log10_pdx2(const __m256dx2 x) {
 __m256dx2 _mm256x2_pow_pdx2(__m256dx2 x, __m256dx2 y);
 
 /** @note This function doesn't use AVX for calculations */
-__m256dx2 _mm256x2_pow_pdx2_pd(__m256dx2 x,  __m256d y);
+__m256dx2 _mm256x2_pow_pdx2_pd(__m256dx2 x, __m256d y);
 
 #if 0
 	// Avoiding multiple __m256dx2 to Float64x2 conversions
