@@ -54,10 +54,10 @@ static inline __m256dx2 _mm256x2_setzero_pdx2(void) {
 	return ret;
 }
 
-static inline __m256dx2 _mm256x2_set1_pdx2(fp64 values[2]) {
+static inline __m256dx2 _mm256x2_set1_pdx2(Float64x2 val) {
 	__m256dx2 ret;
-	ret.hi = _mm256_set1_pd(values[0]);
-	ret.lo = _mm256_set1_pd(values[1]);
+	ret.hi = _mm256_set1_pd(val.hi);
+	ret.lo = _mm256_set1_pd(val.lo);
 	return ret;
 }
 
@@ -1039,13 +1039,24 @@ static inline __m256dx2 _mm256x2_sub_pdx2(__m256dx2 x, __m256dx2 y) {
 }
 
 static inline __m256dx2 _mm256x2_dekker_split_pd(__m256d x) {
+	#if 0
 	// (2^ceil(53 / 2) + 1)
 	const __m256d dekker_scale = _mm256_set1_pd(134217729.0); 
 	__m256d p = _mm256_mul_pd(x, dekker_scale);
-	__m256dx2 r;
-	r.hi = _mm256_add_pd(_mm256_sub_pd(x, p), p);
-	r.lo = _mm256_sub_pd(x, r.hi);
-	return r;
+	__m256dx2 ret;
+	ret.hi = _mm256_add_pd(_mm256_sub_pd(x, p), p);
+	ret.lo = _mm256_sub_pd(x, ret.hi);
+
+	#else
+	// (2^ceil(53 / 2) + 1)
+	const __m256d dekker_scale = _mm256_set1_pd(134217729.0); 
+	__m256d temp = _mm256_mul_pd(x, dekker_scale);
+	__m256dx2 ret;
+	ret.hi = _mm256_sub_pd(temp, _mm256_sub_pd(temp, x));
+	ret.lo = _mm256_sub_pd(x, ret.hi);
+
+	#endif
+	return ret;
 }
 
 // DOUBLE_FLOAT64_AVX_ATTRIBUTE(optimize("-fno-associative"))
@@ -1781,7 +1792,7 @@ static inline __m256dx2 _mm256x2_round_pdx2(__m256dx2 x) {
 static inline __m256dx2 _mm256x2_fabs_pdx2(__m256dx2 x) {
 	const __m256d sign_mask = _mm256_and_pd(
 		x.hi,
-		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FFFFFFFFFFFFFFF))
+		_mm256_get_sign_mask_pd()
 	);
 	x.hi = _mm256_xor_pd(x.hi, sign_mask);
 	x.lo = _mm256_xor_pd(x.lo, sign_mask);
@@ -1802,7 +1813,17 @@ static inline __m256dx2 _mm256x2_fdim_pdx2(__m256dx2 x, __m256dx2 y) {
 static inline __m256dx2 _mm256x2_copysign_pdx2(__m256dx2 x, __m256dx2 y) {
 	const __m256d sign_mask = _mm256_and_pd(
 		_mm256_xor_pd(x.hi, y.hi),
-		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FFFFFFFFFFFFFFF))
+		_mm256_get_sign_mask_pd()
+	);
+	x.hi = _mm256_xor_pd(x.hi, sign_mask);
+	x.lo = _mm256_xor_pd(x.lo, sign_mask);
+	return x;
+}
+
+static inline __m256dx2 _mm256x2_copysign_pdx2_pd(__m256dx2 x, __m256d y) {
+	const __m256d sign_mask = _mm256_and_pd(
+		_mm256_xor_pd(x.hi, y),
+		_mm256_get_sign_mask_pd()
 	);
 	x.hi = _mm256_xor_pd(x.hi, sign_mask);
 	x.lo = _mm256_xor_pd(x.lo, sign_mask);

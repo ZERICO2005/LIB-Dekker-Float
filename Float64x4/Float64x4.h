@@ -398,24 +398,24 @@ static inline fp64 Float64_two_diff(const fp64 x, const fp64 y, fp64* LDF_restri
 }
 
 static inline void Float64_split(
-	fp64 a,
+	fp64 x,
 	fp64* LDF_restrict const hi,
 	fp64* LDF_restrict const lo
 ) {
 	const fp64 FLOAT64_SPLITTER = 134217729.0; // = 2^27 + 1
 	const fp64 FLOAT64_SPLIT_THRESH = 0x1.0p+996; // = 2^996
 	fp64 temp;
-	if (a > FLOAT64_SPLIT_THRESH || a < -FLOAT64_SPLIT_THRESH) {
-		a *= 0x1.0p-28; // 2^-28
-		temp = FLOAT64_SPLITTER * a;
-		*hi = temp - (temp - a);
-		*lo = a - *hi;
+	if (x > FLOAT64_SPLIT_THRESH || x < -FLOAT64_SPLIT_THRESH) {
+		x *= 0x1.0p-28; // 2^-28
+		temp = FLOAT64_SPLITTER * x;
+		*hi = temp - (temp - x);
+		*lo = x - *hi;
 		*hi *= 0x1.0p+28; // 2^28
 		*lo *= 0x1.0p+28; // 2^28
 	} else {
-		temp = FLOAT64_SPLITTER * a;
-		*hi = temp - (temp - a);
-		*lo = a - *hi;
+		temp = FLOAT64_SPLITTER * x;
+		*hi = temp - (temp - x);
+		*lo = x - *hi;
 	}
 }
 
@@ -425,7 +425,10 @@ static inline fp64 Float64_two_prod(const fp64 a, const fp64 b, fp64* LDF_restri
 	fp64 p = a * b;
 	Float64_split(a, &a_hi, &a_lo);
 	Float64_split(b, &b_hi, &b_lo);
-	*err = ((a_hi * b_hi - p) + a_hi * b_lo + a_lo * b_hi) + a_lo * b_lo;
+	*err = (
+		(a_hi * b_hi - p) + 
+		a_hi * b_lo + a_lo * b_hi
+	) + a_lo * b_lo;
 	return p;
 }
 
@@ -434,7 +437,10 @@ static inline fp64 Float64_two_sqr(const fp64 a, fp64* LDF_restrict const err) {
 	fp64 hi, lo;
 	fp64 q = a * a;
 	Float64_split(a, &hi, &lo);
-	*err = ((hi * hi - q) + 2.0 * hi * lo) + lo * lo;
+	*err = (
+		(hi * hi - q) +
+		2.0 * hi * lo
+	) + lo * lo;
 	return q;
 }
 
@@ -489,7 +495,7 @@ static inline void Float64x4_three_sum2(
 ) {
 	fp64 t1, t2, t3;
 	t1 = Float64_two_sum(*a, *b, &t2);
-	*a = Float64_two_sum(c, t1, &t3);
+	*a = Float64_two_sum( c, t1, &t3);
 	*b = t2 + t3;
 }
 
@@ -616,16 +622,16 @@ static inline void Float64x4_quick_renorm_err(
 ) {
 	fp64 t0, t1, t2, t3;
 	fp64 s;
-	s   = Float64_quick_two_sum(x->val[3], *err, &t3);
-	s   = Float64_quick_two_sum(x->val[2], s   , &t2);
-	s   = Float64_quick_two_sum(x->val[1], s   , &t1);
+	s         = Float64_quick_two_sum(x->val[3], *err, &t3);
+	s         = Float64_quick_two_sum(x->val[2], s   , &t2);
+	s         = Float64_quick_two_sum(x->val[1], s   , &t1);
 	x->val[0] = Float64_quick_two_sum(x->val[0], s   , &t0);
 
-	s   = Float64_quick_two_sum(t2, t3, &t2);
-	s   = Float64_quick_two_sum(t1, s , &t1);
+	s         = Float64_quick_two_sum(t2, t3, &t2);
+	s         = Float64_quick_two_sum(t1, s , &t1);
 	x->val[1] = Float64_quick_two_sum(t0, s , &t0);
 
-	s   = Float64_quick_two_sum(t1, t2, &t1);
+	s         = Float64_quick_two_sum(t1, t2, &t1);
 	x->val[2] = Float64_quick_two_sum(t0, s , &t0);
 	
 	x->val[3] = t0 + t1;
