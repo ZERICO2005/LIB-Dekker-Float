@@ -225,15 +225,7 @@ static inline __m128d _mm_isinf_pd(const __m128d x) {
 
 /** @brief Returns true if x is any kind of NaN */
 static inline __m128d _mm_isnan_pd(const __m128d x) {
-	// extract the exponent, and check if it is all ones
-	__m128d x_exp = _mm_cmpeq_pd(
-		_mm_extract_exponent_pd(x), _mm_get_exponent_mask_pd()
-	);
-	// extract the mantissa, and check that at least one bit is set
-	__m128d x_mant = _mm_cmpneq_pd(
-		_mm_extract_mantissa_pd(x), _mm_setzero_pd()
-	);
-	return _mm_and_pd(x_exp, x_mant);
+	return _mm_cmpunord_pd(x, x);
 }
 
 /** @brief Returns true if x is normal */

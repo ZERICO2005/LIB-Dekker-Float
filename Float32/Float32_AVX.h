@@ -172,7 +172,11 @@ static inline __m256 _mm256_extract_mantissa_ps(const __m256 x) {
 
 /** @brief Returns true if x is negative */
 static inline __m256 _mm256_signbit_ps(const __m256 x) {
-	return _mm256_cmp_ps(x, _mm256_setzero_ps(), _CMP_LT_OQ);
+	return _mm256_blendv_ps(
+		_mm256_setzero_ps(),
+		_mm256_castsi256_ps(_mm256_set1_epi32((int32_t)0xFFFFFFFF)),
+		x
+	);
 }
 
 /** @brief Returns true if x is finite */
@@ -195,15 +199,7 @@ static inline __m256 _mm256_isinf_ps(const __m256 x) {
 
 /** @brief Returns true if x is any kind of NaN */
 static inline __m256 _mm256_isnan_ps(const __m256 x) {
-	// extract the exponent, and check if it is all ones
-	__m256 x_exp = _mm256_cmp_ps(
-		_mm256_extract_exponent_ps(x), _mm256_get_exponent_mask_ps(),
-	_CMP_EQ_UQ);
-	// extract the mantissa, and check that at least one bit is set
-	__m256 x_mant = _mm256_cmp_ps(
-		_mm256_extract_mantissa_ps(x), _mm256_setzero_ps(),
-	_CMP_NEQ_UQ);
-	return _mm256_and_ps(x_exp, x_mant);
+	return _mm256_cmp_ps(x, x, _CMP_UNORD_Q);
 }
 
 /** @brief Returns true if x is normal */
@@ -219,7 +215,7 @@ static inline __m256 _mm256_isnormal_ps(const __m256 x) {
 /** @brief Returns true if x is denormal */
 static inline __m256 _mm256_isdenormal_ps(const __m256 x) {
 	// check that x is not equal to zero, and that the exponent is all zeros
-	__m256 x_exp = _mm256_extract_exponent_pd(x);
+	__m256 x_exp = _mm256_extract_exponent_ps(x);
 	return _mm256_and_ps(
 		_mm256_cmp_ps(x, _mm256_setzero_ps(), _CMP_NEQ_UQ),
 		_mm256_cmp_ps(x_exp, _mm256_setzero_ps(), _CMP_EQ_UQ)
@@ -421,14 +417,12 @@ static inline __m256 _mm256_not_ps(__m256 x) {
 #endif
 
 static inline __m256 _mm256_copysign_ps(__m256 x, __m256 y) {
-	__m256 negate_mask = _mm256_xor_ps(
-		_mm256_cmp_ps(x, _mm256_setzero_ps(), _CMP_LT_OQ),
-		_mm256_cmp_ps(y, _mm256_setzero_ps(), _CMP_LT_OQ)
+	return _mm256_xor_ps(
+		x, _mm256_and_ps(
+			_mm256_xor_ps(x, y),
+			_mm256_castsi256_ps(_mm256_set1_epi32((int32_t)0x7FFFFFFF))
+		)
 	);
-	__m256 negate_mul = _mm256_blendv_ps(
-		_mm256_set1_ps(1.0f), _mm256_set1_ps(-1.0f), negate_mask
-	);
-	return _mm256_mul_ps(x, negate_mul);
 }
 
 static inline __m256 _mm_fdim_ps(__m256 x, __m256 y) {

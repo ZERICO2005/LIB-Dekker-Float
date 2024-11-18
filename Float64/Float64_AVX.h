@@ -218,15 +218,7 @@ static inline __m256d _mm256_isinf_pd(const __m256d x) {
 
 /** @brief Returns true if x is any kind of NaN */
 static inline __m256d _mm256_isnan_pd(const __m256d x) {
-	// extract the exponent, and check if it is all ones
-	__m256d x_exp = _mm256_cmp_pd(
-		_mm256_extract_exponent_pd(x), _mm256_get_exponent_mask_pd(),
-	_CMP_EQ_UQ);
-	// extract the mantissa, and check that at least one bit is set
-	__m256d x_mant = _mm256_cmp_pd(
-		_mm256_extract_mantissa_pd(x), _mm256_setzero_pd(),
-	_CMP_NEQ_UQ);
-	return _mm256_and_pd(x_exp, x_mant);
+	return _mm256_cmp_pd(x, _mm256_setzero_pd(), _CMP_UNORD_Q);
 }
 
 /** @brief Returns true if x is normal */
