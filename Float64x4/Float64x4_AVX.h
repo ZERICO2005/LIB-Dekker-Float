@@ -1559,7 +1559,7 @@ static inline __m256d _mm256_quick_two_sum_pd(const __m256d x, const __m256d y, 
 /** @brief Computes fl(x - y) and err(x - y). Assumes |x| >= |y|. */
 static inline __m256d _mm256_quick_two_diff_pd(const __m256d x, const __m256d y, __m256d* LDF_restrict const err) {
 	__m256d s = _mm256_sub_pd(x, y);
-	*err = _mm256_sub_pd(y, _mm256_sub_pd(s, x));
+	*err = _mm256_sub_pd(_mm256_sub_pd(x, s), y);
 	return s;
 }
 
@@ -1567,7 +1567,10 @@ static inline __m256d _mm256_quick_two_diff_pd(const __m256d x, const __m256d y,
 static inline __m256d _mm256_two_sum_pd(const __m256d x, const __m256d y, __m256d* LDF_restrict const err) {
 	__m256d s = _mm256_add_pd(x, y);
 	__m256d bb = _mm256_sub_pd(s, x);
-	*err = _mm256_add_pd(_mm256_sub_pd(x, _mm256_sub_pd(s, bb)), _mm256_sub_pd(y, bb));
+	*err = _mm256_add_pd(
+		_mm256_sub_pd(x, _mm256_sub_pd(s, bb)),
+		_mm256_sub_pd(y, bb)
+	);
 	return s;
 }
 
@@ -1575,7 +1578,10 @@ static inline __m256d _mm256_two_sum_pd(const __m256d x, const __m256d y, __m256
 static inline __m256d _mm256_two_diff_pd(const __m256d x, const __m256d y, __m256d* LDF_restrict const err) {
 	__m256d s = _mm256_sub_pd(x, y);
 	__m256d bb = _mm256_sub_pd(s, x);
-	*err = _mm256_sub_pd(_mm256_sub_pd(x, _mm256_sub_pd(s, bb)), _mm256_add_pd(y, bb));
+	*err = _mm256_sub_pd(
+		_mm256_sub_pd(x, _mm256_sub_pd(s, bb)),
+		_mm256_add_pd(y, bb)
+	);
 	return s;
 }
 
@@ -1584,10 +1590,14 @@ static inline __m256d _mm256_two_prod_pd(const __m256d x, const __m256d y, __m25
 	__m256d p = _mm256_mul_pd(x, y);
 	__m256dx2 a = _mm256x2_dekker_split_pd(x);
 	__m256dx2 b = _mm256x2_dekker_split_pd(y);
-	*err = _mm256_add_pd((_mm256_add_pd(
-		_mm256_add_pd(_mm256_sub_pd(_mm256_mul_pd(a.hi, b.hi), p), _mm256_mul_pd(a.hi, b.lo)),
-		_mm256_mul_pd(a.lo, b.hi)
-	)), _mm256_mul_pd(a.lo, b.lo));
+	*err = _mm256_add_pd(
+		_mm256_add_pd(
+			_mm256_add_pd(
+				_mm256_sub_pd(_mm256_mul_pd(a.hi, b.hi), p),
+				_mm256_mul_pd(a.hi, b.lo)
+			), _mm256_mul_pd(a.lo, b.hi)
+		), _mm256_mul_pd(a.lo, b.lo)
+	);
 	return p;
 }
 
@@ -1595,10 +1605,12 @@ static inline __m256d _mm256_two_prod_pd(const __m256d x, const __m256d y, __m25
 static inline __m256d _mm256_two_sqr_pd(const __m256d x, __m256d* LDF_restrict const err) {
 	__m256d q = _mm256_mul_pd(x, x);
 	__m256dx2 a = _mm256x2_dekker_split_pd(x);
-	*err = _mm256_add_pd(_mm256_add_pd(
-		_mm256_sub_pd(_mm256_mul_pd(a.hi, a.hi), q),
-		_mm256_mul_pd(_mm256_set1_pd(2.0), _mm256_mul_pd(a.hi, a.lo))
-	), _mm256_mul_pd(a.lo, a.lo));
+	*err = _mm256_add_pd(
+		_mm256_add_pd(
+			_mm256_sub_pd(_mm256_mul_pd(a.hi, a.hi), q),
+			_mm256_mul_pd(_mm256_set1_pd(2.0), _mm256_mul_pd(a.hi, a.lo))
+		), _mm256_mul_pd(a.lo, a.lo)
+	);
 	return q;
 }
 
@@ -1641,11 +1653,11 @@ static inline void _mm256_three_sum_pd(
 static inline void _mm256_three_sum2_pd(
 	__m256d* LDF_restrict const a,
 	__m256d* LDF_restrict const b,
-	__m256d* LDF_restrict const c
+	const __m256d c
 ) {
 	__m256d t1, t2, t3;
 	t1 = _mm256_two_sum_pd(*a, *b, &t2);
-	*a = _mm256_two_sum_pd(*c, t1, &t3);
+	*a = _mm256_two_sum_pd( c, t1, &t3);
 	*b = _mm256_add_pd(t2, t3);
 }
 
@@ -1906,14 +1918,14 @@ static inline __m256dx4 _mm256x4_add_quick_pdx4(__m256dx4 x, __m256dx4 y) {
 	u2 = _mm256_sub_pd(y.val[2], v2);
 	u3 = _mm256_sub_pd(y.val[3], v3);
 
-	t0 = _mm256_sub_pd(w0, u0);
-	t1 = _mm256_sub_pd(w1, u1);
-	t2 = _mm256_sub_pd(w2, u2);
-	t3 = _mm256_sub_pd(w3, u3);
+	t0 = _mm256_add_pd(w0, u0);
+	t1 = _mm256_add_pd(w1, u1);
+	t2 = _mm256_add_pd(w2, u2);
+	t3 = _mm256_add_pd(w3, u3);
 
 	s.val[1] = _mm256_two_sum_pd(s.val[1], t0, &t0);
 	_mm256_three_sum_pd (&s.val[2], &t0, &t1);
-	_mm256_three_sum2_pd(&s.val[3], &t0, &t2);
+	_mm256_three_sum2_pd(&s.val[3], &t0,  t2);
 	t0 = _mm256_add_pd(_mm256_add_pd(t0, t1), t3);
 
 	/* renormalize */
@@ -2138,7 +2150,7 @@ static inline __m256dx4 _mm256x4_sub_quick_pdx4(const __m256dx4 x, const __m256d
 
 	s.val[1] = _mm256_two_sum_pd(s.val[1], t0, &t0);
 	_mm256_three_sum_pd (&s.val[2], &t0, &t1);
-	_mm256_three_sum2_pd(&s.val[3], &t0, &t2);
+	_mm256_three_sum2_pd(&s.val[3], &t0,  t2);
 	t0 = _mm256_add_pd(_mm256_add_pd(t0, t1), t3);
 
 	/* renormalize */
@@ -2451,7 +2463,7 @@ static inline __m256dx4 _mm256x4_mul_pdx4_pdx2(const __m256dx4 x, const __m256dx
 	p.val[3] = _mm256_add_pd(_mm256_add_pd(_mm256_add_pd(
 		_mm256_mul_pd(x.val[2], y.hi), _mm256_mul_pd(x.val[3], y.lo)
 	), q3), q4);
-	_mm256_three_sum2_pd(&p.val[3], &q0, &s1);
+	_mm256_three_sum2_pd(&p.val[3], &q0, s1);
 	p_err = _mm256_add_pd(q0, s2);
 
 	_mm256x4_renorm_err_pdx4(&p, &p_err);
@@ -2487,7 +2499,7 @@ static inline __m256dx4 _mm256x4_mul_pdx2_pdx4(const __m256dx2 x, const __m256dx
 	p.val[3] = _mm256_add_pd(_mm256_add_pd(_mm256_add_pd(
 		_mm256_mul_pd(y.val[2], x.hi), _mm256_mul_pd(y.val[3], x.lo)
 	), q3), q4);
-	_mm256_three_sum2_pd(&p.val[3], &q0, &s1);
+	_mm256_three_sum2_pd(&p.val[3], &q0, s1);
 	p_err = _mm256_add_pd(q0, s2);
 
 	_mm256x4_renorm_err_pdx4(&p, &p_err);
@@ -2513,7 +2525,7 @@ static inline __m256dx4 _mm256x4_mul_pdx4_pd(const __m256dx4 x, const __m256d y)
 
 	_mm256_three_sum_pd(&s.val[2], &q1, &p2);
 
-	_mm256_three_sum2_pd(&q1, &q2, &p3);
+	_mm256_three_sum2_pd(&q1, &q2, p3);
 	s.val[3] = q1;
 
 	s_err = _mm256_add_pd(q2, p2);
@@ -2541,7 +2553,7 @@ static inline __m256dx4 _mm256x4_mul_pd_pdx4(const __m256d x, const __m256dx4 y)
 
 	_mm256_three_sum_pd(&s.val[2], &q1, &p2);
 
-	_mm256_three_sum2_pd(&q1, &q2, &p3);
+	_mm256_three_sum2_pd(&q1, &q2, p3);
 	s.val[3] = q1;
 
 	s_err = _mm256_add_pd(q2, p2);
@@ -2580,7 +2592,7 @@ static inline __m256dx4 _mm256x4_mul_pdx2_pdx2(const __m256dx2 x, const __m256dx
 	p.val[2] = s0;
 
 	p.val[3] = q3;
-	_mm256_three_sum2_pd(&p.val[3], &q0, &s1);
+	_mm256_three_sum2_pd(&p.val[3], &q0, s1);
 	p_err = _mm256_add_pd(q0, s2);
 
 	_mm256x4_renorm_err_pdx4(&p, &p_err);
@@ -3767,7 +3779,7 @@ static inline __m256dx4 _mm256x4_ceil_pdx4(__m256dx4 x) {
 static inline __m256dx4 _mm256x4_fabs_pdx4(__m256dx4 x) {
 	const __m256d sign_mask = _mm256_and_pd(
 		x.val[0],
-		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FFFFFFFFFFFFFFF))
+		_mm256_get_sign_mask_pd()
 	);
 	x.val[0] = _mm256_xor_pd(x.val[0], sign_mask);
 	x.val[1] = _mm256_xor_pd(x.val[1], sign_mask);
@@ -3792,7 +3804,19 @@ static inline __m256dx4 _mm256x4_fdim_pdx4(__m256dx4 x, __m256dx4 y) {
 static inline __m256dx4 _mm256x4_copysign_pdx4(__m256dx4 x, __m256dx4 y) {
 	const __m256d sign_mask = _mm256_and_pd(
 		_mm256_xor_pd(x.val[0], y.val[0]),
-		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FFFFFFFFFFFFFFF))
+		_mm256_get_sign_mask_pd()
+	);
+	x.val[0] = _mm256_xor_pd(x.val[0], sign_mask);
+	x.val[1] = _mm256_xor_pd(x.val[1], sign_mask);
+	x.val[2] = _mm256_xor_pd(x.val[2], sign_mask);
+	x.val[3] = _mm256_xor_pd(x.val[3], sign_mask);
+	return x;
+}
+
+static inline __m256dx4 _mm256x4_copysign_pdx4_pd(__m256dx4 x, __m256d y) {
+	const __m256d sign_mask = _mm256_and_pd(
+		_mm256_xor_pd(x.val[0], y),
+		_mm256_get_sign_mask_pd()
 	);
 	x.val[0] = _mm256_xor_pd(x.val[0], sign_mask);
 	x.val[1] = _mm256_xor_pd(x.val[1], sign_mask);

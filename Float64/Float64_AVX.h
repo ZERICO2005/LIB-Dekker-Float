@@ -437,7 +437,7 @@ static inline __m256d _mm256_not_pd(__m256d x) {
 
 static inline __m256d _mm256_copysign_pd(__m256d x, __m256d y) {
 	return _mm256_xor_pd(
-		x, _mm256_and_pd(
+		y, _mm256_and_pd(
 			_mm256_xor_pd(x, y),
 			_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FFFFFFFFFFFFFFF))
 		)
