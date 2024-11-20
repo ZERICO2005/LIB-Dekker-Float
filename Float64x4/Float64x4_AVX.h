@@ -1935,7 +1935,7 @@ static inline __m256dx4 _mm256x4_add_quick_pdx4(__m256dx4 x, __m256dx4 y) {
 
 static inline __m256dx4 _mm256x4_add_pdx4(__m256dx4 x, __m256dx4 y) {
 	// #ifdef __M256DX4_IEEE_MODE
-	// 	return _mm256x4add_accurate_pdx4(x, y);
+	// 	return _mm256x4_add_accurate_pdx4(x, y);
 	// #else
 		return _mm256x4_add_quick_pdx4(x, y);
 	// #endif

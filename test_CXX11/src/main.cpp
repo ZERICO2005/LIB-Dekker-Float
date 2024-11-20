@@ -151,7 +151,11 @@ void run_math_demo(unsigned int seed) {
 
 
 void run_generate_constants(void) {
+	#if 1
 	generate_constants<Float64x4, fp64>("Float64x4");
+	#else
+	generate_boost_constants<Float64x4, fp64>("Float64x4");
+	#endif
 }
 
 #if 0
@@ -258,6 +262,7 @@ void aaa(void) {
 
 #include "../../Float64x6/Float64x6.hpp"
 
+
 int main(void) {
 	printf("\n");
 	// aaa();
@@ -268,11 +273,11 @@ int main(void) {
 	// generate_inverf(8192, 300);
 	// test_inverf();
 
-	precision_test<Float64x4>();
-	// graph_precision<Float64x2>(24000, 0x1.0p-14L, 0.0L);
+	precision_test<Float64x2>();
+	// graph_precision<Float64x4>(24000, 90.0L, 0.0L);
 
 	// run_generate_constants();
-	
+
 	// __attribute__((unused)) char buf[999];
 	// Float32x2 x = {FLT_MAX, FLT_MIN};
 	// Float32x2_snprintf(buf, sizeof(buf), "%+.50Df", x);

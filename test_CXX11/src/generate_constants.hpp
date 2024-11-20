@@ -430,3 +430,169 @@ if (print_headings) { printf("%s/* Additional Mathematical Constants */%s", pref
 	// output_constant<FloatX, FloatBase>("gauss", name, num, "`lemniscate / pi`");
 
 }
+
+#include "boost_constants.hpp"
+
+template<typename FloatX, typename FloatBase>
+void output_boost_constant(
+	size_t index, __attribute__((unused)) const char* name,
+	FloatMPFR src, const char* comment = nullptr
+) {
+	output_constant<FloatX, FloatBase>(boost_constant_label[index].label, name, src, comment);
+}
+
+template<typename FloatX, typename FloatBase>
+void generate_boost_constants(const char* name) {
+	FloatMPFR num;
+	FloatMPFR temp;
+	size_t index = 0;
+
+	// half
+	mpfr_set_d(num.value, 0.5, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`1 / 2`");
+
+	// third
+	mpfr_set_d(num.value, 1.0, MPFR_RNDN);
+	mpfr_div_d(num.value, num.value, 3.0, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`1 / 3`");
+
+	// twothirds and two_thirds
+	mpfr_mul_d(num.value, num.value, 2.0, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`2 / 3`");
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`2 / 3`");
+
+	// sixth
+	mpfr_div_d(num.value, num.value, 4.0, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`1 / 6`");
+
+	// three_quarters
+	mpfr_set_d(num.value, 0.75, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`3 / 4`");
+
+	// root_two
+	mpfr_set_d(num.value, 2.0, MPFR_RNDN);
+	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`sqrt(2)`");
+
+	// root_three
+	mpfr_set_d(num.value, 3.0, MPFR_RNDN);
+	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`sqrt(3)`");
+
+	// half_root_two
+	mpfr_set_d(num.value, 0.5, MPFR_RNDN);
+	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`1 / sqrt(2)`");
+
+	// ln_two
+	mpfr_const_log2(num.value, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`ln(2)`");
+
+	// ln_ln_two
+	mpfr_log(num.value, num.value, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`ln(ln(2))`");
+
+	// root_ln_four
+	mpfr_set_d(num.value, 4.0, MPFR_RNDN);
+	mpfr_log(num.value, num.value, MPFR_RNDN);
+	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`sqrt(ln(4))`");
+
+	// one_div_root_two
+	mpfr_set_d(num.value, 0.5, MPFR_RNDN);
+	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`1 / sqrt(2)`");
+
+	// pi
+	mpfr_const_pi(num.value, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num);
+
+	// half_pi
+	mpfr_div_d(num.value, num.value, 2.0, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`1/2 * pi`");
+
+	// third_pi
+	mpfr_const_pi(num.value, MPFR_RNDN);
+	mpfr_div_d(num.value, num.value, 3.0, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`1/3 * pi`");
+
+	// sixth_pi
+	mpfr_div_d(num.value, num.value, 2.0, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`1/6 * pi`");
+
+	// two_pi
+	mpfr_const_pi(num.value, MPFR_RNDN);
+	mpfr_mul_d(num.value, num.value, 2.0, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`2 * pi`");
+
+	// two_thirds_pi
+	mpfr_const_pi(num.value, MPFR_RNDN);
+	mpfr_div_d(num.value, num.value, 3.0, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`2/3 * pi`");
+
+	// three_quarters_pi
+	mpfr_const_pi(num.value, MPFR_RNDN);
+	mpfr_mul_d(num.value, num.value, 0.75, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`3/4 * pi`");
+
+	// four_thirds_pi
+	mpfr_const_pi(num.value, MPFR_RNDN);
+	mpfr_div_d(num.value, num.value, 0.75, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`4/3 * pi`");
+
+	// one_div_two_pi
+	mpfr_const_pi(num.value, MPFR_RNDN);
+	mpfr_mul_d(num.value, num.value, 2.0, MPFR_RNDN);
+	mpfr_d_div(num.value, 1.0, num.value, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`1 / 2pi`");
+
+	// one_div_root_two_pi
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`1 / sqrt(2pi)`");
+
+	// root_pi
+	mpfr_const_pi(num.value, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`sqrt(pi)`");
+
+	// root_half_pi
+	mpfr_const_pi(num.value, MPFR_RNDN);
+	mpfr_div_d(num.value, num.value, 2.0, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`sqrt(1/2 * pi)`");
+
+	// root_two_pi
+	mpfr_mul_d(num.value, num.value, 2.0, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`sqrt(2pi)`");
+
+	// log_root_two_pi
+	mpfr_log(num.value, num.value, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`ln(sqrt(2pi))`");
+
+	// one_div_root_pi and root_one_div_pi
+	mpfr_const_pi(num.value, MPFR_RNDN);
+	mpfr_sqrt(num.value, num.value, MPFR_RNDN);
+	mpfr_d_div(num.value, 1.0, num.value, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`1 / sqrt(pi)`");
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`1 / sqrt(pi)`");
+
+	// pi_minus_three
+	mpfr_const_pi(num.value, MPFR_RNDN);
+	mpfr_sub_d(num.value, num.value, 3.0, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`pi - 3`");
+
+	// four_minus_pi
+	mpfr_const_pi(num.value, MPFR_RNDN);
+	mpfr_d_sub(num.value, 4.0, num.value, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`4 - pi`");
+
+	// pi_pow_e
+	mpfr_const_pi(num.value, MPFR_RNDN);
+	mpfr_set_d(temp.value, 1.0, MPFR_RNDN);
+	mpfr_exp(temp.value, temp.value, MPFR_RNDN);
+	mpfr_pow(num.value, num.value, temp.value, MPFR_RNDN);
+	output_boost_constant<FloatX, FloatBase>(index++, name, num, "`pi ^ e`");
+
+	// We will write in the rest later on
+	for (; index < sizeof(boost_constant_label) / sizeof(boost_constant_label[0]); index++) {
+		mpfr_set_str(num.value, boost_constant_label[index].value, 10, MPFR_RNDN);
+		output_boost_constant<FloatX, FloatBase>(index++, name, num);
+	}
+}
