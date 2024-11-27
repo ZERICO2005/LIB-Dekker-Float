@@ -996,7 +996,7 @@ namespace std {
 		return signbit(x) ? -x : x;
 	}
 	inline Float64x2 fdim(const Float64x2& x, const Float64x2& y) {
-		return (x > y) ? (x - y) : static_cast<Float64x2>(0.0);
+		return islessequal(x, y) ? static_cast<Float64x2>(0.0) : (x - y);
 	}
 
 	/**

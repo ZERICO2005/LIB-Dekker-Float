@@ -1169,7 +1169,7 @@ static inline Float64x2 Float64x2_fabs(const Float64x2 x) {
 static inline Float64x2 Float64x2_fdim(const Float64x2 x, const Float64x2 y) {
 	return (
 		Float64x2_cmple(x, y)
-	) ? Float64x2_sub(x, y) : Float64x2_set_zero();
+	) ? Float64x2_set_zero() : Float64x2_sub(x, y);
 }
 
 static inline Float64x2 Float64x2_copysign(const Float64x2 x, const Float64x2 y) {

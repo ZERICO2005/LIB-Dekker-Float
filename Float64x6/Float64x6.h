@@ -42,6 +42,7 @@
 // Float64x6 struct
 //------------------------------------------------------------------------------
 
+#include "../Float64/Float64_util.h"
 #include "Float64x6_def.h"
 #include "../Float64x2/Float64x2.h"
 #include "../Float64x4/Float64x4.h"
@@ -566,10 +567,10 @@ static inline Float64x6 Float64x6_add_quick(const Float64x6 x, const Float64x6 y
 	t5 = w5 + u5;
 
 	s.val[1] = Float64_two_sum(s.val[1], t0, &t0);
-	Float64x4_three_sum (&s.val[2], &t0, &t1);
-	Float64x4_three_sum (&s.val[3], &t0, &t2);
-	Float64x4_three_sum (&s.val[4], &t0, &t3);
-	Float64x4_three_sum2(&s.val[5], &t0,  t4);
+	Float64_three_sum (&s.val[2], &t0, &t1);
+	Float64_three_sum (&s.val[3], &t0, &t2);
+	Float64_three_sum (&s.val[4], &t0, &t3);
+	Float64_three_sum2(&s.val[5], &t0,  t4);
 	t0 += t1 + t2 + t3 + t5;
 
 	/* renormalize */
@@ -650,11 +651,11 @@ static inline Float64x6 Float64x6_add_quick_dx6_dx4(const Float64x6 x, const Flo
 	t3 = w3 + u3;
 
 	s.val[1] = Float64_two_sum(s.val[1], t0, &t0);
-	Float64x4_three_sum(&s.val[2], &t0, &t1);
-	Float64x4_three_sum(&s.val[3], &t0, &t2);
-	Float64x4_three_sum(&s.val[4], &t0, &t3);
+	Float64_three_sum(&s.val[2], &t0, &t1);
+	Float64_three_sum(&s.val[3], &t0, &t2);
+	Float64_three_sum(&s.val[4], &t0, &t3);
 	
-	// Float64x4_three_sum2(&s.val[5], &t0,  t4);
+	// Float64_three_sum2(&s.val[5], &t0,  t4);
 		s.val[5] = Float64_two_sum(s.val[5], t0, &t0);
 	
 	t0 += t1 + t2 + t3;
@@ -734,8 +735,8 @@ static inline Float64x6 Float64x6_add_quick_dx4_dx4(const Float64x4 x, const Flo
 	t3 = w3 + u3;
 
 	s.val[1] = Float64_two_sum(s.val[1], t0, &t0);
-	Float64x4_three_sum (&s.val[2], &t0, &t1);
-	Float64x4_three_sum2(&s.val[3], &t0,  t2);
+	Float64_three_sum (&s.val[2], &t0, &t1);
+	Float64_three_sum2(&s.val[3], &t0,  t2);
 	// t0 += t1 + t3;
 		s.val[4] = t1;
 		s.val[5] = t3;
@@ -945,10 +946,10 @@ static inline Float64x6 Float64x6_sub_quick(const Float64x6 x, const Float64x6 y
 	t5 = w5 - u5;
 
 	s.val[1] = Float64_two_sum(s.val[1], t0, &t0);
-	Float64x4_three_sum (&s.val[2], &t0, &t1);
-	Float64x4_three_sum (&s.val[3], &t0, &t2);
-	Float64x4_three_sum (&s.val[4], &t0, &t3);
-	Float64x4_three_sum2(&s.val[5], &t0,  t4);
+	Float64_three_sum (&s.val[2], &t0, &t1);
+	Float64_three_sum (&s.val[3], &t0, &t2);
+	Float64_three_sum (&s.val[4], &t0, &t3);
+	Float64_three_sum2(&s.val[5], &t0,  t4);
 	t0 += t1 + t2 + t3 + t5;
 
 	/* renormalize */
@@ -1030,11 +1031,11 @@ static inline Float64x6 Float64x6_sub_quick_dx6_dx4(const Float64x6 x, const Flo
 	t3 = w3 - u3;
 
 	s.val[1] = Float64_two_sum(s.val[1], t0, &t0);
-	Float64x4_three_sum(&s.val[2], &t0, &t1);
-	Float64x4_three_sum(&s.val[3], &t0, &t2);
-	Float64x4_three_sum(&s.val[4], &t0, &t3);
+	Float64_three_sum(&s.val[2], &t0, &t1);
+	Float64_three_sum(&s.val[3], &t0, &t2);
+	Float64_three_sum(&s.val[4], &t0, &t3);
 	
-	// Float64x4_three_sum2(&s.val[5], &t0,  t4);
+	// Float64_three_sum2(&s.val[5], &t0,  t4);
 	s.val[5] = Float64_two_sum(s.val[5], t0, &t0);
 	
 	t0 += t1 + t2 + t3;
@@ -1116,8 +1117,8 @@ static inline Float64x6 Float64x6_sub_quick_dx4_dx4(const Float64x4 x, const Flo
 	t3 = w3 - u3;
 
 	s.val[1] = Float64_two_sum(s.val[1], t0, &t0);
-	Float64x4_three_sum (&s.val[2], &t0, &t1);
-	Float64x4_three_sum2(&s.val[3], &t0,  t2);
+	Float64_three_sum (&s.val[2], &t0, &t1);
+	Float64_three_sum2(&s.val[3], &t0,  t2);
 	// t0 += t1 + t3;
 		s.val[4] = t1;
 		s.val[5] = t3;
@@ -1277,11 +1278,11 @@ static inline Float64x6 Float64x6_mul_accurate_dx4_dx4(const Float64x4 x, const 
 	p5 = Float64_two_prod(x.val[2], y.val[0], &q5);
 
 	/* Start Accumulation */
-	Float64x4_three_sum(&p1, &p2, &q0);
+	Float64_three_sum(&p1, &p2, &q0);
 
 	/* Six-Three Sum  of p2, q1, q2, p3, p4, p5. */
-	Float64x4_three_sum(&p2, &q1, &q2);
-	Float64x4_three_sum(&p3, &p4, &p5);
+	Float64_three_sum(&p2, &q1, &q2);
+	Float64_three_sum(&p3, &p4, &p5);
 	/* compute (s0, s1, s2) = (p2, q1, q2) + (p3, p4, p5). */
 	s0 = Float64_two_sum(p2, p3, &t0);
 	s1 = Float64_two_sum(q1, p4, &t1);
@@ -1341,11 +1342,11 @@ static inline Float64x6 Float64x6_mul_quick_dx4_dx4(const Float64x4 x, const Flo
 	p5 = Float64_two_prod(x.val[2], y.val[0], &q5);
 
 	/* Start Accumulation */
-	Float64x4_three_sum(&p1, &p2, &q0);
+	Float64_three_sum(&p1, &p2, &q0);
 
 	/* Six-Three Sum  of p2, q1, q2, p3, p4, p5. */
-	Float64x4_three_sum(&p2, &q1, &q2);
-	Float64x4_three_sum(&p3, &p4, &p5);
+	Float64_three_sum(&p2, &q1, &q2);
+	Float64_three_sum(&p3, &p4, &p5);
 	/* compute (s0, s1, s2) = (p2, q1, q2) + (p3, p4, p5). */
 	s0 = Float64_two_sum(p2, p3, &t0);
 	s1 = Float64_two_sum(q1, p4, &t1);
@@ -1387,9 +1388,9 @@ static inline Float64x6 Float64x6_mul_dx4_d(const Float64x4 x, const fp64 y) {
 
 	s.val[1] = Float64_two_sum(q0, p1, &s.val[2]);
 
-	Float64x4_three_sum(&s.val[2], &q1, &p2);
+	Float64_three_sum(&s.val[2], &q1, &p2);
 
-	Float64x4_three_sum2(&q1, &q2, p3);
+	Float64_three_sum2(&q1, &q2, p3);
 	s.val[3] = q1;
 
 	// s_err = q2 + p2;
@@ -1417,9 +1418,9 @@ static inline Float64x6 Float64x6_mul_d_dx4(const fp64 x, const Float64x4 y) {
 
 	s.val[1] = Float64_two_sum(q0, p1, &s.val[2]);
 
-	Float64x4_three_sum(&s.val[2], &q1, &p2);
+	Float64_three_sum(&s.val[2], &q1, &p2);
 
-	Float64x4_three_sum2(&q1, &q2, p3);
+	Float64_three_sum2(&q1, &q2, p3);
 	s.val[3] = q1;
 
 	// s_err = q2 + p2;
@@ -1452,7 +1453,7 @@ static inline Float64x6 Float64x6_mul_dx2_dx2(const Float64x2 x, const Float64x2
 	p.val[2] = Float64_two_prod(x.hi, y.lo, &q2);
 	p.val[3] = Float64_two_prod(x.lo, y.lo, &q3);
 	
-	Float64x4_three_sum(&p.val[1], &p.val[2], &q0);
+	Float64_three_sum(&p.val[1], &p.val[2], &q0);
 	
 	/* Five-Three-Sum */
 	p.val[2] = Float64_two_sum(p.val[2], p.val[3], &p.val[3]);
@@ -1464,7 +1465,7 @@ static inline Float64x6 Float64x6_mul_dx2_dx2(const Float64x2 x, const Float64x2
 	p.val[2] = s0;
 
 	p.val[3] = q3;
-	Float64x4_three_sum2(&p.val[3], &q0, s1);
+	Float64_three_sum2(&p.val[3], &q0, s1);
 	
 	// p_err = q0 + s2;
 		p.val[4] = q0;

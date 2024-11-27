@@ -40,6 +40,7 @@
 // Float64x4 struct
 //------------------------------------------------------------------------------
 
+#include "../Float64/Float64_util.h"
 #include "Float64x4_def.h"
 #include "../Float64x2/Float64x2.h"
 
@@ -367,138 +368,6 @@ static inline bool Float64x4_cmpge_d_dx4(const fp64 x, const Float64x4 y) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 
-/** @brief Computes fl(x + y) and err(x + y). Assumes |x| >= |y|. */
-static inline fp64 Float64_quick_two_sum(const fp64 x, const fp64 y, fp64* LDF_restrict const err) {
-	fp64 s = x + y;
-	*err = y - (s - x);
-	return s;
-}
-
-/** @brief Computes fl(x - y) and err(x - y). Assumes |x| >= |y|. */
-static inline fp64 Float64_quick_two_diff(const fp64 x, const fp64 y, fp64* LDF_restrict const err) {
-	fp64 s = x - y;
-	*err = (x - s) - y;
-	return s;
-}
-
-/** @brief Computes fl(x + y) and err(x + y). */
-static inline fp64 Float64_two_sum(const fp64 x, const fp64 y, fp64* LDF_restrict const err) {
-	fp64 s = x + y;
-	fp64 bb = s - x;
-	*err = (x - (s - bb)) + (y - bb);
-	return s;
-}
-
-/** @brief Computes fl(x - y) and err(x - y). */
-static inline fp64 Float64_two_diff(const fp64 x, const fp64 y, fp64* LDF_restrict const err) {
-	fp64 s = x - y;
-	fp64 bb = s - x;
-	*err = (x - (s - bb)) - (y + bb);
-	return s;
-}
-
-static inline void Float64_split(
-	fp64 x,
-	fp64* LDF_restrict const hi,
-	fp64* LDF_restrict const lo
-) {
-	const fp64 FLOAT64_SPLITTER = 134217729.0; // = 2^27 + 1
-	const fp64 FLOAT64_SPLIT_THRESH = 0x1.0p+996; // = 2^996
-	fp64 temp;
-	if (x > FLOAT64_SPLIT_THRESH || x < -FLOAT64_SPLIT_THRESH) {
-		x *= 0x1.0p-28; // 2^-28
-		temp = FLOAT64_SPLITTER * x;
-		*hi = temp - (temp - x);
-		*lo = x - *hi;
-		*hi *= 0x1.0p+28; // 2^28
-		*lo *= 0x1.0p+28; // 2^28
-	} else {
-		temp = FLOAT64_SPLITTER * x;
-		*hi = temp - (temp - x);
-		*lo = x - *hi;
-	}
-}
-
-/** @brief Computes fl(x * y) and err(x * y). */
-static inline fp64 Float64_two_prod(const fp64 a, const fp64 b, fp64* LDF_restrict const err) {
-	fp64 a_hi, a_lo, b_hi, b_lo;
-	fp64 p = a * b;
-	Float64_split(a, &a_hi, &a_lo);
-	Float64_split(b, &b_hi, &b_lo);
-	*err = (
-		(a_hi * b_hi - p) + 
-		a_hi * b_lo + a_lo * b_hi
-	) + a_lo * b_lo;
-	return p;
-}
-
-/** @brief Computes fl(x * x) and err(x * x). Faster than Float64_two_prod(x, x, err) */
-static inline fp64 Float64_two_sqr(const fp64 a, fp64* LDF_restrict const err) {
-	fp64 hi, lo;
-	fp64 q = a * a;
-	Float64_split(a, &hi, &lo);
-	*err = (
-		(hi * hi - q) +
-		2.0 * hi * lo
-	) + lo * lo;
-	return q;
-}
-
-/** 
- * @brief Adds `c` to the dd-pair `(a, b)`. If the result does not fit in two
- * doubles, then the sum is output into `s` and `(a, b)` contains the
- * remainder. Otherwise `s` is zero and `(a, b)` contains the sum.
- */
-static inline fp64 Float64x4_quick_three_accum(
-	fp64* LDF_restrict const a,
-	fp64* LDF_restrict const b,
-	const fp64 c
-) {
-	fp64 s;
-	bool za, zb;
-
-	s = Float64_two_sum(*b, c, b);
-	s = Float64_two_sum(*a, s, a);
-
-	za = (*a != 0.0);
-	zb = (*b != 0.0);
-
-	if (za && zb) {
-		return s;
-	}
-		
-	if (!zb) {
-		*b = *a;
-		*a = s;
-	} else {
-		*a = s;
-	}
-
-	return 0.0;
-}
-
-static inline void Float64x4_three_sum(
-	fp64* LDF_restrict const a,
-	fp64* LDF_restrict const b,
-	fp64* LDF_restrict const c
-) {
-	fp64 t1, t2, t3;
-	t1 = Float64_two_sum(*a, *b, &t2);
-	*a = Float64_two_sum(*c, t1, &t3);
-	*b = Float64_two_sum(t2, t3, c  );
-}
-
-static inline void Float64x4_three_sum2(
-	fp64* LDF_restrict const a,
-	fp64* LDF_restrict const b,
-	const fp64 c
-) {
-	fp64 t1, t2, t3;
-	t1 = Float64_two_sum(*a, *b, &t2);
-	*a = Float64_two_sum( c, t1, &t3);
-	*b = t2 + t3;
-}
-
 #if 0
 static inline void Float64x4_accurate_renorm(Float64x4* LDF_restrict const x) {
 	fp64 s0, s1, s2 = 0.0, s3 = 0.0;
@@ -745,7 +614,7 @@ static inline Float64x4 Float64x4_add_accurate(const Float64x4 x, const Float64x
 			t = y.val[j++];
 		}
 
-		s = Float64x4_quick_three_accum(&u, &v, t);
+		s = Float64_quick_three_accum(&u, &v, t);
 
 		if (s != 0.0) {
 			ret.val[k++] = s;
@@ -825,8 +694,8 @@ static inline Float64x4 Float64x4_add_quick(const Float64x4 x, const Float64x4 y
 	t3 = w3 + u3;
 
 	s.val[1] = Float64_two_sum(s.val[1], t0, &t0);
-	Float64x4_three_sum (&s.val[2], &t0, &t1);
-	Float64x4_three_sum2(&s.val[3], &t0,  t2);
+	Float64_three_sum (&s.val[2], &t0, &t1);
+	Float64_three_sum2(&s.val[3], &t0,  t2);
 	t0 = t0 + t1 + t3;
 
 	/* renormalize */
@@ -854,7 +723,7 @@ static inline Float64x4 Float64x4_add_dx4_dx2(const Float64x4 x, const Float64x2
 	s.val[1] = Float64_two_sum(s.val[1], t0, &t0);
 
 	s.val[2] = x.val[2];
-	Float64x4_three_sum(&s.val[2], &t0, &t1);
+	Float64_three_sum(&s.val[2], &t0, &t1);
 
 	s.val[3] = Float64_two_sum(t0, x.val[3], &t0);
 	t0 += t1;
@@ -875,7 +744,7 @@ static inline Float64x4 Float64x4_add_dx2_dx4(const Float64x2 x, const Float64x4
 	s.val[1] = Float64_two_sum(s.val[1], t0, &t0);
 
 	s.val[2] = y.val[2];
-	Float64x4_three_sum(&s.val[2], &t0, &t1);
+	Float64_three_sum(&s.val[2], &t0, &t1);
 
 	s.val[3] = Float64_two_sum(t0, y.val[3], &t0);
 	t0 += t1;
@@ -1028,7 +897,7 @@ static inline Float64x4 Float64x4_sub_accurate(const Float64x4 x, const Float64x
 			t = -y.val[j++];
 		}
 
-		s = Float64x4_quick_three_accum(&u, &v, t);
+		s = Float64_quick_three_accum(&u, &v, t);
 
 		if (s != 0.0) {
 			ret.val[k++] = s;
@@ -1109,8 +978,8 @@ static inline Float64x4 Float64x4_sub_quick(const Float64x4 x, const Float64x4 y
 	t3 = w3 - u3;
 
 	s.val[1] = Float64_two_sum(s.val[1], t0, &t0);
-	Float64x4_three_sum (&s.val[2], &t0, &t1);
-	Float64x4_three_sum2(&s.val[3], &t0,  t2);
+	Float64_three_sum (&s.val[2], &t0, &t1);
+	Float64_three_sum2(&s.val[3], &t0,  t2);
 	t0 = t0 + t1 + t3;
 
 	/* renormalize */
@@ -1138,7 +1007,7 @@ static inline Float64x4 Float64x4_sub_dx4_dx2(const Float64x4 x, const Float64x2
 	s.val[1] = Float64_two_sum(s.val[1], t0, &t0);
 
 	s.val[2] = x.val[2];
-	Float64x4_three_sum(&s.val[2], &t0, &t1);
+	Float64_three_sum(&s.val[2], &t0, &t1);
 
 	s.val[3] = Float64_two_sum(t0, x.val[3], &t0);
 	t0 += t1;
@@ -1159,7 +1028,7 @@ static inline Float64x4 Float64x4_sub_dx2_dx4(const Float64x2 x, const Float64x4
 	s.val[1] = Float64_two_sum(s.val[1], t0, &t0);
 
 	s.val[2] = -y.val[2];
-	Float64x4_three_sum(&s.val[2], &t0, &t1);
+	Float64_three_sum(&s.val[2], &t0, &t1);
 
 	s.val[3] = Float64_two_diff(t0, y.val[3], &t0);
 	t0 += t1;
@@ -1296,11 +1165,11 @@ static inline Float64x4 Float64x4_mul_accurate(const Float64x4 x, const Float64x
 	p5 = Float64_two_prod(x.val[2], y.val[0], &q5);
 
 	/* Start Accumulation */
-	Float64x4_three_sum(&p1, &p2, &q0);
+	Float64_three_sum(&p1, &p2, &q0);
 
 	/* Six-Three Sum  of p2, q1, q2, p3, p4, p5. */
-	Float64x4_three_sum(&p2, &q1, &q2);
-	Float64x4_three_sum(&p3, &p4, &p5);
+	Float64_three_sum(&p2, &q1, &q2);
+	Float64_three_sum(&p3, &p4, &p5);
 	/* compute (s0, s1, s2) = (p2, q1, q2) + (p3, p4, p5). */
 	s0 = Float64_two_sum(p2, p3, &t0);
 	s1 = Float64_two_sum(q1, p4, &t1);
@@ -1356,11 +1225,11 @@ static inline Float64x4 Float64x4_mul_quick(const Float64x4 x, const Float64x4 y
 	p5 = Float64_two_prod(x.val[2], y.val[0], &q5);
 
 	/* Start Accumulation */
-	Float64x4_three_sum(&p1, &p2, &q0);
+	Float64_three_sum(&p1, &p2, &q0);
 
 	/* Six-Three Sum  of p2, q1, q2, p3, p4, p5. */
-	Float64x4_three_sum(&p2, &q1, &q2);
-	Float64x4_three_sum(&p3, &p4, &p5);
+	Float64_three_sum(&p2, &q1, &q2);
+	Float64_three_sum(&p3, &p4, &p5);
 	/* compute (s0, s1, s2) = (p2, q1, q2) + (p3, p4, p5). */
 	s0 = Float64_two_sum(p2, p3, &t0);
 	s1 = Float64_two_sum(q1, p4, &t1);
@@ -1398,10 +1267,10 @@ static inline Float64x4 Float64x4_mul_dx4_dx2(const Float64x4 x, const Float64x2
 	p.val[3] = Float64_two_prod(x.val[1], y.lo, &q3);
 	p_err    = Float64_two_prod(x.val[2], y.hi, &q4);
 	
-	Float64x4_three_sum(&p.val[1], &p.val[2], &q0);
+	Float64_three_sum(&p.val[1], &p.val[2], &q0);
 	
 	/* Five-Three-Sum */
-	Float64x4_three_sum(&p.val[2], &p.val[3], &p_err);
+	Float64_three_sum(&p.val[2], &p.val[3], &p_err);
 	q1 = Float64_two_sum(q1      , q2, &q2);
 	s0 = Float64_two_sum(p.val[2], q1, &t0);
 	s1 = Float64_two_sum(p.val[3], q2, &t1);
@@ -1410,7 +1279,7 @@ static inline Float64x4 Float64x4_mul_dx4_dx2(const Float64x4 x, const Float64x2
 	p.val[2] = s0;
 
 	p.val[3] = x.val[2] * y.hi + x.val[3] * y.lo + q3 + q4;
-	Float64x4_three_sum2(&p.val[3], &q0, s1);
+	Float64_three_sum2(&p.val[3], &q0, s1);
 	p_err = q0 + s2;
 
 	Float64x4_renorm_err(&p, &p_err);
@@ -1432,10 +1301,10 @@ static inline Float64x4 Float64x4_mul_dx2_dx4(const Float64x2 x, const Float64x4
 	p.val[3] = Float64_two_prod(x.lo, y.val[1], &q3);
 	p_err    = Float64_two_prod(x.hi, y.val[2], &q4);
 	
-	Float64x4_three_sum(&p.val[1], &p.val[2], &q0);
+	Float64_three_sum(&p.val[1], &p.val[2], &q0);
 	
 	/* Five-Three-Sum */
-	Float64x4_three_sum(&p.val[2], &p.val[3], &p_err);
+	Float64_three_sum(&p.val[2], &p.val[3], &p_err);
 	q1 = Float64_two_sum(q1      , q2, &q2);
 	s0 = Float64_two_sum(p.val[2], q1, &t0);
 	s1 = Float64_two_sum(p.val[3], q2, &t1);
@@ -1444,7 +1313,7 @@ static inline Float64x4 Float64x4_mul_dx2_dx4(const Float64x2 x, const Float64x4
 	p.val[2] = s0;
 
 	p.val[3] = y.val[2] * x.hi + y.val[3] * x.lo + q3 + q4;
-	Float64x4_three_sum2(&p.val[3], &q0, s1);
+	Float64_three_sum2(&p.val[3], &q0, s1);
 	p_err = q0 + s2;
 
 	Float64x4_renorm_err(&p, &p_err);
@@ -1468,9 +1337,9 @@ static inline Float64x4 Float64x4_mul_dx4_d(const Float64x4 x, const fp64 y) {
 
 	s.val[1] = Float64_two_sum(q0, p1, &s.val[2]);
 
-	Float64x4_three_sum(&s.val[2], &q1, &p2);
+	Float64_three_sum(&s.val[2], &q1, &p2);
 
-	Float64x4_three_sum2(&q1, &q2, p3);
+	Float64_three_sum2(&q1, &q2, p3);
 	s.val[3] = q1;
 
 	s_err = q2 + p2;
@@ -1496,9 +1365,9 @@ static inline Float64x4 Float64x4_mul_d_dx4(const fp64 x, const Float64x4 y) {
 
 	s.val[1] = Float64_two_sum(q0, p1, &s.val[2]);
 
-	Float64x4_three_sum(&s.val[2], &q1, &p2);
+	Float64_three_sum(&s.val[2], &q1, &p2);
 
-	Float64x4_three_sum2(&q1, &q2, p3);
+	Float64_three_sum2(&q1, &q2, p3);
 	s.val[3] = q1;
 
 	s_err = q2 + p2;
@@ -1529,7 +1398,7 @@ static inline Float64x4 Float64x4_mul_dx2_dx2(const Float64x2 x, const Float64x2
 	p.val[2] = Float64_two_prod(x.hi, y.lo, &q2);
 	p.val[3] = Float64_two_prod(x.lo, y.lo, &q3);
 	
-	Float64x4_three_sum(&p.val[1], &p.val[2], &q0);
+	Float64_three_sum(&p.val[1], &p.val[2], &q0);
 	
 	/* Five-Three-Sum */
 	p.val[2] = Float64_two_sum(p.val[2], p.val[3], &p.val[3]);
@@ -1541,7 +1410,7 @@ static inline Float64x4 Float64x4_mul_dx2_dx2(const Float64x2 x, const Float64x2
 	p.val[2] = s0;
 
 	p.val[3] = q3;
-	Float64x4_three_sum2(&p.val[3], &q0, s1);
+	Float64_three_sum2(&p.val[3], &q0, s1);
 	p_err = q0 + s2;
 
 	Float64x4_renorm_err(&p, &p_err);
@@ -2362,10 +2231,10 @@ static inline Float64x4 Float64x4_bitwise_andnot(const Float64x4 x, const Float6
 	Bitwise_Float64x4 x0, y0;
 	x0.float_part = x;
 	y0.float_part = y;
-	x0.binary_part.val[0] &= ~y0.binary_part.val[0];
-	x0.binary_part.val[1] &= ~y0.binary_part.val[1];
-	x0.binary_part.val[2] &= ~y0.binary_part.val[2];
-	x0.binary_part.val[3] &= ~y0.binary_part.val[3];
+	x0.binary_part.val[0] = ~x0.binary_part.val[0] & y0.binary_part.val[0];
+	x0.binary_part.val[1] = ~x0.binary_part.val[1] & y0.binary_part.val[1];
+	x0.binary_part.val[2] = ~x0.binary_part.val[2] & y0.binary_part.val[2];
+	x0.binary_part.val[3] = ~x0.binary_part.val[3] & y0.binary_part.val[3];
 	return x0.float_part;
 }
 
@@ -2414,8 +2283,10 @@ static inline bool Float64x4_isnan(const Float64x4 x) {
 /** @brief Returns true if x is normal */
 static inline bool Float64x4_isnormal(const Float64x4 x) {
 	return (
-		Float64_isnormal(x.val[0]) && Float64_isnormal(x.val[1]) &&
-		Float64_isnormal(x.val[2]) && Float64_isnormal(x.val[3])
+		Float64_isnormal(x.val[0]) &&
+		(Float64_isnormal(x.val[1]) || x.val[1] == 0.0) &&
+		(Float64_isnormal(x.val[2]) || x.val[2] == 0.0) &&
+		(Float64_isnormal(x.val[3]) || x.val[3] == 0.0)
 	);
 }
 /** @brief Returns true if x and y are unordered */
@@ -2622,7 +2493,7 @@ static inline Float64x4 Float64x4_fabs(const Float64x4 x) {
 static inline Float64x4 Float64x4_fdim(const Float64x4 x, const Float64x4 y) {
 	return (
 		Float64x4_cmple(x, y)
-	) ? Float64x4_sub(x, y) : Float64x4_set_zero();
+	) ? Float64x4_set_zero() : Float64x4_sub(x, y);
 }
 
 static inline Float64x4 Float64x4_copysign(const Float64x4 x, const Float64x4 y) {
@@ -2694,7 +2565,7 @@ static inline Float64x4 Float64x4_remquo(const Float64x4 x, const Float64x4 y, i
  * binary logarithm.
  */
 static inline int Float64x4_ilogb(const Float64x4 x) {
-	return ilogb(x.val[0] + (x.val[1] + (x.val[2] + x.val[3])));
+	return ilogb(x.val[0]);
 }
 /**
  * @brief Returns a normalized Float64x4 value and the exponent in
@@ -2702,7 +2573,7 @@ static inline int Float64x4_ilogb(const Float64x4 x) {
  */
 static inline Float64x4 Float64x4_frexp(const Float64x4 x, int* const expon) {
 	Float64x4 ret;
-	*expon = ilogb(x.val[0] + (x.val[1] + (x.val[2] + x.val[3]))) + 1;
+	*expon = ilogb(x.val[0]) + 1;
 	ret.val[0] = ldexp(x.val[0], -(*expon));
 	ret.val[1] = ldexp(x.val[1], -(*expon));
 	ret.val[2] = ldexp(x.val[2], -(*expon));

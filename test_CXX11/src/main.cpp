@@ -50,7 +50,7 @@ inline int64_t getNanoTime(void) {
 
 #ifdef __AVX__
 #include "../../Float64/Float64_AVX.h"
-#include "../../Float64/Float64_AVX.hpp"
+// #include "../../Float64/Float64_AVX.hpp"
 #include "../../Float64x4/Float64x4_AVX.h"
 #include "../../Float64x2/Float64x2_AVX.h"
 #endif
@@ -74,6 +74,7 @@ inline int64_t getNanoTime(void) {
 #include "../../Float32x4/Float32x4.hpp"
 #include "../../Float64x4/Float64x4.h"
 #include "../../Float64x4/Float64x4.hpp"
+#include "../../Float64x3/Float64x3.hpp"
 #include "../../Float64x6/Float64x6.hpp"
 
 // Deprecated since it runs slower than mpfr_t. It could be faster than the overhead from C++ wrappers for mpfr_t
