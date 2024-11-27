@@ -487,10 +487,10 @@ static inline __m256dx2 _mm256x2_cmp_extend_pd(__m256d cmp) {
 	 * @brief _CMP_NLT_UQ
 	 */
 	static inline __m256d _mm256_cmpnlt_pdx2(__m256dx2 x, __m256dx2 y) {
-		return _mm256_or_pd(
+		return _mm256_and_pd(
 			_mm256_cmp_pd(x.hi, y.hi, _CMP_NLT_UQ),
-			_mm256_and_pd(
-				_mm256_cmp_pd(x.hi, y.hi, _CMP_NEQ_UQ),
+			_mm256_or_pd(
+				_mm256_cmp_pd(x.hi, y.hi, _CMP_NEQ_OQ),
 				_mm256_cmp_pd(x.lo, y.lo, _CMP_NLT_UQ)
 			)
 		);
@@ -503,7 +503,7 @@ static inline __m256dx2 _mm256x2_cmp_extend_pd(__m256d cmp) {
 		return _mm256_and_pd(
 			_mm256_cmp_pd(x.hi, y.hi, _CMP_NLT_UQ),
 			_mm256_or_pd(
-				_mm256_cmp_pd(x.hi, y.hi, _CMP_NEQ_UQ),
+				_mm256_cmp_pd(x.hi, y.hi, _CMP_NEQ_OQ),
 				_mm256_cmp_pd(x.lo, y.lo, _CMP_NLE_UQ)
 			)
 		);
@@ -516,7 +516,7 @@ static inline __m256dx2 _mm256x2_cmp_extend_pd(__m256d cmp) {
 		return _mm256_and_pd(
 			_mm256_cmp_pd(x.hi, y.hi, _CMP_NGT_UQ),
 			_mm256_or_pd(
-				_mm256_cmp_pd(x.hi, y.hi, _CMP_NEQ_UQ),
+				_mm256_cmp_pd(x.hi, y.hi, _CMP_NEQ_OQ),
 				_mm256_cmp_pd(x.lo, y.lo, _CMP_NGT_UQ)
 			)
 		);
@@ -529,7 +529,7 @@ static inline __m256dx2 _mm256x2_cmp_extend_pd(__m256d cmp) {
 		return _mm256_and_pd(
 			_mm256_cmp_pd(x.hi, y.hi, _CMP_NGT_UQ),
 			_mm256_or_pd(
-				_mm256_cmp_pd(x.hi, y.hi, _CMP_NEQ_UQ),
+				_mm256_cmp_pd(x.hi, y.hi, _CMP_NEQ_OQ),
 				_mm256_cmp_pd(x.lo, y.lo, _CMP_NGE_UQ)
 			)
 		);
@@ -646,7 +646,7 @@ static inline __m256dx2 _mm256x2_cmp_extend_pd(__m256d cmp) {
 		return _mm256_or_pd(
 			_mm256_cmp_pd(x.hi, y, _CMP_NLT_UQ),
 			_mm256_and_pd(
-				_mm256_cmp_pd(x.hi, y, _CMP_NEQ_UQ),
+				_mm256_cmp_pd(x.hi, y, _CMP_NEQ_OQ),
 				_mm256_cmp_pd(x.lo, _mm256_setzero_pd(), _CMP_NLT_UQ)
 			)
 		);
@@ -659,7 +659,7 @@ static inline __m256dx2 _mm256x2_cmp_extend_pd(__m256d cmp) {
 		return _mm256_and_pd(
 			_mm256_cmp_pd(x.hi, y, _CMP_NLT_UQ),
 			_mm256_or_pd(
-				_mm256_cmp_pd(x.hi, y, _CMP_NEQ_UQ),
+				_mm256_cmp_pd(x.hi, y, _CMP_NEQ_OQ),
 				_mm256_cmp_pd(x.lo, _mm256_setzero_pd(), _CMP_NLE_UQ)
 			)
 		);
@@ -672,7 +672,7 @@ static inline __m256dx2 _mm256x2_cmp_extend_pd(__m256d cmp) {
 		return _mm256_and_pd(
 			_mm256_cmp_pd(x.hi, y, _CMP_NGT_UQ),
 			_mm256_or_pd(
-				_mm256_cmp_pd(x.hi, y, _CMP_NEQ_UQ),
+				_mm256_cmp_pd(x.hi, y, _CMP_NEQ_OQ),
 				_mm256_cmp_pd(x.lo, _mm256_setzero_pd(), _CMP_NGT_UQ)
 			)
 		);
@@ -685,7 +685,7 @@ static inline __m256dx2 _mm256x2_cmp_extend_pd(__m256d cmp) {
 		return _mm256_and_pd(
 			_mm256_cmp_pd(x.hi, y, _CMP_NGT_UQ),
 			_mm256_or_pd(
-				_mm256_cmp_pd(x.hi, y, _CMP_NEQ_UQ),
+				_mm256_cmp_pd(x.hi, y, _CMP_NEQ_OQ),
 				_mm256_cmp_pd(x.lo, _mm256_setzero_pd(), _CMP_NGE_UQ)
 			)
 		);
@@ -802,7 +802,7 @@ static inline __m256dx2 _mm256x2_cmp_extend_pd(__m256d cmp) {
 		return _mm256_or_pd(
 			_mm256_cmp_pd(x, y.hi, _CMP_NLT_UQ),
 			_mm256_and_pd(
-				_mm256_cmp_pd(x, y.hi, _CMP_NEQ_UQ),
+				_mm256_cmp_pd(x, y.hi, _CMP_NEQ_OQ),
 				_mm256_cmp_pd(_mm256_setzero_pd(), y.lo, _CMP_NLT_UQ)
 			)
 		);
@@ -815,7 +815,7 @@ static inline __m256dx2 _mm256x2_cmp_extend_pd(__m256d cmp) {
 		return _mm256_and_pd(
 			_mm256_cmp_pd(x, y.hi, _CMP_NLT_UQ),
 			_mm256_or_pd(
-				_mm256_cmp_pd(x, y.hi, _CMP_NEQ_UQ),
+				_mm256_cmp_pd(x, y.hi, _CMP_NEQ_OQ),
 				_mm256_cmp_pd(_mm256_setzero_pd(), y.lo, _CMP_NLE_UQ)
 			)
 		);
@@ -828,7 +828,7 @@ static inline __m256dx2 _mm256x2_cmp_extend_pd(__m256d cmp) {
 		return _mm256_and_pd(
 			_mm256_cmp_pd(x, y.hi, _CMP_NGT_UQ),
 			_mm256_or_pd(
-				_mm256_cmp_pd(x, y.hi, _CMP_NEQ_UQ),
+				_mm256_cmp_pd(x, y.hi, _CMP_NEQ_OQ),
 				_mm256_cmp_pd(_mm256_setzero_pd(), y.lo, _CMP_NGT_UQ)
 			)
 		);
@@ -841,7 +841,7 @@ static inline __m256dx2 _mm256x2_cmp_extend_pd(__m256d cmp) {
 		return _mm256_and_pd(
 			_mm256_cmp_pd(x, y.hi, _CMP_NGT_UQ),
 			_mm256_or_pd(
-				_mm256_cmp_pd(x, y.hi, _CMP_NEQ_UQ),
+				_mm256_cmp_pd(x, y.hi, _CMP_NEQ_OQ),
 				_mm256_cmp_pd(_mm256_setzero_pd(), y.lo, _CMP_NGE_UQ)
 			)
 		);
@@ -943,14 +943,9 @@ static inline __m256d _mm256_cmpnge_zero_pdx2(__m256dx2 x) {
 //------------------------------------------------------------------------------
 
 static inline __m256dx2 _mm256x2_negate_pdx2(__m256dx2 x) {
-	x.hi = _mm256_xor_pd(
-		x.hi,
-		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x8000000000000000))
-	);
-	x.lo = _mm256_xor_pd(
-		x.lo,
-		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x8000000000000000))
-	);
+	const __m256d sign_bit_mask = _mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x8000000000000000));
+	x.hi = _mm256_xor_pd(x.hi, sign_bit_mask);
+	x.lo = _mm256_xor_pd(x.lo, sign_bit_mask);
 	return x;
 }
 
@@ -1110,27 +1105,6 @@ static inline __m256dx2 _mm256x2_div_pdx2(__m256dx2 x, __m256dx2 y) {
 	__m256dx2 r;
 	r.hi = _mm256_add_pd(u, l);
 	r.lo = _mm256_add_pd(_mm256_sub_pd(u, r.hi), l);
-	return r;
-}
-
-/**
- * @brief returns 0 on division by 0
- */
-static inline __m256dx2 _mm256x2_div_zero_pdx2(__m256dx2 x, __m256dx2 y) {
-	__m256d u = _mm256_div_pd(x.hi, y.hi);
-	__m256dx2 t = _mm256x2_dekker_mul12_pd(u, y.hi);
-	__m256d l = _mm256_div_pd(_mm256_sub_pd(
-		_mm256_add_pd(_mm256_sub_pd(_mm256_sub_pd(x.hi, t.hi), t.lo), x.lo),
-		_mm256_mul_pd(u, y.lo)
-	), y.hi);
-
-	__m256dx2 r;
-	r.hi = _mm256_add_pd(u, l);
-	r.lo = _mm256_add_pd(_mm256_sub_pd(u, r.hi), l);
-
-	__m256d cmp_zero = _mm256_cmp_pd(y.hi, _mm256_setzero_pd(), _CMP_EQ_OS);
-	r.hi = _mm256_andnot_pd(r.hi, cmp_zero);
-	r.lo = _mm256_andnot_pd(r.lo, cmp_zero);
 	return r;
 }
 

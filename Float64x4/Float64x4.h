@@ -499,6 +499,7 @@ static inline void Float64x4_three_sum2(
 	*b = t2 + t3;
 }
 
+#if 0
 static inline void Float64x4_accurate_renorm(Float64x4* LDF_restrict const x) {
 	fp64 s0, s1, s2 = 0.0, s3 = 0.0;
 
@@ -533,6 +534,39 @@ static inline void Float64x4_accurate_renorm(Float64x4* LDF_restrict const x) {
 	x->val[2] = s2;
 	x->val[3] = s3;
 }
+#else
+
+static inline void Float64x4_accurate_renorm(Float64x4* LDF_restrict const x) {
+	fp64 s[4];
+
+	// if (isinf(x->val[0])) {
+	// 	return;
+	// }
+
+	s[0]      = Float64_quick_two_sum(x->val[2], x->val[3], &x->val[3]);
+	s[0]      = Float64_quick_two_sum(x->val[1],      s[0], &x->val[2]);
+	x->val[0] = Float64_quick_two_sum(x->val[0], s[0], &x->val[1]);
+
+	s[0] = x->val[0];
+	s[1] = x->val[1];
+
+	int ret_hi, err_hi;
+	int ret_lo, err_lo;
+
+	ret_hi = (s[1] != 0.0) ? 1 : 0;
+	err_hi = (s[1] != 0.0) ? 2 : 1;
+	s[ret_hi] = Float64_quick_two_sum(s[ret_hi], x->val[2], &s[err_hi]);
+	ret_lo = (err_hi != 0.0) ? ret_hi : ret_hi - 1;
+	err_lo = (err_hi != 0.0) ? err_hi : err_hi - 1;
+	s[ret_lo] = Float64_quick_two_sum(s[ret_lo], x->val[2], &s[err_lo]);
+
+	x->val[0] = s[0];
+	x->val[1] = s[1];
+	x->val[2] = s[2];
+	x->val[3] = s[3];
+}
+
+#endif
 
 static inline void Float64x4_quick_renorm(Float64x4* LDF_restrict const x) {
 	fp64 t0, t1, t2;

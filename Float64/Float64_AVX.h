@@ -454,6 +454,28 @@ static inline __m256d _mm256_fdim_pd(__m256d x, __m256d y) {
 	return ret;
 }
 
+/**
+ * @brief returns the max value by magnitude
+ */
+static inline __m256d _mm256_max_mag_pd(__m256d x, __m256d y) {
+	const __m256d fabs_mask = _mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FFFFFFFFFFFFFFF));
+	return _mm256_max_pd(
+		_mm256_and_pd(x, fabs_mask),
+		_mm256_and_pd(y, fabs_mask)
+	);
+}
+
+/**
+ * @brief returns the max value by magnitude
+ */
+static inline __m256d _mm256_min_mag_pd(__m256d x, __m256d y) {
+	const __m256d fabs_mask = _mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FFFFFFFFFFFFFFF));
+	return _mm256_min_pd(
+		_mm256_and_pd(x, fabs_mask),
+		_mm256_and_pd(y, fabs_mask)
+	);
+}
+
 #ifndef _mm256_fmax_pd
 /**
  * @brief Returns the fmax of x and y. Correctly handling NaN and signed zeros.
@@ -480,11 +502,11 @@ static inline __m256d _mm256_fmax_pd(__m256d x, __m256d y) {
 
 #ifndef _mm256_fmin_pd
 /**
- * @brief Returns the fmin of x and y. Correctly handling NaN and signed zeros.
+ * @brief Returns the fmin of x and y by magnitude. Correctly handling NaN and signed zeros.
  * You may use _mm256_min_pd as a faster alternative.
  */
 static inline __m256d _mm256_fmin_pd(__m256d x, __m256d y) {
-	__m256d fmax_cmp =
+	__m256d fmin_cmp =
 		_mm256_or_pd(
 			_mm256_andnot_pd(
 				_mm256_or_pd(
@@ -498,9 +520,53 @@ static inline __m256d _mm256_fmin_pd(__m256d x, __m256d y) {
 			),
 			_mm256_cmp_pd(x, y, _CMP_GT_OQ)
 		);
-	return _mm256_blendv_pd(x, y, fmax_cmp);
+	return _mm256_blendv_pd(x, y, fmin_cmp);
 }
 #endif
+
+/**
+ * @brief Returns the fmax of x and y by magnitude. Correctly handling NaN's.
+ * You may use _mm256_max_mag_pd as a faster alternative.
+ */
+static inline __m256d _mm256_fmax_mag_pd(__m256d x, __m256d y) {
+	const __m256d fabs_mask = _mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FFFFFFFFFFFFFFF));
+	x = _mm256_and_pd(x, fabs_mask);
+	y = _mm256_and_pd(y, fabs_mask);
+	__m256d fmax_mag_cmp =
+		_mm256_or_pd(
+			_mm256_andnot_pd(
+				_mm256_or_pd(
+					_mm256_cmp_pd(y, y, _CMP_ORD_Q),
+					_mm256_isnan_pd(x)
+				),
+				_mm256_cmp_pd(y, x, _CMP_LT_OQ)
+			),
+			_mm256_cmp_pd(x, y, _CMP_LT_OQ)
+		);
+	return _mm256_blendv_pd(x, y, fmax_mag_cmp);
+}
+
+/**
+ * @brief Returns the fmin of x and y by magnitude. Correctly handling NaN's.
+ * You may use _mm256_min_mag_pd as a faster alternative.
+ */
+static inline __m256d _mm256_fmin_mag_pd(__m256d x, __m256d y) {
+	const __m256d fabs_mask = _mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FFFFFFFFFFFFFFF));
+	x = _mm256_and_pd(x, fabs_mask);
+	y = _mm256_and_pd(y, fabs_mask);
+	__m256d fmin_mag_cmp =
+		_mm256_or_pd(
+			_mm256_andnot_pd(
+				_mm256_or_pd(
+					_mm256_cmp_pd(y, y, _CMP_ORD_Q),
+					_mm256_isnan_pd(x)
+				),
+				_mm256_cmp_pd(y, x, _CMP_GT_OQ)
+			),
+			_mm256_cmp_pd(x, y, _CMP_GT_OQ)
+		);
+	return _mm256_blendv_pd(x, y, fmin_mag_cmp);
+}
 
 //------------------------------------------------------------------------------
 // __m256d float utilities

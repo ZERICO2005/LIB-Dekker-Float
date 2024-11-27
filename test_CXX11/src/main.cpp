@@ -55,6 +55,12 @@ inline int64_t getNanoTime(void) {
 #include "../../Float64x2/Float64x2_AVX.h"
 #endif
 
+#ifdef __SSE2__
+#include "../../Float64/Float64_SSE2.h"
+#include "../../Float64x2/Float64x2_SSE2.h"
+#include "../../Float64x4/Float64x4_SSE2.h"
+#endif
+
 
 // #include "Float64x4/Float64x4.hpp"
 

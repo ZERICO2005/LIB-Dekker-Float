@@ -380,7 +380,7 @@ static inline __m128d _mm_not_pd(__m128d x) {
 
 static inline __m128d _mm_copysign_pd(__m128d x, __m128d y) {
 	return _mm_xor_pd(
-		x, _mm_and_pd(
+		y, _mm_and_pd(
 			_mm_xor_pd(x, y),
 			_mm_castsi128_pd(_mm_set1_epi64x((int64_t)0x7FFFFFFFFFFFFFFF))
 		)
@@ -415,9 +415,9 @@ static inline __m128d _mm_fmax_pd(__m128d x, __m128d y) {
 					),
 					_mm_isnan_pd(x)
 				),
-				_mm_cmp_pd(y, x, _CMP_LT_OQ)
+				_mm_cmplt_pd(y, x)
 			),
-			_mm_cmp_pd(x, y, _CMP_LT_OQ)
+			_mm_cmplt_pd(x, y)
 		);
 	return _mm_blendv_pd(x, y, fmax_cmp);
 }
@@ -429,7 +429,7 @@ static inline __m128d _mm_fmax_pd(__m128d x, __m128d y) {
  * You may use _mm_min_pd as a faster alternative.
  */
 static inline __m128d _mm_fmin_pd(__m128d x, __m128d y) {
-	__m128d fmax_cmp =
+	__m128d fmin_cmp =
 		_mm_or_pd(
 			_mm_andnot_pd(
 				_mm_or_pd(
@@ -439,11 +439,20 @@ static inline __m128d _mm_fmin_pd(__m128d x, __m128d y) {
 					),
 					_mm_isnan_pd(x)
 				),
-				_mm_cmp_pd(y, x, _CMP_GT_OQ)
+				_mm_cmpgt_pd(y, x)
 			),
-			_mm_cmp_pd(x, y, _CMP_GT_OQ)
+			_mm_cmpgt_pd(x, y)
 		);
-	return _mm_blendv_pd(x, y, fmax_cmp);
+	return _mm_blendv_pd(x, y, fmin_cmp);
+}
+#endif
+
+#ifndef _mm_trunc_pd
+/**
+ * @brief _mm_trunc_pd replacement function.
+ */
+static inline __m128d _mm_trunc_pd(__m128d x) {
+	return _mm_round_pd(x, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
 }
 #endif
 
@@ -500,7 +509,7 @@ static inline __m128i _mm_ilogb_pd_epi64(__m128d x) {
 	// Sets ret to INT64_MIN if x is zero or NaN
 	ret = _mm_blendv_pd(
 		ret, _mm_castsi128_pd(_mm_set1_epi64x(INT64_MIN)),
-		_mm_or_pd(_mm_isnan_pd(x), _mm_cmp_pd(x, _mm_setzero_pd(), _CMP_EQ_OQ))
+		_mm_or_pd(_mm_isnan_pd(x), _mm_cmpeq_pd(x, _mm_setzero_pd()))
 	);
 	// Sets ret to INT64_MAX if x is infinity
 	ret = _mm_blendv_pd(
