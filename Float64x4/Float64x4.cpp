@@ -1242,7 +1242,7 @@ std::istream& operator>>(std::istream& stream, Float64x4& value) {
 int Float64x4_snprintf(char* buf, size_t len, const char* format, ...) {
 	va_list args;
 	va_start(args, format);
-	internal_FloatNxN_snprintf<Float64x4, fp64, 2> func_snprintf;
+	internal_FloatNxN_snprintf<Float64x4, fp64, 4> func_snprintf;
 	int ret_val = func_snprintf.FloatNxN_snprintf(
 		PRIFloat64x4, PRIFloat64,
 		buf, len, format, args
@@ -1252,6 +1252,6 @@ int Float64x4_snprintf(char* buf, size_t len, const char* format, ...) {
 }
 
 std::ostream& operator<<(std::ostream& stream, const Float64x4& value) {
-	internal_FloatNxN_snprintf<Float64x4, fp64, 2> func_cout;
+	internal_FloatNxN_snprintf<Float64x4, fp64, 4> func_cout;
 	return func_cout.FloatNxN_cout(PRIFloat64x4, PRIFloat64, stream, value);
 }

@@ -346,7 +346,6 @@ Float64x3 LDF::sub<Float64x3, fp64, Float64x3>
 
 /* Multiplication */
 
-#if 0
 template <> inline
 Float64x3 LDF::mul<Float64x3, Float64x3, Float64x3>
 (const Float64x3& x, const Float64x3& y) {
@@ -358,7 +357,6 @@ Float64x3 LDF::mul<Float64x3, Float64x3, Float64x2>
 (const Float64x3& x, const Float64x2& y) {
 	return Float64x3_mul_dx3_dx2(x, y);
 }
-#endif
 
 template <> inline
 Float64x3 LDF::mul<Float64x3, Float64x2, Float64x3>
@@ -366,13 +364,11 @@ Float64x3 LDF::mul<Float64x3, Float64x2, Float64x3>
 	return Float64x3_mul_dx3_d(x, y);
 }
 
-#if 0
 template <> inline
 Float64x3 LDF::mul<Float64x3, Float64x3, fp64>
 (const Float64x3& x, const fp64& y) {
 	return Float64x3_mul_dx2_dx3(x, y);
 }
-#endif
 
 template <> inline
 Float64x3 LDF::mul<Float64x3, fp64, Float64x3>
@@ -382,13 +378,11 @@ Float64x3 LDF::mul<Float64x3, fp64, Float64x3>
 
 /* Square */
 
-#if 0
 template <> inline
 Float64x3 LDF::square<Float64x3, Float64x3>
 (const Float64x3& x) {
 	return Float64x3_square(x);
 }
-#endif
 
 /* Division */
 
@@ -486,7 +480,6 @@ Float64x3 LDF::sub<Float64x3, fp64, fp64>
 
 /* Multiplication */
 
-#if 0
 template <> inline
 Float64x3 LDF::mul<Float64x3, Float64x2, Float64x2>
 (const Float64x2& x, const Float64x2& y) {
@@ -498,7 +491,7 @@ Float64x3 LDF::mul<Float64x3, Float64x2, fp64>
 (const Float64x2& x, const fp64& y) {
 	return Float64x3_mul_dx2_d(x, y);
 }
-#endif
+
 template <> inline
 Float64x3 LDF::mul<Float64x3, fp64, Float64x2>
 (const fp64& x, const Float64x2& y) {
@@ -513,7 +506,6 @@ Float64x3 LDF::mul<Float64x3, fp64, fp64>
 
 /* Square */
 
-#if 0
 template <> inline
 Float64x3 LDF::square<Float64x3, Float64x2>
 (const Float64x2& x) {
@@ -526,7 +518,6 @@ Float64x3 LDF::square<Float64x3, fp64>
 (const fp64& x) {
 	return Float64x3_square_d(x);
 }
-#endif
 
 /* Division */
 
@@ -667,7 +658,6 @@ inline Float64x3 operator-(const fp64 x, const Float64x3& y) {
 
 /* Multiplication */
 
-#if 0
 inline Float64x3 operator*(const Float64x3& x, const Float64x3& y) {
 	return Float64x3_mul(x, y);
 }
@@ -675,17 +665,14 @@ inline Float64x3 operator*(const Float64x3& x, const Float64x3& y) {
 inline Float64x3 operator*(const Float64x3& x, const Float64x2& y) {
 	return Float64x3_mul_dx3_dx2(x, y);
 }
-#endif
 
 inline Float64x3 operator*(const Float64x3& x, const fp64 y) {
 	return Float64x3_mul_dx3_d(x, y);
 }
 
-#if 0
 inline Float64x3 operator*(const Float64x2& x, const Float64x3& y) {
 	return Float64x3_mul_dx2_dx3(x, y);
 }
-#endif
 
 inline Float64x3 operator*(const fp64 x, const Float64x3& y) {
 	return Float64x3_mul_d_dx3(x, y);
@@ -693,11 +680,9 @@ inline Float64x3 operator*(const fp64 x, const Float64x3& y) {
 
 /* Square */
 
-#if 0
 inline Float64x3 square(const Float64x3& x) {
 	return Float64x3_square(x);
 }
-#endif
 
 /* Division */
 
@@ -752,12 +737,12 @@ inline Float64x3& operator-=(Float64x3 &x, const Float64x3 &y) {
 	x = x - y;
 	return x;
 }
-#if 0
+
 inline Float64x3& operator*=(Float64x3 &x, const Float64x3 &y) {
 	x = x * y;
 	return x;
 }
-#endif
+
 inline Float64x3& operator/=(Float64x3 &x, const Float64x3 &y) {
 	x = x / y;
 	return x;
@@ -771,12 +756,12 @@ inline Float64x3& operator-=(Float64x3 &x, const Float64x2 &y) {
 	x = x - y;
 	return x;
 }
-#if 0
+
 inline Float64x3& operator*=(Float64x3 &x, const Float64x2 &y) {
 	x = x * y;
 	return x;
 }
-#endif
+
 inline Float64x3& operator/=(Float64x3 &x, const Float64x2 &y) {
 	x = x / y;
 	return x;
@@ -1197,15 +1182,13 @@ namespace std {
 		return islessequal(x, y) ? static_cast<Float64x3>(0.0) : (x - y);
 	}
 
-#if 0
 	/**
 	 * @brief `(x * y) + z` Performs a Fused-Multiply-Add operation, avoiding
 	 * rounding errors.
-	 * @note Uses Float64x6 for calculations, which may cause this function to
+	 * @note Uses Float64x4 for calculations, which may cause this function to
 	 * run slowly.
 	 */
 	Float64x3 fma(const Float64x3& x, const Float64x3& y, const Float64x3& z);
-#endif
 
 	inline constexpr Float64x3 copysign(const Float64x3& x, const Float64x3& y) {
 		return (signbit(x) != signbit(y)) ? -x : x;
@@ -1213,11 +1196,11 @@ namespace std {
 	inline Float64x3 sqrt(const Float64x3& x) {
 		return Float64x3_sqrt(x);
 	}
-#if 0
+
 	inline Float64x3 cbrt(const Float64x3& x) {
 		return Float64x3_cbrt(x);
 	}
-#endif
+
 #if 0
 	/** @note Naive implementation of hypot, may overflow for large inputs */
 	inline Float64x3 hypot(const Float64x3& x, const Float64x3& y) {
@@ -1419,8 +1402,6 @@ namespace std {
 
 /* Integer and Remainder */
 
-#if 0
-
 	inline Float64x3 fmod(const Float64x3& x, const Float64x3& y) {
 		Float64x3 trunc_part = trunc(x / y);
 		return x - y * trunc_part;
@@ -1443,8 +1424,6 @@ namespace std {
 		quo = static_cast<int>(q.val[0] + q.val[1]);
 		return r;
 	}
-
-#endif
 
 /* Float Exponents */
 

@@ -1042,19 +1042,16 @@ static inline Float64x3 Float64x3_sub_d_d(const fp64 x, const fp64 y) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 
-#if 0
-
 /* Float64x3 * Float64x3 */
 
 /** @brief Orginally qd_real::accurate_mul */
 static inline Float64x3 Float64x3_mul_accurate(const Float64x3 x, const Float64x3 y) {
 	fp64 p0, p1, p2, p3, p4, p5;
 	fp64 q0, q1, q2, q3, q4, q5;
-	fp64 p6, p7, p8, p9;
-	fp64 q6, q7, q8, q9;
-	fp64 r0, r1;
-	fp64 t0, t1;
-	fp64 s0, s1, s2;
+	fp64 p6, p7, p8;
+	fp64 r0;
+	fp64 t0;
+	fp64 s0, s1;
 
 	p0 = Float64_two_prod(x.val[0], y.val[0], &q0);
 
@@ -1069,43 +1066,35 @@ static inline Float64x3 Float64x3_mul_accurate(const Float64x3 x, const Float64x
 	Float64_three_sum(&p1, &p2, &q0);
 
 	/* Six-Three Sum  of p2, q1, q2, p3, p4, p5. */
-	Float64_three_sum(&p2, &q1, &q2);
-	Float64_three_sum(&p3, &p4, &p5);
+	Float64_three_sum2(&p2, &q1, q2);
+	Float64_three_sum2(&p3, &p4, p5);
 	/* compute (s0, s1, s2) = (p2, q1, q2) + (p3, p4, p5). */
 	s0 = Float64_two_sum(p2, p3, &t0);
-	s1 = Float64_two_sum(q1, p4, &t1);
-	s2 = q2 + p5;
+	s1 = q1 + p4;
 	s1 = Float64_two_sum(s1, t0, &t0);
-	s2 += (t0 + t1);
 
 	/* O(eps^3) order terms */
-	p6 = Float64_two_prod(x.val[0], y.val[3], &q6);
-	p7 = Float64_two_prod(x.val[1], y.val[2], &q7);
-	p8 = Float64_two_prod(x.val[2], y.val[1], &q8);
-	p9 = Float64_two_prod(x.val[3], y.val[0], &q9);
+	p6 = x.val[0] * y.val[3];
+	p7 = x.val[1] * y.val[2];
+	p8 = x.val[2] * y.val[1];
 
 	/* Nine-Two-Sum of q0, s1, q3, q4, q5, p6, p7, p8, p9. */
-	q0 = Float64_two_sum(q0, q3, &q3);
-	q4 = Float64_two_sum(q4, q5, &q5);
-	p6 = Float64_two_sum(p6, p7, &p7);
-	p8 = Float64_two_sum(p8, p9, &p9);
+	q0 = q0 + q3;
+	q4 = q4 + q5;
+	p6 = p6 + p7;
+
 	/* Compute (t0, t1) = (q0, q3) + (q4, q5). */
-	t0 = Float64_two_sum(q0, q4, &t1);
-	t1 += (q3 + q5);
+	t0 = q0 + q4;
 	/* Compute (r0, r1) = (p6, p7) + (p8, p9). */
-	r0 = Float64_two_sum(p6, p8, &r1);
-	r1 += (p7 + p9);
+	r0 = p6 + p8;
 	/* Compute (q3, q4) = (t0, t1) + (r0, r1). */
-	q3 = Float64_two_sum(t0, r0, &q4);
-	q4 += (t1 + r1);
+	q3 = t0 + r0;
 	/* Compute (t0, t1) = (q3, q4) + s1. */
-	t0 = Float64_two_sum(q3, s1, &t1);
-	t1 += q4;
+	t0 = q3 + s1;
 
 	/* O(eps^4) terms -- Nine-One-Sum */
-	t1 += x.val[1] * y.val[3] + x.val[2] * y.val[2] + x.val[3] * y.val[1] + q6 + q7 + q8 + q9 + s2;
-	Float64x3 ret = {{p0, p1, s0, t0}};
-	Float64x3_renorm_err(&ret, &t1);
+	Float64x3 ret = {{p0, p1, s0}};
+	Float64x3_renorm_err(&ret, &t0);
 	return ret;
 }
 
@@ -1113,8 +1102,8 @@ static inline Float64x3 Float64x3_mul_accurate(const Float64x3 x, const Float64x
 static inline Float64x3 Float64x3_mul_quick(const Float64x3 x, const Float64x3 y) {
 	fp64 p0, p1, p2, p3, p4, p5;
 	fp64 q0, q1, q2, q3, q4, q5;
-	fp64 t0, t1;
-	fp64 s0, s1, s2;
+	fp64 t0;
+	fp64 s0, s1;
 
 	p0 = Float64_two_prod(x.val[0], y.val[0], &q0);
 
@@ -1129,19 +1118,17 @@ static inline Float64x3 Float64x3_mul_quick(const Float64x3 x, const Float64x3 y
 	Float64_three_sum(&p1, &p2, &q0);
 
 	/* Six-Three Sum  of p2, q1, q2, p3, p4, p5. */
-	Float64_three_sum(&p2, &q1, &q2);
-	Float64_three_sum(&p3, &p4, &p5);
+	Float64_three_sum2(&p2, &q1, q2);
+	Float64_three_sum2(&p3, &p4, p5);
 	/* compute (s0, s1, s2) = (p2, q1, q2) + (p3, p4, p5). */
 	s0 = Float64_two_sum(p2, p3, &t0);
-	s1 = Float64_two_sum(q1, p4, &t1);
-	s2 = q2 + p5;
-	s1 = Float64_two_sum(s1, t0, &t0);
-	s2 += (t0 + t1);
+	s1 = q1 + p4;
+	s1 = s1 + t0;
 
 	/* O(eps^3) order terms */
-	s1 += x.val[0]*y.val[3] + x.val[1]*y.val[2] + x.val[2]*y.val[1] + x.val[3]*y.val[0] + q0 + q3 + q4 + q5;
-	Float64x3 ret = {{p0, p1, s0, s1}};
-	Float64x3_renorm_err(&ret, &s2);
+	s1 += x.val[1]*y.val[2] + x.val[2]*y.val[1] + q0 + q3 + q4 + q5;
+	Float64x3 ret = {{p0, p1, s0}};
+	Float64x3_renorm_err(&ret, &s1);
 	return ret;
 }
 
@@ -1157,33 +1144,31 @@ static inline Float64x3 Float64x3_mul(const Float64x3 x, const Float64x3 y) {
 
 static inline Float64x3 Float64x3_mul_dx3_dx2(const Float64x3 x, const Float64x2 y) {
 	Float64x3 p;
-	fp64 p_err;
+	fp64 p_val3;
 	fp64 q0, q1, q2, q3, q4;
-	fp64 s0, s1, s2;
-	fp64 t0, t1;
+	fp64 s0, s1;
+	fp64 t0;
 
 	p.val[0] = Float64_two_prod(x.val[0], y.hi, &q0);
 	p.val[1] = Float64_two_prod(x.val[0], y.lo, &q1);
 	p.val[2] = Float64_two_prod(x.val[1], y.hi, &q2);
-	p.val[3] = Float64_two_prod(x.val[1], y.lo, &q3);
-	p_err    = Float64_two_prod(x.val[2], y.hi, &q4);
+	p_val3   = Float64_two_prod(x.val[1], y.lo, &q3);
 	
 	Float64_three_sum(&p.val[1], &p.val[2], &q0);
 	
 	/* Five-Three-Sum */
-	Float64_three_sum(&p.val[2], &p.val[3], &p_err);
-	q1 = Float64_two_sum(q1      , q2, &q2);
-	s0 = Float64_two_sum(p.val[2], q1, &t0);
-	s1 = Float64_two_sum(p.val[3], q2, &t1);
-	s1 = Float64_two_sum(s1      , t0, &t0);
-	s2 = t0 + t1 + p_err;
+	p.val[2] = Float64_two_sum(p.val[2], p_val3, &p_val3);
+	q1       = Float64_two_sum(q1      , q2    , &q2    );
+	s0       = Float64_two_sum(p.val[2], q1    , &t0    );
+	s1       = p_val3 + q2;
+	s1       = s1 + t0;
 	p.val[2] = s0;
 
-	p.val[3] = x.val[2] * y.hi + x.val[3] * y.lo + q3 + q4;
-	Float64_three_sum2(&p.val[3], &q0, s1);
-	p_err = q0 + s2;
+	fp64 temp = Float64_two_prod(x.val[2], y.hi, &q4);
+	p_val3 = temp + q3 + q4;
+	Float64_three_sum2(&p_val3, &q0, s1);
 
-	Float64x3_renorm_err(&p, &p_err);
+	Float64x3_renorm_err(&p, &p_val3);
 	return p;
 }
 
@@ -1191,37 +1176,33 @@ static inline Float64x3 Float64x3_mul_dx3_dx2(const Float64x3 x, const Float64x2
 
 static inline Float64x3 Float64x3_mul_dx2_dx3(const Float64x2 x, const Float64x3 y) {
 	Float64x3 p;
-	fp64 p_err;
+	fp64 p_val3;
 	fp64 q0, q1, q2, q3, q4;
-	fp64 s0, s1, s2;
-	fp64 t0, t1;
+	fp64 s0, s1;
+	fp64 t0;
 
 	p.val[0] = Float64_two_prod(x.hi, y.val[0], &q0);
 	p.val[1] = Float64_two_prod(x.lo, y.val[0], &q1);
 	p.val[2] = Float64_two_prod(x.hi, y.val[1], &q2);
-	p.val[3] = Float64_two_prod(x.lo, y.val[1], &q3);
-	p_err    = Float64_two_prod(x.hi, y.val[2], &q4);
+	p_val3   = Float64_two_prod(x.lo, y.val[1], &q3);
 	
 	Float64_three_sum(&p.val[1], &p.val[2], &q0);
 	
 	/* Five-Three-Sum */
-	Float64_three_sum(&p.val[2], &p.val[3], &p_err);
-	q1 = Float64_two_sum(q1      , q2, &q2);
-	s0 = Float64_two_sum(p.val[2], q1, &t0);
-	s1 = Float64_two_sum(p.val[3], q2, &t1);
-	s1 = Float64_two_sum(s1      , t0, &t0);
-	s2 = t0 + t1 + p_err;
+	p.val[2] = Float64_two_sum(p.val[2], p_val3, &p_val3);
+	q1       = Float64_two_sum(q1      , q2    , &q2    );
+	s0       = Float64_two_sum(p.val[2], q1    , &t0    );
+	s1       = p_val3 + q2;
+	s1       = s1 + t0;
 	p.val[2] = s0;
 
-	p.val[3] = y.val[2] * x.hi + y.val[3] * x.lo + q3 + q4;
-	Float64_three_sum2(&p.val[3], &q0, s1);
-	p_err = q0 + s2;
+	fp64 temp = Float64_two_prod(y.val[2], x.hi, &q4);
+	p_val3 = temp + q3 + q4;
+	Float64_three_sum2(&p_val3, &q0, s1);
 
-	Float64x3_renorm_err(&p, &p_err);
+	Float64x3_renorm_err(&p, &p_val3);
 	return p;
 }
-
-#endif
 
 /* Float64x3 * fp64 */
 
@@ -1292,42 +1273,35 @@ static inline Float64x3 Float64x3_mul_d_dx3(const fp64 x, const Float64x3 y) {
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
 
-#if 0
-
 /* Float64x2 * Float64x2 */
 
 static inline Float64x3 Float64x3_mul_dx2_dx2(const Float64x2 x, const Float64x2 y) {
 	Float64x3 p;
-	fp64 p_err;
+	fp64 p_val3;
 	fp64 q0, q1, q2, q3;
-	fp64 s0, s1, s2;
-	fp64 t0, t1;
+	fp64 s0, s1;
+	fp64 t0;
 
 	p.val[0] = Float64_two_prod(x.hi, y.hi, &q0);
 	p.val[1] = Float64_two_prod(x.lo, y.hi, &q1);
 	p.val[2] = Float64_two_prod(x.hi, y.lo, &q2);
-	p.val[3] = Float64_two_prod(x.lo, y.lo, &q3);
+	p_val3   = Float64_two_prod(x.lo, y.lo, &q3);
 	
 	Float64_three_sum(&p.val[1], &p.val[2], &q0);
 	
 	/* Five-Three-Sum */
-	p.val[2] = Float64_two_sum(p.val[2], p.val[3], &p.val[3]);
+	p.val[2] = Float64_two_sum(p.val[2], p_val3, &p_val3);
 	q1 = Float64_two_sum(q1      , q2, &q2);
 	s0 = Float64_two_sum(p.val[2], q1, &t0);
-	s1 = Float64_two_sum(p.val[3], q2, &t1);
-	s1 = Float64_two_sum(s1      , t0, &t0);
-	s2 = t0 + t1;
+	s1 = p_val3 + q2;
+	s1 = s1 + t0;
 	p.val[2] = s0;
 
-	p.val[3] = q3;
-	Float64_three_sum2(&p.val[3], &q0, s1);
-	p_err = q0 + s2;
+	p_val3 = s1 + (q3 + q0);
 
-	Float64x3_renorm_err(&p, &p_err);
+	Float64x3_renorm_err(&p, &p_val3);
 	return p;
 }
-
-#endif
 
 /* Float64x2 * fp64 */
 
@@ -1394,10 +1368,10 @@ static inline Float64x3 Float64x3_mul_d_d(const fp64 x, const fp64 y) {
  * @author Taken/Modified from libQD which can be found under a
  * LBNL-BSD license from https://www.davidhbailey.com/dhbsoftware/
  */
-#if 0
+
 static inline Float64x3 Float64x3_square(const Float64x3 x) {
 	Float64x3 p;
-	fp64 p_err_hi, p_err_lo;
+	fp64 p_val3;
 	fp64 q0, q1, q2, q3;
 	fp64 s0, s1;
 	fp64 t0, t1;
@@ -1405,36 +1379,30 @@ static inline Float64x3 Float64x3_square(const Float64x3 x) {
 	p.val[0] = Float64_two_sqr(x.val[0], &q0);
 	p.val[1] = Float64_two_prod(2.0 * x.val[0], x.val[1], &q1);
 	p.val[2] = Float64_two_prod(2.0 * x.val[0], x.val[2], &q2);
-	p.val[3] = Float64_two_sqr(x.val[1], &q3);
+	p_val3   = Float64_two_sqr(x.val[1], &q3);
 
 	p.val[1] = Float64_two_sum(q0, p.val[1], &q0);
 
 	q0 = Float64_two_sum(q0, q1, &q1);
-	p.val[2] = Float64_two_sum(p.val[2], p.val[3], &p.val[3]);
+	p.val[2] = Float64_two_sum(p.val[2], p_val3, &p_val3);
 
 	s0 = Float64_two_sum(q0, p.val[2], &t0);
-	s1 = Float64_two_sum(q1, p.val[3], &t1);
+	s1 = Float64_two_sum(q1, p_val3  , &t1);
 
 	s1 = Float64_two_sum(s1, t0, &t0);
 	t0 += t1;
 
 	s1 = Float64_quick_two_sum(s1, t0, &t0);
 	p.val[2] = Float64_quick_two_sum(s0, s1, &t1);
-	p.val[3] = Float64_quick_two_sum(t1, t0, &q0);
+	p_val3 = t1 + t0;
 
-	p_err_hi = 2.0 * x.val[0] * x.val[3];
-	p_err_lo = 2.0 * x.val[1] * x.val[2];
+	q2 = q2 + q3;
 
-	p_err_hi = Float64_two_sum(p_err_hi, p_err_lo, &p_err_lo);
-	q2 = Float64_two_sum(q2, q3, &q3);
+	t0 = (2.0 * x.val[1] * x.val[2]) + q2;
 
-	t0 = Float64_two_sum(p_err_hi, q2, &t1);
-	t1 = t1 + p_err_lo + q3;
+	p_val3 = p_val3 + t0;
 
-	p.val[3] = Float64_two_sum(p.val[3], t0, &p_err_hi);
-	p_err_hi = p_err_hi + q0 + t1;
-
-	Float64x3_renorm_err(&p, &p_err_hi);
+	Float64x3_renorm_err(&p, &p_val3);
 	return p;
 }
 
@@ -1443,10 +1411,10 @@ static inline Float64x3 Float64x3_square(const Float64x3 x) {
  */
 static inline Float64x3 Float64x3_square_dx2(const Float64x2 x) {
 	Float64x3 p;
-	fp64 p_err;
+	fp64 p_val3;
 	fp64 q0, q1, q2;
 	fp64 s0, s1;
-	fp64 t0, t1;
+	fp64 t0;
 	
 	p.val[0] = Float64_two_sqr(x.hi, &q0);
 	p.val[1] = Float64_two_prod(2.0 * x.hi, x.lo, &q1);
@@ -1459,16 +1427,13 @@ static inline Float64x3 Float64x3_square_dx2(const Float64x2 x) {
 
 	s1 = Float64_two_sum(q1, t0, &t0);
 	s1 = Float64_quick_two_sum(s1, t0, &t0);
-	p.val[2] = Float64_quick_two_sum(s0, s1, &t1);
-	p.val[3] = Float64_quick_two_sum(t1, t0, &q0);
+	p.val[2] = Float64_quick_two_sum(s0, s1, &p_val3);
+	p_val3 += t0;
+	p_val3 += q2;
 
-	p.val[3] = Float64_two_sum(p.val[3], q2, &p_err);
-	p_err += q0;
-
-	Float64x3_renorm_err(&p, &p_err);
+	Float64x3_renorm_err(&p, &p_val3);
 	return p;
 }
-#endif
 
 /**
  * @brief Squares a fp64 value with the result stored as a Float64x3.
@@ -2320,7 +2285,6 @@ static inline Float64x3 Float64x3_sqrt(const Float64x3 x) {
 	), 0.5);
 }
 
-#if 0
 static inline Float64x3 Float64x3_cbrt(const Float64x3 x) {
 	if (Float64x3_cmpeq_zero(x)) {
 		return x;
@@ -2332,7 +2296,6 @@ static inline Float64x3 Float64x3_cbrt(const Float64x3 x) {
 			Float64x3_div(x, Float64x3_square_dx2(guess))
 	), 3.0);
 }
-#endif
 
 //------------------------------------------------------------------------------
 // Float64x3 Integer and Remainder
@@ -2349,8 +2312,6 @@ static inline Float64x3 Float64x3_modf(const Float64x3 x, Float64x3* const int_p
 	return Float64x3_sub(x, trunc_part);
 }
 
-#if 0
-
 static inline Float64x3 Float64x3_fmod(const Float64x3 x, const Float64x3 y) {
 	Float64x3 trunc_part = Float64x3_trunc(Float64x3_div(x, y));
 	return Float64x3_sub(x, Float64x3_mul(y, trunc_part));
@@ -2366,8 +2327,6 @@ static inline Float64x3 Float64x3_remquo(const Float64x3 x, const Float64x3 y, i
 	*quo = (int)(q.val[0] + q.val[1]);
 	return r;
 }
-
-#endif
 
 //------------------------------------------------------------------------------
 // Float64x2 Float Exponents
