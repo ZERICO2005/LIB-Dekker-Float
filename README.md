@@ -1,4 +1,4 @@
-README.md updated: 2024/09/07
+README.md updated: 2024/11/28
 
 LIB-Dekker-Float contains a variety of Dekker-Float implementations to boost precision and performance in your C/C++ program.
 
@@ -11,17 +11,16 @@ The floating point implementations are tested on GCC and Clang with `-Wall -Wext
 Available Precisions:
 * Float32x2
 * Float64x2
+* Float64x3
 * Float64x4
 * Float80x2 (x86/x86_x64)
 
 SIMD Types:
-* Float64x2 AVX (x86/x86_x64)
-* Float64x4 AVX (x86/x86_x64)
+* Float64x2 SSE2/AVX (x86/x86_x64)
+* Float64x4 SSE2/AVX (x86/x86_x64)
 
 Under Development:
 * Float128x2 (Requires quadmath)
-* Float64x2 SSE2 (x86/x86_x64)
-* Float64x4 SSE2 (x86/x86_x64)
 * Float32x4
 
 # Attribution
@@ -55,6 +54,7 @@ To convert a string to a `Float64x2`, you can use `Float64x2 value = stringTo_Fl
 * PRIFloat32x2  "DS"
 * PRIFloat32x4  "QS"
 * PRIFloat64x2  "DD"
+* PRIFloat64x3  "TD"
 * PRIFloat64x4  "QD"
 * PRIFloat80x2  "DX"
 * PRIFloat128x2 "DQ"
