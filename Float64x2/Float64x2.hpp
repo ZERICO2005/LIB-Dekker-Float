@@ -828,29 +828,40 @@ namespace std {
 		#endif
 		/** @brief `2^-105 == 2^-52 * 2^-53` */
 		inline static constexpr Float64x2 epsilon() {
-			return {static_cast<fp64>(0x1.0p-105), static_cast<fp64>(0.0)};
+			return {
+				static_cast<fp64>(0x1.0p-105),
+				static_cast<fp64>(0.0)
+			};
 		}
-		inline static constexpr Float64x2 round_error() { return {static_cast<fp64>(0.5), static_cast<fp64>(0.0)}; }
+		inline static constexpr Float64x2 round_error() {
+			return {
+				static_cast<fp64>(0.5),
+				static_cast<fp64>(0.0)
+			};
+		}
 		inline static constexpr Float64x2 infinity() {
 			return {
 				std::numeric_limits<fp64>::infinity(),
-				std::numeric_limits<fp64>::infinity()
+				static_cast<fp64>(0.0)
 			};
 		}
 		inline static constexpr Float64x2 quiet_NaN() {
 			return {
 				std::numeric_limits<fp64>::quiet_NaN(),
-				std::numeric_limits<fp64>::quiet_NaN()
+				static_cast<fp64>(0.0)
 			};
 		}
 		inline static constexpr Float64x2 signaling_NaN() {
 			return {
 				std::numeric_limits<fp64>::signaling_NaN(),
-				std::numeric_limits<fp64>::signaling_NaN()
+				static_cast<fp64>(0.0)
 			};
 		}
 		inline static constexpr Float64x2 denorm_min() {
-			return {std::numeric_limits<fp64>::denorm_min(), static_cast<fp64>(0.0)};
+			return {
+				std::numeric_limits<fp64>::denorm_min(),
+				static_cast<fp64>(0.0)
+			};
 		}
 	};
 }
@@ -1392,13 +1403,16 @@ namespace std {
 
 	/**
 	 * @brief Returns a normalized Float64x2 value and the exponent in
-	 * the form [0.0, 1.0) * 2^expon
+	 * the form [0.5, 1.0) * 2^expon
 	 */
-	inline Float64x2 frexp(const Float64x2& x, int& expon) {
-		Float64x2 ret;
-		expon = ilogb(x) + 1;
-		ret.hi = ldexp(x.hi, -(expon));
-		ret.lo = ldexp(x.lo, -(expon));
+	inline Float64x2 frexp(const Float64x2& x, int* expon) {
+		Float64x2 ret = {
+			frexp(x.hi, expon),
+			static_cast<fp64>(0.0)
+		};
+		if (isfinite(x)) {
+			ret.lo = ldexp(x.lo, -(*expon));
+		}
 		return ret;
 	}
 
@@ -1406,9 +1420,13 @@ namespace std {
 	 * @brief Multiplies a Float64x2 value by 2^expon
 	 */
 	inline Float64x2 ldexp(const Float64x2& x, int expon) {
-		Float64x2 ret;
-		ret.hi = ldexp(x.hi, expon);
-		ret.lo = isfinite(x.hi) ? ldexp(x.lo, expon) : x.hi;
+		Float64x2 ret = {
+			ldexp(x.hi, expon),
+			static_cast<fp64>(0.0)
+		};
+		if (isfinite(x)) {
+			ret.lo = ldexp(x.lo, expon);
+		}
 		return ret;
 	}
 
@@ -1416,9 +1434,13 @@ namespace std {
 	 * @brief Multiplies a Float64x2 value by FLT_RADIX^expon
 	 */
 	inline Float64x2 scalbn(const Float64x2& x, int expon) {
-		Float64x2 ret;
-		ret.hi = scalbn(x.hi, expon);
-		ret.lo = isfinite(x.hi) ? scalbn(x.lo, expon) : x.hi;
+		Float64x2 ret = {
+			scalbn(x.hi, expon),
+			static_cast<fp64>(0.0)
+		};
+		if (isfinite(x)) {
+			ret.lo = scalbn(x.lo, expon);
+		}
 		return ret;
 	}
 
@@ -1426,9 +1448,13 @@ namespace std {
 	 * @brief Multiplies a Float64x2 value by FLT_RADIX^expon
 	 */
 	inline Float64x2 scalbln(const Float64x2& x, long expon) {
-		Float64x2 ret;
-		ret.hi = scalbln(x.hi, expon);
-		ret.lo = isfinite(x.hi) ? scalbln(x.lo, expon) : x.hi;
+		Float64x2 ret = {
+			scalbln(x.hi, expon),
+			static_cast<fp64>(0.0)
+		};
+		if (isfinite(x)) {
+			ret.lo = scalbln(x.lo, expon);
+		}
 		return ret;
 	}
 

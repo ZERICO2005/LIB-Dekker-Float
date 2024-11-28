@@ -2341,44 +2341,63 @@ static inline int Float64x3_ilogb(const Float64x3 x) {
 }
 /**
  * @brief Returns a normalized Float64x3 value and the exponent in
- * the form [0.0, 1.0) * 2^expon
+ * the form [0.5, 1.0) * 2^expon
  */
 static inline Float64x3 Float64x3_frexp(const Float64x3 x, int* const expon) {
-	Float64x3 ret;
-	*expon = ilogb(x.val[0]) + 1;
-	ret.val[0] = ldexp(x.val[0], -(*expon));
-	ret.val[1] = ldexp(x.val[1], -(*expon));
-	ret.val[2] = ldexp(x.val[2], -(*expon));
+	Float64x3 ret = {
+		frexp(x.val[0], expon),
+		0.0,
+		0.0
+	};
+	if (Float64x3_isfinite(x)) {
+		ret.val[1] = ldexp(x.val[1], -(*expon));
+		ret.val[2] = ldexp(x.val[2], -(*expon));
+	}
 	return ret;
 }
 /**
  * @brief Multiplies a Float64x3 value by 2^expon
  */
 static inline Float64x3 Float64x3_ldexp(const Float64x3 x, const int expon) {
-	Float64x3 ret;
-	ret.val[0] = ldexp(x.val[0], expon);
-	ret.val[1] = Float64_isfinite(x.val[0]) ? ldexp(x.val[1], expon) : x.val[0];
-	ret.val[2] = Float64_isfinite(x.val[0]) ? ldexp(x.val[2], expon) : x.val[0];
+	Float64x3 ret = {{
+		ldexp(x.val[0], expon),
+		0.0,
+		0.0
+	}};
+	if (Float64x3_isfinite(x)) {
+		ret.val[1] = ldexp(x.val[1], expon);
+		ret.val[2] = ldexp(x.val[2], expon);
+	}
 	return ret;
 }
 /**
  * @brief Multiplies a Float64x3 value by FLT_RADIX^expon
  */
 static inline Float64x3 Float64x3_scalbn(const Float64x3 x, const int expon) {
-	Float64x3 ret;
-	ret.val[0] = scalbn(x.val[0], expon);
-	ret.val[1] = Float64_isfinite(x.val[0]) ? scalbn(x.val[1], expon) : x.val[0];
-	ret.val[2] = Float64_isfinite(x.val[0]) ? scalbn(x.val[2], expon) : x.val[0];
+	Float64x3 ret = {{
+		scalbn(x.val[0], expon),
+		0.0,
+		0.0
+	}};
+	if (Float64x3_isfinite(x)) {
+		ret.val[1] = scalbn(x.val[1], expon);
+		ret.val[2] = scalbn(x.val[2], expon);
+	}
 	return ret;
 }
 /**
  * @brief Multiplies a Float64x3 value by FLT_RADIX^expon
  */
 static inline Float64x3 Float64x3_scalbln(const Float64x3 x, const long expon) {
-	Float64x3 ret;
-	ret.val[0] = scalbln(x.val[0], expon);
-	ret.val[1] = Float64_isfinite(x.val[0]) ? scalbln(x.val[1], expon) : x.val[0];
-	ret.val[2] = Float64_isfinite(x.val[0]) ? scalbln(x.val[2], expon) : x.val[0];
+	Float64x3 ret = {{
+		scalbln(x.val[0], expon),
+		0.0,
+		0.0
+	}};
+	if (Float64x3_isfinite(x)) {
+		ret.val[1] = scalbln(x.val[1], expon);
+		ret.val[2] = scalbln(x.val[2], expon);
+	}
 	return ret;
 }
 

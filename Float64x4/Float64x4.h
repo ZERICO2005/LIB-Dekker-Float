@@ -2572,45 +2572,68 @@ static inline int Float64x4_ilogb(const Float64x4 x) {
  * the form [0.0, 1.0) * 2^expon
  */
 static inline Float64x4 Float64x4_frexp(const Float64x4 x, int* const expon) {
-	Float64x4 ret;
-	*expon = ilogb(x.val[0]) + 1;
-	ret.val[0] = ldexp(x.val[0], -(*expon));
-	ret.val[1] = ldexp(x.val[1], -(*expon));
-	ret.val[2] = ldexp(x.val[2], -(*expon));
-	ret.val[3] = ldexp(x.val[3], -(*expon));
+	Float64x4 ret = {{
+		frexp(x.val[0], expon),
+		0.0,
+		0.0,
+		0.0
+	}};
+	if (Float64x4_isfinite(x)) {
+		ret.val[1] = ldexp(x.val[1], -(*expon));
+		ret.val[2] = ldexp(x.val[2], -(*expon));
+		ret.val[3] = ldexp(x.val[3], -(*expon));
+	}
 	return ret;
 }
 /**
  * @brief Multiplies a Float64x4 value by 2^expon
  */
 static inline Float64x4 Float64x4_ldexp(const Float64x4 x, const int expon) {
-	Float64x4 ret;
-	ret.val[0] = ldexp(x.val[0], expon);
-	ret.val[1] = Float64_isfinite(x.val[0]) ? ldexp(x.val[1], expon) : x.val[0];
-	ret.val[2] = Float64_isfinite(x.val[0]) ? ldexp(x.val[2], expon) : x.val[0];
-	ret.val[3] = Float64_isfinite(x.val[0]) ? ldexp(x.val[3], expon) : x.val[0];
+	Float64x4 ret = {{
+		ldexp(x.val[0], expon),
+		0.0,
+		0.0,
+		0.0
+	}};
+	if (Float64x4_isfinite(x)) {
+		ret.val[1] = ldexp(x.val[1], expon);
+		ret.val[2] = ldexp(x.val[2], expon);
+		ret.val[3] = ldexp(x.val[3], expon);
+	}
 	return ret;
 }
 /**
  * @brief Multiplies a Float64x4 value by FLT_RADIX^expon
  */
 static inline Float64x4 Float64x4_scalbn(const Float64x4 x, const int expon) {
-	Float64x4 ret;
-	ret.val[0] = scalbn(x.val[0], expon);
-	ret.val[1] = Float64_isfinite(x.val[0]) ? scalbn(x.val[1], expon) : x.val[0];
-	ret.val[2] = Float64_isfinite(x.val[0]) ? scalbn(x.val[2], expon) : x.val[0];
-	ret.val[3] = Float64_isfinite(x.val[0]) ? scalbn(x.val[3], expon) : x.val[0];
+	Float64x4 ret = {{
+		scalbn(x.val[0], expon),
+		0.0,
+		0.0,
+		0.0
+	}};
+	if (Float64x4_isfinite(x)) {
+		ret.val[1] = scalbn(x.val[1], expon);
+		ret.val[2] = scalbn(x.val[2], expon);
+		ret.val[3] = scalbn(x.val[3], expon);
+	}
 	return ret;
 }
 /**
  * @brief Multiplies a Float64x4 value by FLT_RADIX^expon
  */
 static inline Float64x4 Float64x4_scalbln(const Float64x4 x, const long expon) {
-	Float64x4 ret;
-	ret.val[0] = scalbln(x.val[0], expon);
-	ret.val[1] = Float64_isfinite(x.val[0]) ? scalbln(x.val[1], expon) : x.val[0];
-	ret.val[2] = Float64_isfinite(x.val[0]) ? scalbln(x.val[2], expon) : x.val[0];
-	ret.val[3] = Float64_isfinite(x.val[0]) ? scalbln(x.val[3], expon) : x.val[0];
+	Float64x4 ret = {{
+		scalbln(x.val[0], expon),
+		0.0,
+		0.0,
+		0.0
+	}};
+	if (Float64x4_isfinite(x)) {
+		ret.val[1] = scalbln(x.val[1], expon);
+		ret.val[2] = scalbln(x.val[2], expon);
+		ret.val[3] = scalbln(x.val[3], expon);
+	}
 	return ret;
 }
 

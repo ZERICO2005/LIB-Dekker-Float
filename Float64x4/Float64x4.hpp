@@ -136,18 +136,18 @@ inline constexpr bool operator>=(const Float64x4& x, const Float64x4& y) {
 //------------------------------------------------------------------------------
 
 inline constexpr bool operator==(const Float64x4& x, const Float64x2& y) {
-	return (x.val[0] == y.hi && x.val[1] == y.lo && x.val[2] == 0.0);
+	return (x.val[0] == y.hi && x.val[1] == y.lo && x.val[2] == static_cast<fp64>(0.0));
 }
 inline constexpr bool operator!=(const Float64x4& x, const Float64x2& y) {
-	return (x.val[0] != y.hi || x.val[1] != y.lo || x.val[2] != 0.0);
+	return (x.val[0] != y.hi || x.val[1] != y.lo || x.val[2] != static_cast<fp64>(0.0));
 }
 inline constexpr bool operator<(const Float64x4& x, const Float64x2& y) {
 	return
 		(x.val[0] == y.hi) ? (
 			(x.val[1] == y.lo) ? (
-				(x.val[2] == 0.0 ) ? (
-					x.val[3] < 0.0
-				) : (x.val[2] < 0.0 )
+				(x.val[2] == static_cast<fp64>(0.0)) ? (
+					x.val[3] < static_cast<fp64>(0.0)
+				) : (x.val[2] < static_cast<fp64>(0.0))
 			) : (x.val[1] < y.lo)
 		) : (x.val[0] < y.hi);
 }
@@ -155,9 +155,9 @@ inline constexpr bool operator<=(const Float64x4& x, const Float64x2& y) {
 	return
 		(x.val[0] == y.hi) ? (
 			(x.val[1] == y.lo) ? (
-				(x.val[2] == 0.0 ) ? (
-					x.val[3] <= 0.0
-				) : (x.val[2] < 0.0 )
+				(x.val[2] == static_cast<fp64>(0.0)) ? (
+					x.val[3] <= static_cast<fp64>(0.0)
+				) : (x.val[2] < static_cast<fp64>(0.0))
 			) : (x.val[1] < y.lo)
 		) : (x.val[0] < y.hi);
 }
@@ -165,9 +165,9 @@ inline constexpr bool operator>(const Float64x4& x, const Float64x2& y) {
 	return
 		(x.val[0] == y.hi) ? (
 			(x.val[1] == y.lo) ? (
-				(x.val[2] == 0.0 ) ? (
-					x.val[3] > 0.0
-				) : (x.val[2] > 0.0 )
+				(x.val[2] == static_cast<fp64>(0.0)) ? (
+					x.val[3] > static_cast<fp64>(0.0)
+				) : (x.val[2] > static_cast<fp64>(0.0))
 			) : (x.val[1] > y.lo)
 		) : (x.val[0] > y.hi);
 }
@@ -175,9 +175,9 @@ inline constexpr bool operator>=(const Float64x4& x, const Float64x2& y) {
 	return
 		(x.val[0] == y.hi) ? (
 			(x.val[1] == y.lo) ? (
-				(x.val[2] == 0.0 ) ? (
-					x.val[3] >= 0.0
-				) : (x.val[2] > 0.0 )
+				(x.val[2] == static_cast<fp64>(0.0)) ? (
+					x.val[3] >= static_cast<fp64>(0.0)
+				) : (x.val[2] > static_cast<fp64>(0.0))
 			) : (x.val[1] > y.lo)
 		) : (x.val[0] > y.hi);
 }
@@ -185,18 +185,18 @@ inline constexpr bool operator>=(const Float64x4& x, const Float64x2& y) {
 
 
 inline constexpr bool operator==(const Float64x2& x, const Float64x4& y) {
-	return (x.hi == y.val[0] && x.lo == y.val[1] && 0.0 == y.val[2]);
+	return (x.hi == y.val[0] && x.lo == y.val[1] && static_cast<fp64>(0.0)== y.val[2]);
 }
 inline constexpr bool operator!=(const Float64x2& x, const Float64x4& y) {
-	return (x.hi != y.val[0] || x.lo != y.val[1] || 0.0 != y.val[2]);
+	return (x.hi != y.val[0] || x.lo != y.val[1] || static_cast<fp64>(0.0)!= y.val[2]);
 }
 inline constexpr bool operator<(const Float64x2& x, const Float64x4& y) {
 	return
 		(x.hi == y.val[0]) ? (
 			(x.lo == y.val[1]) ? (
-				(0.0  == y.val[2]) ? (
-					0.0  < y.val[3]
-				) : (0.0  < y.val[2])
+				(static_cast<fp64>(0.0) == y.val[2]) ? (
+					static_cast<fp64>(0.0) < y.val[3]
+				) : (static_cast<fp64>(0.0) < y.val[2])
 			) : (x.lo < y.val[1])
 		) : (x.hi < y.val[0]);
 }
@@ -204,9 +204,9 @@ inline constexpr bool operator<=(const Float64x2& x, const Float64x4& y) {
 	return
 		(x.hi == y.val[0]) ? (
 			(x.lo == y.val[1]) ? (
-				(0.0  == y.val[2]) ? (
-					0.0  <= y.val[3]
-				) : (0.0  < y.val[2])
+				(static_cast<fp64>(0.0) == y.val[2]) ? (
+					static_cast<fp64>(0.0) <= y.val[3]
+				) : (static_cast<fp64>(0.0) < y.val[2])
 			) : (x.lo < y.val[1])
 		) : (x.hi < y.val[0]);
 }
@@ -214,9 +214,9 @@ inline constexpr bool operator>(const Float64x2& x, const Float64x4& y) {
 	return
 		(x.hi == y.val[0]) ? (
 			(x.lo == y.val[1]) ? (
-				(0.0  == y.val[2]) ? (
-					0.0  > y.val[3]
-				) : (0.0  > y.val[2])
+				(static_cast<fp64>(0.0) == y.val[2]) ? (
+					static_cast<fp64>(0.0) > y.val[3]
+				) : (static_cast<fp64>(0.0) > y.val[2])
 			) : (x.lo > y.val[1])
 		) : (x.hi > y.val[0]);
 }
@@ -224,9 +224,9 @@ inline constexpr bool operator>=(const Float64x2& x, const Float64x4& y) {
 	return
 		(x.hi == y.val[0]) ? (
 			(x.lo == y.val[1]) ? (
-				(0.0  == y.val[2]) ? (
-					0.0  >= y.val[3]
-				) : (0.0  > y.val[2])
+				(static_cast<fp64>(0.0) == y.val[2]) ? (
+					static_cast<fp64>(0.0) >= y.val[3]
+				) : (static_cast<fp64>(0.0) > y.val[2])
 			) : (x.lo > y.val[1])
 		) : (x.hi > y.val[0]);
 }
@@ -236,41 +236,41 @@ inline constexpr bool operator>=(const Float64x2& x, const Float64x4& y) {
 //------------------------------------------------------------------------------
 
 inline constexpr bool operator==(const Float64x4& x, const fp64 y) {
-	return (x.val[0] == y && x.val[1] == 0.0);
+	return (x.val[0] == y && x.val[1] == static_cast<fp64>(0.0));
 }
 inline constexpr bool operator!=(const Float64x4& x, const fp64 y) {
-	return (x.val[0] != y || x.val[1] != 0.0);
+	return (x.val[0] != y || x.val[1] != static_cast<fp64>(0.0));
 }
 inline constexpr bool operator<(const Float64x4& x, const fp64 y) {
-	return (x.val[0] < y || (x.val[0] == y && x.val[1] < 0.0));
+	return (x.val[0] < y || (x.val[0] == y && x.val[1] < static_cast<fp64>(0.0)));
 }
 inline constexpr bool operator<=(const Float64x4& x, const fp64 y) {
-	return (x.val[0] < y || (x.val[0] == y && x.val[1] <= 0.0));
+	return (x.val[0] < y || (x.val[0] == y && x.val[1] <= static_cast<fp64>(0.0)));
 }
 inline constexpr bool operator>(const Float64x4& x, const fp64 y) {
-	return (x.val[0] > y || (x.val[0] == y && x.val[1] > 0.0));
+	return (x.val[0] > y || (x.val[0] == y && x.val[1] > static_cast<fp64>(0.0)));
 }
 inline constexpr bool operator>=(const Float64x4& x, const fp64 y) {
-	return (x.val[0] > y || (x.val[0] == y && x.val[1] >= 0.0));
+	return (x.val[0] > y || (x.val[0] == y && x.val[1] >= static_cast<fp64>(0.0)));
 }
 
 inline constexpr bool operator==(const fp64 x, const Float64x4& y) {
-	return (x == y.val[0] && 0.0 == y.val[1]);
+	return (x == y.val[0] && static_cast<fp64>(0.0)== y.val[1]);
 }
 inline constexpr bool operator!=(const fp64 x, const Float64x4& y) {
-	return (x != y.val[0] || 0.0 != y.val[1]);
+	return (x != y.val[0] || static_cast<fp64>(0.0)!= y.val[1]);
 }
 inline constexpr bool operator<(const fp64 x, const Float64x4& y) {
-	return (x < y.val[0] || (x == y.val[0] && 0.0 < y.val[1]));
+	return (x < y.val[0] || (x == y.val[0] && static_cast<fp64>(0.0)< y.val[1]));
 }
 inline constexpr bool operator<=(const fp64 x, const Float64x4& y) {
-	return (x < y.val[0] || (x == y.val[0] && 0.0 <= y.val[1]));
+	return (x < y.val[0] || (x == y.val[0] && static_cast<fp64>(0.0)<= y.val[1]));
 }
 inline constexpr bool operator>(const fp64 x, const Float64x4& y) {
-	return (x > y.val[0] || (x == y.val[0] && 0.0 > y.val[1]));
+	return (x > y.val[0] || (x == y.val[0] && static_cast<fp64>(0.0)> y.val[1]));
 }
 inline constexpr bool operator>=(const fp64 x, const Float64x4& y) {
-	return (x > y.val[0] || (x == y.val[0] && 0.0 >= y.val[1]));
+	return (x > y.val[0] || (x == y.val[0] && static_cast<fp64>(0.0)>= y.val[1]));
 }
 
 //------------------------------------------------------------------------------
@@ -279,27 +279,27 @@ inline constexpr bool operator>=(const fp64 x, const Float64x4& y) {
 
 /** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
 inline constexpr bool isequal_zero(const Float64x4& x) {
-	return (x.val[0] == 0.0);
+	return (x.val[0] == static_cast<fp64>(0.0));
 }
 /** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
 inline constexpr bool isnotequal_zero(const Float64x4& x) {
-	return (x.val[0] != 0.0);
+	return (x.val[0] != static_cast<fp64>(0.0));
 }
 /** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
 inline constexpr bool isless_zero(const Float64x4& x) {
-	return (x.val[0] < 0.0);
+	return (x.val[0] < static_cast<fp64>(0.0));
 }
 /** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
 inline constexpr bool islessequal_zero(const Float64x4& x) {
-	return (x.val[0] <= 0.0);
+	return (x.val[0] <= static_cast<fp64>(0.0));
 }
 /** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
 inline constexpr bool isgreater_zero(const Float64x4& x) {
-	return (x.val[0] > 0.0);
+	return (x.val[0] > static_cast<fp64>(0.0));
 }
 /** @brief Assumes that if x.val[0] is zero then x.val[1 - 3] are also zero */
 inline constexpr bool isgreaterequal_zero(const Float64x4& x) {
-	return (x.val[0] >= 0.0);
+	return (x.val[0] >= static_cast<fp64>(0.0));
 }
 
 //------------------------------------------------------------------------------
@@ -1009,33 +1009,43 @@ public:
 	/** @brief `2^-211 == 2^-52 * (2^-53)^3` */
 	inline static constexpr Float64x4 epsilon() {
 		// DBL_EPSILON seems to be 0x1.0p-52
-		return {static_cast<fp64>(0x1.0p-211), static_cast<fp64>(0.0), static_cast<fp64>(0.0), static_cast<fp64>(0.0)};
+		return {
+			static_cast<fp64>(0x1.0p-211),
+			static_cast<fp64>(0.0),
+			static_cast<fp64>(0.0),
+			static_cast<fp64>(0.0)
+		};
 	}
 	inline static constexpr Float64x4 round_error() {
-		return {static_cast<fp64>(0.5), static_cast<fp64>(0.0), static_cast<fp64>(0.0), static_cast<fp64>(0.0)};
+		return {
+			static_cast<fp64>(0.5),
+			static_cast<fp64>(0.0),
+			static_cast<fp64>(0.0),
+			static_cast<fp64>(0.0)
+		};
 	}
 	inline static constexpr Float64x4 infinity() {
 		return {
 			std::numeric_limits<fp64>::infinity(),
-			std::numeric_limits<fp64>::infinity(),
-			std::numeric_limits<fp64>::infinity(),
-			std::numeric_limits<fp64>::infinity()
+			static_cast<fp64>(0.0),
+			static_cast<fp64>(0.0),
+			static_cast<fp64>(0.0)
 		};
 	}
 	inline static constexpr Float64x4 quiet_NaN() {
 		return {
 			std::numeric_limits<fp64>::quiet_NaN(),
-			std::numeric_limits<fp64>::quiet_NaN(),
-			std::numeric_limits<fp64>::quiet_NaN(),
-			std::numeric_limits<fp64>::quiet_NaN()
+			static_cast<fp64>(0.0),
+			static_cast<fp64>(0.0),
+			static_cast<fp64>(0.0)
 		};
 	}
 	inline static constexpr Float64x4 signaling_NaN() {
 		return {
 			std::numeric_limits<fp64>::signaling_NaN(),
-			std::numeric_limits<fp64>::signaling_NaN(),
-			std::numeric_limits<fp64>::signaling_NaN(),
-			std::numeric_limits<fp64>::signaling_NaN()
+			static_cast<fp64>(0.0),
+			static_cast<fp64>(0.0),
+			static_cast<fp64>(0.0)
 		};
 	}
 	inline static constexpr Float64x4 denorm_min() {
@@ -1454,52 +1464,75 @@ namespace std {
 	 * binary logarithm.
 	 */
 	inline int ilogb(const Float64x4& x) {
-		return ilogb(x.val[0] + (x.val[1] + (x.val[2] + x.val[3])));
+		return ilogb(x.val[0]);
 	}
 	/**
 	 * @brief Returns a normalized Float64x4 value and the exponent in
 	 * the form [0.0, 1.0) * 2^expon
 	 */
-	inline Float64x4 frexp(const Float64x4& x, int& expon) {
-		Float64x4 ret;
-		expon = ilogb(x.val[0] + (x.val[1] + (x.val[2] + x.val[3]))) + 1;
-		ret.val[0] = ldexp(x.val[0], -(expon));
-		ret.val[1] = ldexp(x.val[1], -(expon));
-		ret.val[2] = ldexp(x.val[2], -(expon));
-		ret.val[3] = ldexp(x.val[3], -(expon));
+	inline Float64x4 frexp(const Float64x4& x, int* expon) {
+		Float64x4 ret = {{
+			frexp(x.val[0], expon),
+			static_cast<fp64>(0.0),
+			static_cast<fp64>(0.0),
+			static_cast<fp64>(0.0)
+		}};
+		if (isfinite(x)) {
+			ret.val[1] = ldexp(x.val[1], -(*expon));
+			ret.val[2] = ldexp(x.val[2], -(*expon));
+			ret.val[3] = ldexp(x.val[3], -(*expon));
+		}
 		return ret;
 	}
 	/**
 	 * @brief Multiplies a Float64x4 value by 2^expon
 	 */
 	inline Float64x4 ldexp(const Float64x4& x, int expon) {
-		Float64x4 ret;
-		ret.val[0] = ldexp(x.val[0], expon);
-		ret.val[1] = isfinite(x.val[0]) ? ldexp(x.val[1], expon) : x.val[0];
-		ret.val[2] = isfinite(x.val[0]) ? ldexp(x.val[2], expon) : x.val[0];
-		ret.val[3] = isfinite(x.val[0]) ? ldexp(x.val[3], expon) : x.val[0];
+		Float64x4 ret = {{
+			ldexp(x.val[0], expon),
+			static_cast<fp64>(0.0),
+			static_cast<fp64>(0.0),
+			static_cast<fp64>(0.0)
+		}};
+		if (isfinite(x)) {
+			ret.val[1] = ldexp(x.val[1], expon);
+			ret.val[2] = ldexp(x.val[2], expon);
+			ret.val[3] = ldexp(x.val[3], expon);
+		}
 		return ret;
 	}
 	/**
 	 * @brief Multiplies a Float64x4 value by FLT_RADIX^expon
 	 */
 	inline Float64x4 scalbn(const Float64x4& x, int expon) {
-		Float64x4 ret;
-		ret.val[0] = scalbn(x.val[0], expon);
-		ret.val[1] = isfinite(x.val[0]) ? scalbn(x.val[1], expon) : x.val[0];
-		ret.val[2] = isfinite(x.val[0]) ? scalbn(x.val[2], expon) : x.val[0];
-		ret.val[3] = isfinite(x.val[0]) ? scalbn(x.val[3], expon) : x.val[0];
+		Float64x4 ret = {{
+			scalbn(x.val[0], expon),
+			static_cast<fp64>(0.0),
+			static_cast<fp64>(0.0),
+			static_cast<fp64>(0.0)
+		}};
+		if (isfinite(x)) {
+			ret.val[1] = scalbn(x.val[1], expon);
+			ret.val[2] = scalbn(x.val[2], expon);
+			ret.val[3] = scalbn(x.val[3], expon);
+		}
 		return ret;
 	}
 	/**
 	 * @brief Multiplies a Float64x4 value by FLT_RADIX^expon
 	 */
 	inline Float64x4 scalbln(const Float64x4& x, long expon) {
-		Float64x4 ret;
-		ret.val[0] = scalbln(x.val[0], expon);
-		ret.val[1] = isfinite(x.val[0]) ? scalbln(x.val[1], expon) : x.val[0];
-		ret.val[2] = isfinite(x.val[0]) ? scalbln(x.val[2], expon) : x.val[0];
-		ret.val[3] = isfinite(x.val[0]) ? scalbln(x.val[3], expon) : x.val[0];
+		Float64x4 ret = {{
+			scalbln(x.val[0], expon),
+			static_cast<fp64>(0.0),
+			static_cast<fp64>(0.0),
+			static_cast<fp64>(0.0)
+		}};
+		if (isfinite(x)) {
+			ret.val[1] = scalbln(x.val[1], expon);
+			ret.val[2] = scalbln(x.val[2], expon);
+			ret.val[3] = scalbln(x.val[3], expon);
+		}
 		return ret;
 	}
 

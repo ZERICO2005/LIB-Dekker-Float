@@ -1239,44 +1239,59 @@ static inline Float64x2 Float64x2_remquo(const Float64x2 x, const Float64x2 y, i
  * binary logarithm.
  */
 static inline int Float64x2_ilogb(const Float64x2 x) {
-	return ilogb(x.hi + x.lo);
+	return ilogb(x.hi);
 }
 /**
  * @brief Returns a normalized Float64x2 value and the exponent in
- * the form [0.0, 1.0) * 2^expon
+ * the form [0.5, 1.0) * 2^expon
  */
 static inline Float64x2 Float64x2_frexp(const Float64x2 x, int* const expon) {
-	Float64x2 ret;
-	*expon = ilogb(x.hi + x.lo) + 1;
-	ret.hi = ldexp(x.hi, -(*expon));
-	ret.lo = ldexp(x.lo, -(*expon));
+	Float64x2 ret = {
+		frexp(x.hi, expon),
+		0.0
+	};
+	if (Float64x2_isfinite(x)) {
+		ret.lo = ldexp(x.lo, -(*expon));
+	}
 	return ret;
 }
 /**
  * @brief Multiplies a Float64x2 value by 2^expon
  */
 static inline Float64x2 Float64x2_ldexp(const Float64x2 x, const int expon) {
-	Float64x2 ret;
-	ret.hi = ldexp(x.hi, expon);
-	ret.lo = Float64_isfinite(x.hi) ? ldexp(x.lo, expon) : x.hi;
+	Float64x2 ret = {
+		ldexp(x.hi, expon),
+		0.0
+	};
+	if (Float64x2_isfinite(x)) {
+		ret.lo = ldexp(x.lo, expon);
+	}
 	return ret;
 }
 /**
  * @brief Multiplies a Float64x2 value by FLT_RADIX^expon
  */
 static inline Float64x2 Float64x2_scalbn(const Float64x2 x, const int expon) {
-	Float64x2 ret;
-	ret.hi = scalbn(x.hi, expon);
-	ret.lo = Float64_isfinite(x.hi) ? scalbn(x.lo, expon) : x.hi;
+	Float64x2 ret = {
+		scalbn(x.hi, expon),
+		0.0
+	};
+	if (Float64x2_isfinite(x)) {
+		ret.lo = scalbn(x.lo, expon);
+	}
 	return ret;
 }
 /**
  * @brief Multiplies a Float64x2 value by FLT_RADIX^expon
  */
 static inline Float64x2 Float64x2_scalbln(const Float64x2 x, const long expon) {
-	Float64x2 ret;
-	ret.hi = scalbln(x.hi, expon);
-	ret.lo = Float64_isfinite(x.hi) ? scalbln(x.lo, expon) : x.hi;
+	Float64x2 ret = {
+		scalbln(x.hi, expon),
+		0.0
+	};
+	if (Float64x2_isfinite(x)) {
+		ret.lo = scalbln(x.lo, expon);
+	}
 	return ret;
 }
 
