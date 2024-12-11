@@ -35,10 +35,10 @@ long double calc_precision(fpX x, fpX& ground_truth, fpX& func_result) {
 	mpfr_set_type<fpX>(y0_mpfr.value, x, MPFR_RNDN);
 
 	{ // Calculate ground truth
-		mpfr_sin(y0_mpfr.value, y0_mpfr.value, MPFR_RNDN);
+		mpfr_erfc(y0_mpfr.value, y0_mpfr.value, MPFR_RNDN);
 	}
 	{ // Calculate func result
-		y1 = sin(x);
+		y1 = erfc(x);
 	}
 
 	y0 = mpfr_get_type<fpX>(y0_mpfr.value, MPFR_RNDN);
@@ -126,7 +126,7 @@ void graph_precision(const size_t points, const long double range, const long do
 			(long double)i, 0.0L, (long double)points,
 			offset - range,  offset + range
 		);
-		#if 1
+		#if 0
 		x = exp2(x);
 		#endif
 
