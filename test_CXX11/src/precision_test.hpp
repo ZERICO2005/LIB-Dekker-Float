@@ -35,10 +35,10 @@ long double calc_precision(fpX x, fpX& ground_truth, fpX& func_result) {
 	mpfr_set_type<fpX>(y0_mpfr.value, x, MPFR_RNDN);
 
 	{ // Calculate ground truth
-		mpfr_sin(y0_mpfr.value, y0_mpfr.value, MPFR_RNDN);
+		mpfr_erfc(y0_mpfr.value, y0_mpfr.value, MPFR_RNDN);
 	}
 	{ // Calculate func result
-		y1 = sin(x);
+		y1 = erfc(x);
 	}
 
 	y0 = mpfr_get_type<fpX>(y0_mpfr.value, MPFR_RNDN);
@@ -58,13 +58,13 @@ long double calc_precision(fpX x, fpX& ground_truth, fpX& func_result) {
 
 template <typename fpX>
 void precision_test(void) {
-	constexpr size_t points = 655361;
+	constexpr size_t points = 65536;
 
 	long double max_diff = -9999999.0L;
 	size_t values_printed = 0;
 
-	long double range =  (long double)710.0L;
-	long double offset = (long double)0.0L;
+	long double range =  (long double)20.0L;
+	long double offset = (long double)20.0L;
 
 	for (size_t i = 0; i < points; i++) {
 
@@ -72,7 +72,7 @@ void precision_test(void) {
 			(long double)i, 0.0L, (long double)points,
 			offset - range,  offset + range
 		);
-		#if 1
+		#if 0
 			x = exp2(x);
 		#endif
 

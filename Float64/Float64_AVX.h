@@ -145,6 +145,26 @@ static inline __m256d _mm256_const_phi_pd(void) {
 // __m256d floating point manipulation
 //------------------------------------------------------------------------------
 
+#ifndef _mm256_not_pd
+
+#ifdef __AVX2__
+static inline __m256d _mm256_not_pd(const __m256d x) {
+	return _mm256_xor_pd(
+		x,
+		_mm256_castsi256_pd(_mm256_cmpeq_epi64(_mm256_castpd_si256(x), _mm256_castpd_si256(x)))
+	);
+}
+#else
+static inline __m256d _mm256_not_pd(const __m256d x) {
+	return _mm256_xor_pd(
+		x,
+		_mm256_cmp_pd(x, x, _CMP_NLT_UQ)
+	);
+}
+#endif
+
+#endif
+
 /** @brief Returns a __m256d value set to positive infinity */
 static inline __m256d _mm256_get_infinity_pd(void) {
 	return _mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FF0000000000000));
@@ -189,24 +209,42 @@ static inline __m256d _mm256_extract_mantissa_pd(const __m256d x) {
 // __m256d floating point classify
 //------------------------------------------------------------------------------
 
-/** @brief Returns true if x is negative */
+#if __AVX2__
+/** @brief Returns true if the signbit of x is set (or if x is negative) */
 static inline __m256d _mm256_signbit_pd(const __m256d x) {
 	return _mm256_blendv_pd(
 		_mm256_setzero_pd(),
-		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xFFFFFFFFFFFFFFFF)),
+		_mm256_castsi256_pd(_mm256_cmpeq_epi64(_mm256_castpd_si256(x), _mm256_castpd_si256(x))),
 		x
 	);
 }
+#else
+/** @brief Returns true if the signbit of x is set (or if x is negative) */
+static inline __m256d _mm256_signbit_pd(const __m256d x) {
+	return _mm256_blendv_pd(
+		_mm256_setzero_pd(),
+		_mm256_cmp_pd(x, x, _CMP_NLT_UQ),
+		x
+	);
+}
+#endif
 
 /** @brief Returns true if x is finite */
 static inline __m256d _mm256_isfinite_pd(const __m256d x) {
-	// extract the exponent, and check that it is not all ones
-	__m256d x_exp = _mm256_extract_exponent_pd(x);
-	return _mm256_cmp_pd(x_exp, _mm256_get_exponent_mask_pd(), _CMP_NEQ_UQ);
+	// ensure that the mantissa is non-zero. This converts infinity to NaN
+	__m256d x_non_zero_mant = _mm256_or_pd(
+		x,
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x1))
+	);
+	// return true if not NaN
+	return _mm256_cmp_pd(x_non_zero_mant , x_non_zero_mant, _CMP_ORD_Q);
 }
 
 /** @brief Returns true if x is +-infinity */
 static inline __m256d _mm256_isinf_pd(const __m256d x) {
+#if 0
+/* two load, one comp */	
+	// checks if fabs(x) is equal to +infinity
 	return _mm256_cmp_pd(
 		_mm256_and_pd(
 			x,
@@ -214,31 +252,50 @@ static inline __m256d _mm256_isinf_pd(const __m256d x) {
 		),
 		_mm256_get_infinity_pd(),
 	_CMP_EQ_UQ);
+#else
+/* one load, two comp */
+	// changes infinity to NaN
+	__m256d x_non_zero_mant = _mm256_or_pd(
+		x,
+		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x1))
+	);
+	/**
+	 * Checks that x is not unordered NaN, then checks for ordered infinity by
+	 * making the mantissa non-zero
+	 */
+	return _mm256_and_pd(
+		_mm256_cmp_pd(x, x, _CMP_ORD_Q),
+		_mm256_cmp_pd(x_non_zero_mant , x_non_zero_mant, _CMP_UNORD_Q)
+	);
+#endif
 }
 
 /** @brief Returns true if x is any kind of NaN */
 static inline __m256d _mm256_isnan_pd(const __m256d x) {
-	return _mm256_cmp_pd(x, _mm256_setzero_pd(), _CMP_UNORD_Q);
+	return _mm256_cmp_pd(x, x, _CMP_UNORD_Q);
 }
 
 /** @brief Returns true if x is normal */
 static inline __m256d _mm256_isnormal_pd(const __m256d x) {
 	// extract the exponent, and check that it is not all ones or zeros
-	__m256d x_exp = _mm256_extract_exponent_pd(x);
+	const __m256d exp_mask = _mm256_get_exponent_mask_pd();
+	__m256d x_exp = _mm256_and_pd(x, exp_mask);
 	return _mm256_and_pd(
-		_mm256_cmp_pd(x_exp, _mm256_get_exponent_mask_pd(), _CMP_NEQ_UQ),
-		_mm256_cmp_pd(x_exp, _mm256_setzero_pd(), _CMP_NEQ_UQ)
+		_mm256_cmp_pd(x_exp, exp_mask, _CMP_NEQ_OQ),
+		_mm256_cmp_pd(x_exp, _mm256_setzero_pd(), _CMP_NEQ_OQ)
 	);
 }
 
 /** @brief Returns true if x is denormal and non-zero */
 static inline __m256d _mm256_isdenormal_pd(const __m256d x) {
-	// check that x is not equal to zero, and that the exponent is all zeros
-	__m256d x_exp = _mm256_extract_exponent_pd(x);
-	return _mm256_and_pd(
-		_mm256_cmp_pd(x, _mm256_setzero_pd(), _CMP_NEQ_UQ),
-		_mm256_cmp_pd(x_exp, _mm256_setzero_pd(), _CMP_EQ_UQ)
-	);
+	// flips the exponent bits
+	__m256d x_not_exp = _mm256_xor_pd(x, _mm256_get_exponent_mask_pd());
+	/**
+	 * denormal numbers will now have an exponent set to all ones,
+	 * corresponding with unordered NaN. zero will become an ordered infinity
+	 * instead of an unordered NaN.
+	 */
+	return _mm256_cmp_pd(x_not_exp, x_not_exp, _CMP_UNORD_Q);
 }
 
 //------------------------------------------------------------------------------
@@ -422,15 +479,6 @@ static inline __m256d _mm256_fabs_pd(__m256d x) {
 	return _mm256_and_pd(
 		x,
 		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0x7FFFFFFFFFFFFFFF))
-	);
-}
-#endif
-
-#ifndef _mm256_not_pd
-static inline __m256d _mm256_not_pd(__m256d x) {
-	return _mm256_xor_pd(
-		x,
-		_mm256_castsi256_pd(_mm256_set1_epi64x((int64_t)0xFFFFFFFFFFFFFFFF))
 	);
 }
 #endif

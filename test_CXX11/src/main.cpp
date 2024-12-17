@@ -280,7 +280,7 @@ int main(void) {
 	// generate_inverf(8192, 300);
 	// test_inverf();
 
-	precision_test<Float64x2>();
+	precision_test<Float80x2>();
 	// graph_precision<Float64x4>(24000, 90.0L, 0.0L);
 
 	// run_generate_constants();
