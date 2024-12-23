@@ -266,10 +266,10 @@ Float64x2 exp(const Float64x2& x) {
 		return static_cast<Float64x2>(1.0);
 	}
 	if (x == static_cast<fp64>(1.0)) {
-		return LDF::const_e<Float64x4>();
+		return LDF::const_e<Float64x2>();
 	}
 	if (x == static_cast<fp64>(-1.0)) {
-		return LDF::const_inv_e<Float64x4>();
+		return LDF::const_inv_e<Float64x2>();
 	}
 
 	fp64 m;
@@ -1424,23 +1424,53 @@ Float64x2 erfc(const Float64x2& x) {
 
 #else
 
-static const Float64x2* erfc_table[] = {
-	erfc_GtP5PadeTable,
-	erfc_Gt1PadeTable,
-	erfc_Gt2PadeTable,
-	erfc_Gt4PadeTable,
-	erfc_Gt8PadeTable,
-	erfc_Gt16PadeTable
+static const Float64x2* erfc_lut_numer[] = {
+	erfc_pade_0d5_numer ,
+	erfc_pade_1d0_numer ,
+	erfc_pade_2d0_numer ,
+	erfc_pade_4d0_numer ,
+	erfc_pade_8d0_numer ,
+	erfc_pade_16d0_numer
 };
 
-static constexpr size_t erfc_len[] = {
-	sizeof(erfc_GtP5PadeTable) / sizeof(Float64x2),
-	sizeof(erfc_Gt1PadeTable ) / sizeof(Float64x2),
-	sizeof(erfc_Gt2PadeTable ) / sizeof(Float64x2),
-	sizeof(erfc_Gt4PadeTable ) / sizeof(Float64x2),
-	sizeof(erfc_Gt8PadeTable ) / sizeof(Float64x2),
-	sizeof(erfc_Gt16PadeTable) / sizeof(Float64x2)
+static constexpr size_t erfc_len_numer[] = {
+	sizeof(erfc_pade_0d5_numer ) / sizeof(Float64x2),
+	sizeof(erfc_pade_1d0_numer ) / sizeof(Float64x2),
+	sizeof(erfc_pade_2d0_numer ) / sizeof(Float64x2),
+	sizeof(erfc_pade_4d0_numer ) / sizeof(Float64x2),
+	sizeof(erfc_pade_8d0_numer ) / sizeof(Float64x2),
+	sizeof(erfc_pade_16d0_numer) / sizeof(Float64x2)
 };
+
+static_assert(
+	sizeof(erfc_lut_numer) / sizeof(erfc_lut_numer[0]) ==
+	sizeof(erfc_len_numer) / sizeof(erfc_len_numer[0]),
+	"erfc_lut_numer is missing data"
+);
+
+static const Float64x2* erfc_lut_denom[] = {
+	erfc_pade_0d5_denom ,
+	erfc_pade_1d0_denom ,
+	erfc_pade_2d0_denom ,
+	erfc_pade_4d0_denom ,
+	erfc_pade_8d0_denom ,
+	erfc_pade_16d0_denom
+};
+
+static constexpr size_t erfc_len_denom[] = {
+	sizeof(erfc_pade_0d5_denom ) / sizeof(Float64x2),
+	sizeof(erfc_pade_1d0_denom ) / sizeof(Float64x2),
+	sizeof(erfc_pade_2d0_denom ) / sizeof(Float64x2),
+	sizeof(erfc_pade_4d0_denom ) / sizeof(Float64x2),
+	sizeof(erfc_pade_8d0_denom ) / sizeof(Float64x2),
+	sizeof(erfc_pade_16d0_denom) / sizeof(Float64x2)
+};
+
+static_assert(
+	sizeof(erfc_lut_denom) / sizeof(erfc_lut_denom[0]) ==
+	sizeof(erfc_len_denom) / sizeof(erfc_len_denom[0]),
+	"erfc_lut_denom is missing data"
+);
 
 static constexpr fp64 erfc_offset[] = {
 	0.5,
@@ -1451,88 +1481,6 @@ static constexpr fp64 erfc_offset[] = {
 	16.0
 };
 
-static_assert(
-	sizeof(erfc_table) / sizeof(erfc_table[0]) ==
-	sizeof(erfc_len) / sizeof(erfc_len[0]),
-	"erfc LUT is missing data"
-);
-
-static_assert(
-	sizeof(erfc_table) / sizeof(erfc_table[0]) ==
-	sizeof(erfc_offset) / sizeof(erfc_offset[0]),
-	"erfc LUT is missing data"
-);
-
-static constexpr Float64x2 erfc_pade_1_numer[] = {
-	{+2.851828719619464889e-14, -1.335074819277732270e-30},
-	{+8.226003913503168488e-07, +1.081272276949013928e-23},
-	{+2.773889721131736103e-05, -1.727128212625156361e-22},
-	{+4.294584846659998999e-04, +2.558392104741109239e-20},
-	{+4.006189891414598664e-03, +2.528739418844589932e-19},
-	{+2.482590876669700172e-02, +6.745926434755669003e-19},
-	{+1.061079681379095419e-01, +2.664107345139425729e-18},
-	{+3.134808646006664867e-01, +7.665729566205822671e-18},
-	{+6.197074484260350902e-01, -2.581216591646391581e-18},
-	{+7.488042145685599449e-01, -9.215254025602345008e-18},
-	{+4.275835761558069992e-01, +5.235737283314228226e-18},
-};
-
-static constexpr Float64x2 erfc_pade_1_denom[] = {
-	{+1.458023146187244421e-06, -6.707658729467936861e-23},
-	{+5.062389980477145692e-05, +1.102385913694647846e-22},
-	{+8.110907772834349784e-04, +3.679268053932364029e-21},
-	{+7.885830494878421151e-03, +7.186654228598659798e-20},
-	{+5.145962856497861976e-02, +2.118533571000597769e-18},
-	{+2.352451245117950229e-01, +1.020709239665387502e-18},
-	{+7.622027830360582623e-01, -7.808165795916711279e-18},
-	{+1.726749082488493237e+00, -7.720782454841253036e-17},
-	{+2.615561305431335359e+00, -5.358093509769542448e-18},
-	{+2.390213951950405313e+00, -1.252046280816243580e-16},
-	{+1.000000000000000000e+00, +0.000000000000000000e+00},
-};
-
-Float64x2 erfc_1(const Float64x2& x) {
-	size_t numer_len = sizeof(erfc_pade_1_numer) / sizeof(Float64x2);
-	size_t denom_len = sizeof(erfc_pade_1_denom) / sizeof(Float64x2);
-	
-	Float64x2 w = x - 1.0;
-	Float64x2 numer, denom;
-	
-	numer = erfc_pade_1_numer[0];
-	for (size_t i = 1; i < numer_len; i++) {
-		numer = numer * w + erfc_pade_1_numer[i];
-	}
-
-	denom = erfc_pade_1_denom[0];
-	for (size_t i = 1; i < denom_len; i++) {
-		denom = denom * w + erfc_pade_1_denom[i];
-	}
-	
-	Float64x2 y = numer / (denom * exp(square(x)));
-	return y;
-}
-
-Float64x2 erfc_p5(const Float64x2& x) {
-	Float64x2 w = x - 0.5;
-
-	assert(w >= 0.0);
-
-	Float64x2 numer, denom;
-
-	numer = -0.000544649;
-	numer = numer * w + 0.0637602;
-	numer = numer * w + 0.304431;
-	numer = numer * w + 0.61569;
-
-	denom = 0.105589;
-	denom = denom * w + 0.625046;
-	denom = denom * w + 1.32716;
-	denom = denom * w + 1.000000000000000;
-
-	Float64x2 y = numer / (denom * exp(square(x)));
-	return y;
-}
-
 Float64x2 erfc(const Float64x2& x) {
 	if (isnan(x)) {
 		return x;
@@ -1541,51 +1489,42 @@ Float64x2 erfc(const Float64x2& x) {
 		return 1.0 - erf(x);
 	}
 
-	return erfc_1(x);
-
-	#if 0
-	// based off https://github.com/tk-yoshimura/DoubleDouble/blob/main/DoubleDoubleNumTablePacking/ErfcTable.cs
 	size_t LUT_index = 0;
 
-	if (x < 1.0  ) {
-		return erfc_p5(x);
-		// LUT_index = 0;
-	}
-	else if (x < 2.0  ) { LUT_index = 1; }
-	else if (x < 4.0  ) { LUT_index = 2; }
-	else if (x < 8.0  ) { LUT_index = 3; }
-	else if (x < 16.0 ) { LUT_index = 4; }
+	if      (x < 0.75 ) { LUT_index = 0; }
+	else if (x < 1.5  ) { LUT_index = 1; }
+	else if (x < 3.0  ) { LUT_index = 2; }
+	else if (x < 6.0  ) { LUT_index = 3; }
+	else if (x < 12.0 ) { LUT_index = 4; }
 	else if (x < 27.25) { LUT_index = 5; }
 	else { 
 		std::feraiseexcept(FE_UNDERFLOW);
 		return 0.0;
 	}
 
-	const Float64x2* table = erfc_table[LUT_index];
-	const size_t len = erfc_len[LUT_index];
-	
+	const Float64x2* lut_numer = erfc_lut_numer[LUT_index];
+	const Float64x2* lut_denom = erfc_lut_denom[LUT_index];
+	const size_t len_numer = erfc_len_numer[LUT_index];
+	const size_t len_denom = erfc_len_denom[LUT_index];
+
 	Float64x2 w = x - erfc_offset[LUT_index];
 
-	assert(w >= 0.0);
-
-	Float64x2 c, d;
+	Float64x2 numer, denom;
 	
-	int i = (int)len;
-	Float64x2 sc = table[--i];
-	Float64x2 sd = table[--i];
-
-	while (i != 0) {
-		c = table[--i];
-		d = table[--i];
-
-		sc = sc * w + c;
-		sd = sd * w + d;
+	numer = lut_numer[0];
+	for (size_t i = 1; i < len_numer; i++) {
+		numer = numer * w + lut_numer[i];
 	}
 
-	if (sd < 0.5) {
-		return std::numeric_limits<Float64x2>::quiet_NaN();
+	denom = lut_denom[0];
+	for (size_t i = 1; i < len_denom; i++) {
+		denom = denom * w + lut_denom[i];
 	}
+	
+	Float64x2 y = numer / (denom * exp(square(x)));
+	return y;
 
+	#if 0
 	if (x <= 25.75) {
 		Float64x2 y = sc / (sd * exp(square(x)));
 
